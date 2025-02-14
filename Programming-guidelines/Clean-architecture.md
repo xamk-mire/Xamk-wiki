@@ -1,5 +1,7 @@
 # Overview
 
+![image](https://github.com/user-attachments/assets/bffe1b4d-d419-477f-87da-b97b8de7cf15)
+
 **Clean Architecture** is a layered architectural style that organizes software into concentric circles (or layers). Each layer has a well-defined role, and **all dependencies point inwards**—toward the most critical part of the system: the **core business logic** (or domain). The outer layers handle implementation details (e.g., frameworks, databases, user interfaces) that can change over time without affecting the domain logic.
 
 At a high level, Clean Architecture looks like this (from innermost to outermost layer):
