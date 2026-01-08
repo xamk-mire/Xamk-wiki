@@ -20,12 +20,8 @@ Tervetuloa C# olio-ohjelmoinnin oppimateriaaliin! Tämä materiaali käsittelee 
 - [Rekursio](00-Basics/Recursion.md)
 - [Koodin kääntäminen](00-Basics/Code-Compilation.md)
 
-### 1. [Johdanto C#:n opiskeluun](01-Introduction/)
-- [Yleiskuva materiaalista](01-Introduction/README.md) - Miten aloittaa C#:n opiskelu ja mitä materiaali sisältää
-- [Mitä on OOP?](01-Introduction/What-is-OOP.md) - OOP:n peruskäsitteet yleisellä tasolla
-- [Luokat ja Objektit](01-Introduction/Classes-and-Objects.md) - Luokkien ja objektien perusteet
-
 ### 2. [OOP-konseptit](02-OOP-Concepts/)
+- [Mitä on OOP?](02-OOP-Concepts/What-is-OOP.md) - OOP:n peruskäsitteet yleisellä tasolla
 - [OOP-tekniikat - Yleiskuvaus](02-OOP-Concepts/OOP-Techniques-Overview.md) - Kaikkien tekniikoiden yhteenveto
 - [Kapselointi (Encapsulation)](02-OOP-Concepts/Encapsulation.md)
 - [Perintä (Inheritance)](02-OOP-Concepts/Inheritance.md)
@@ -34,7 +30,7 @@ Tervetuloa C# olio-ohjelmoinnin oppimateriaaliin! Tämä materiaali käsittelee 
 - [Rajapinnat (Interfaces)](02-OOP-Concepts/Interfaces.md)
 
 ### 3. [Koodiesimerkit](03-Examples/)
-Lisäesimerkit ja harjoitukset
+Lisäesimerkit
 
 ### 99. [Yleiset ohjelmointimateriaalit](99-General/)
 Materiaalit, jotka eivät ole suoraan C#-kieleen liittyviä:
