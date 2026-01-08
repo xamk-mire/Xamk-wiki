@@ -219,7 +219,7 @@ var empty = new List<int>();
 int? result2 = empty.FirstOrDefault(); // null
 ```
 
-## Anonyymit funktiot ja delegaatit
+## Anonyymit funktiot
 
 ### Mikä on anonyymi funktio?
 
@@ -244,50 +244,7 @@ List<int> evenNumbers = numbers.Where(IsEven).ToList();
 List<int> evenNumbers = numbers.Where(n => n % 2 == 0).ToList();
 ```
 
-### Mikä on delegaatti?
-
-Delegaatit ovat erityisiä C#-tyyppejä, jotka edustavat viittausta yhteen tai useampaan metodiin. Voidaan ajatella, että delegaatti on muuttuja, johon voidaan tallentaa funktio. Tämä mahdollistaa metodien käsittelyn muuttujina ja niiden välittämisen parametrina muihin metodeihin.
-
-### Esimerkki: Delegaatin käyttö
-
-```csharp
-delegate bool NumberPredicate(int number);
-
-bool IsOdd(int number)
-{
-    return number % 2 != 0;
-}
-
-NumberPredicate predicate = IsOdd;
-List<int> oddNumbers = numbers.Where(predicate).ToList();
-// oddNumbers = {1, 3, 5}
-```
-
-### Delegaatin korvaaminen lambda-funktiolla
-
-```csharp
-List<int> oddNumbers = numbers.Where(n => n % 2 != 0).ToList();
-```
-
-### Esimerkki: Ravintolan tilausten käsittely
-
-```csharp
-// Delegaatin käyttö tilausten suodattamisessa
-delegate bool OrderFilter(Order order);
-
-bool ExpensiveOrders(Order order)
-{
-    return order.Price > 50;
-}
-
-List<Order> orders = GetOrders();
-List<Order> expensiveOrders = orders.Where(ExpensiveOrders).ToList();
-```
-
-```csharp
-// Sama toteutus anonyymillä funktiolla
-List<Order> expensiveOrders = orders.Where(order => order.Price > 50).ToList();
-```
+> **Huom!** LINQ:n kanssa käytetään usein myös [delegaatteja](Delegates.md). Tutustu niiden käyttöön LINQ-operaatioiden yhteydessä.
 
 ## Predikaatti
 
@@ -393,6 +350,154 @@ Sama voidaan tehdä anonyymilla funktiolla ilman erillistä metodia:
 List<int> evenNumbers = numbers.Where(n => n % 2 == 0).ToList();
 ```
 
+## Käytännön esimerkkejä
+
+### Esimerkki 1: Opiskelijoiden suodattaminen ja järjestäminen
+
+```csharp
+public class Student
+{
+    public string Name { get; set; }
+    public int Age { get; set; }
+    public double Grade { get; set; }
+}
+
+List<Student> students = new List<Student>
+{
+    new Student { Name = "Anna", Age = 20, Grade = 4.5 },
+    new Student { Name = "Mikko", Age = 22, Grade = 3.8 },
+    new Student { Name = "Laura", Age = 19, Grade = 4.9 },
+    new Student { Name = "Jari", Age = 21, Grade = 3.5 }
+};
+
+// Hae opiskelijat, joiden arvosana on yli 4.0, ja järjestä iän mukaan
+var topStudents = students
+    .Where(s => s.Grade > 4.0)
+    .OrderBy(s => s.Age)
+    .Select(s => s.Name)
+    .ToList();
+// topStudents = ["Laura", "Anna"]
+```
+
+> **Lisäesimerkkejä:** [LINQ Tutorial - 101 LINQ Samples](https://www.tutorialsteacher.com/linq/sample-linq-queries)
+
+### Esimerkki 2: Tuotteiden suodattaminen ja hinnan laskeminen
+
+```csharp
+public class Product
+{
+    public string Name { get; set; }
+    public decimal Price { get; set; }
+    public string Category { get; set; }
+}
+
+List<Product> products = new List<Product>
+{
+    new Product { Name = "Laptop", Price = 999.99m, Category = "Electronics" },
+    new Product { Name = "Mouse", Price = 25.50m, Category = "Electronics" },
+    new Product { Name = "Desk", Price = 299.00m, Category = "Furniture" },
+    new Product { Name = "Chair", Price = 149.99m, Category = "Furniture" }
+};
+
+// Hae elektroniikkatuotteet ja laske kokonaishinta
+var electronicsTotal = products
+    .Where(p => p.Category == "Electronics")
+    .Sum(p => p.Price);
+// electronicsTotal = 1025.49
+
+// Hae kalleimmat tuotteet kategoriasta
+var mostExpensiveByCategory = products
+    .GroupBy(p => p.Category)
+    .Select(g => new
+    {
+        Category = g.Key,
+        MostExpensive = g.OrderByDescending(p => p.Price).First()
+    })
+    .ToList();
+```
+
+> **Lisäesimerkkejä:** [C# LINQ Examples](https://dotnettutorials.net/lesson/linq-examples/)
+
+### Esimerkki 3: Useiden operaatioiden ketjuttaminen
+
+```csharp
+// Etsi parittomien numeroiden neliöt, jotka ovat alle 100, ja järjestä ne
+var numbers = Enumerable.Range(1, 20); // 1-20
+
+var result = numbers
+    .Where(n => n % 2 != 0)           // Parittomat
+    .Select(n => n * n)                // Neliöt
+    .Where(n => n < 100)               // Alle 100
+    .OrderByDescending(n => n)         // Suurin ensin
+    .ToList();
+// result = [81, 49, 25, 9, 1]
+```
+
+> **Lisää ketjutusesimerkkejä:** [LINQ Method Chaining](https://www.c-sharpcorner.com/article/method-chaining-in-linq/)
+
+### Esimerkki 4: Join-operaatio
+
+```csharp
+public class Department
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+}
+
+public class Employee
+{
+    public string Name { get; set; }
+    public int DepartmentId { get; set; }
+}
+
+List<Department> departments = new List<Department>
+{
+    new Department { Id = 1, Name = "IT" },
+    new Department { Id = 2, Name = "HR" }
+};
+
+List<Employee> employees = new List<Employee>
+{
+    new Employee { Name = "Alice", DepartmentId = 1 },
+    new Employee { Name = "Bob", DepartmentId = 2 },
+    new Employee { Name = "Charlie", DepartmentId = 1 }
+};
+
+// Yhdistä työntekijät ja osastot
+var employeeDepartments = employees
+    .Join(departments,
+          employee => employee.DepartmentId,
+          department => department.Id,
+          (employee, department) => new
+          {
+              EmployeeName = employee.Name,
+              DepartmentName = department.Name
+          })
+    .ToList();
+```
+
+> **Lisää Join-esimerkkejä:** [LINQ Join Operations](https://learn.microsoft.com/en-us/dotnet/csharp/linq/standard-query-operators/join-operations)
+
+### Esimerkki 5: Any, All ja Contains
+
+```csharp
+List<int> numbers = new List<int> { 2, 4, 6, 8, 10 };
+
+// Onko listassa parillisia numeroita?
+bool hasEven = numbers.Any(n => n % 2 == 0); // true
+
+// Ovatko kaikki numerot parillisia?
+bool allEven = numbers.All(n => n % 2 == 0); // true
+
+// Sisältääkö lista numeron 5?
+bool containsFive = numbers.Contains(5); // false
+
+// Onko listassa numeroita suurempia kuin 100?
+bool hasLarge = numbers.Any(n => n > 100); // false
+```
+
+> **Lisää ehtolauseke-esimerkkejä:** [LINQ Quantifier Operations](https://learn.microsoft.com/en-us/dotnet/csharp/linq/standard-query-operators/quantifier-operations)
+
 ## Kyselyoperaattorit
 
 Kyselyoperaattorit (Query operators) ovat metodeja, joita voidaan käyttää C#-kielessä kyselyjen tekemiseen kokoelmista.
@@ -405,15 +510,40 @@ Esimerkkikoodia löytyy myös [CollectionExamples](https://github.com/xamk-ture/
 
 - **LINQ** tarjoaa yhtenäisen tavan kysyä tietoja eri lähteistä
 - **Lambda-lausekkeet** ovat lyhyt tapa määritellä anonyymejä funktioita
-- **Delegaatit** mahdollistavat metodien käsittelyn muuttujina
+- **Delegaatit** mahdollistavat metodien käsittelyn muuttujina (lue lisää: [Delegates.md](Delegates.md))
 - **Predikaatit** ovat funktioita, jotka palauttavat `true` tai `false`
 - **LINQ ja lambda** tekevät C#-koodista tiiviimpää ja luettavampaa, erityisesti kun käsitellään kokoelmia tai tietolähteitä
 
-## Hyödyllisiä linkkejä
+## Suositeltuja harjoituksia
 
+1. **Kokeile eri LINQ-operaatioita** omilla listoillasi
+2. **Ketjuta useita operaatioita** yhteen ja katso, miten ne toimivat yhdessä
+3. **Vertaile Query Syntax vs. Method Syntax** -tapoja ja valitse itsellesi sopiva
+4. **Käytä debuggeria** ja tarkastele, miten LINQ-lausekkeet evaluoidaan vaiheittain
+5. **Kokeile LINQ Pad** -työkalua: [LINQPad](https://www.linqpad.net/) (ilmainen versio saatavilla)
+
+## Hyödyllisiä linkkejä ja lisämateriaalit
+
+### Viralliset dokumentaatiot
 - [Microsoftin LINQ-dokumentaatio](https://learn.microsoft.com/en-us/dotnet/csharp/linq/)
 - [Lambda-lausekkeet](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/lambda-expressions)
-- [Delegaatit](https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/delegates/)
+- [LINQ Query Syntax vs Method Syntax](https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/concepts/linq/query-syntax-and-method-syntax-in-linq)
+
+### Tutoriaalit ja esimerkit
 - [LINQ Standard Query Operators](https://www.tutorialsteacher.com/linq/linq-standard-query-operators)
-- [Esimerkkikoodit](https://github.com/xamk-ture/OOP_Examples/blob/master/LinqExamples/Program.cs)
+- [101 LINQ Samples](https://www.tutorialsteacher.com/linq/sample-linq-queries)
+- [C# LINQ Tutorial (w3schools)](https://www.w3schools.com/cs/cs_linq.php)
+- [LINQ Tutorial (dotnettutorials.net)](https://dotnettutorials.net/course/linq/)
+
+### Videomuotoinen oppimateriaali
+- [LINQ Tutorial For Beginners (YouTube)](https://www.youtube.com/watch?v=z3PowDJKOSA)
+- [C# LINQ Tutorial (Programming with Mosh)](https://www.youtube.com/watch?v=yClSNQdVD7g)
+
+### Esimerkkikoodit
+- [Esimerkkikoodit (XAMK)](https://github.com/xamk-ture/OOP_Examples/blob/master/LinqExamples/Program.cs)
+- [CollectionExamples (XAMK)](https://github.com/xamk-ture/AdvancedExamples/blob/master/CollectionExamples/Program.cs)
+
+### Interaktiiviset harjoitukset
+- [LINQPad](https://www.linqpad.net/) - Ilmainen työkalu LINQ-kyselyjen testaamiseen
+- [.NET Fiddle](https://dotnetfiddle.net/) - Selainpohjainen C#-editori LINQ-kokeiluihin
 

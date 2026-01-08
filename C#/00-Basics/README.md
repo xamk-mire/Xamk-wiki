@@ -30,6 +30,7 @@ Tervetuloa C#-ohjelmoinnin perusteisiin! Tämä osio käsittelee C#-ohjelmoinnin
 
 ### Teknologiat ja työkalut
 - [LINQ](LINQ.md) - LINQ ja Lambda-lausekkeet
+- [Delegaatit](Delegates.md) - Delegaatit, Action, Func, ja Predicate
 - [JSON](JSON.md) - JSON-serialisointi ja deserialisointi
 - [RegEx](RegEx.md) - Säännölliset lausekkeet
 
