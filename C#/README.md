@@ -20,9 +20,10 @@ Tervetuloa C# olio-ohjelmoinnin oppimateriaaliin! Tämä materiaali käsittelee 
 - [Rekursio](00-Basics/Recursion.md)
 - [Koodin kääntäminen](00-Basics/Code-Compilation.md)
 
-### 1. [Johdanto ja Perusteet](01-Introduction/)
-- [Luokat ja Objektit](01-Introduction/Classes-and-Objects.md)
-- [Mitä on OOP?](01-Introduction/What-is-OOP.md)
+### 1. [Johdanto C#:n opiskeluun](01-Introduction/)
+- [Yleiskuva materiaalista](01-Introduction/README.md) - Miten aloittaa C#:n opiskelu ja mitä materiaali sisältää
+- [Mitä on OOP?](01-Introduction/What-is-OOP.md) - OOP:n peruskäsitteet yleisellä tasolla
+- [Luokat ja Objektit](01-Introduction/Classes-and-Objects.md) - Luokkien ja objektien perusteet
 
 ### 2. [OOP-konseptit](02-OOP-Concepts/)
 - [OOP-tekniikat - Yleiskuvaus](02-OOP-Concepts/OOP-Techniques-Overview.md) - Kaikkien tekniikoiden yhteenveto
@@ -50,10 +51,11 @@ Materiaalit, jotka eivät ole suoraan C#-kieleen liittyviä:
 ## Oppimisjärjestys
 
 Suosittelemme opiskelua seuraavassa järjestyksessä:
-1. **Aloita perusteista**: Muuttujat → Ohjausrakenteet → Funktiot → Poikkeusten käsittely
-2. **Tutustu luokkiin ja objekteihin**: Johdanto-osiosta
-3. **Opettele OOP-konseptit**: Kapselointi → Perintä → Polymorfismi → Yhdistäminen → Rajapinnat
-4. **Harjoittele koodiesimerkeillä**: Esimerkit-kansiosta
+1. **Lue johdanto**: [Johdanto C#:n opiskeluun](01-Introduction/) - Ymmärrä materiaalin rakenne ja oppimisreitti
+2. **Aloita perusteista**: Muuttujat → Ohjausrakenteet → Funktiot → Poikkeusten käsittely
+3. **Tutustu OOP:hen**: Mitä on OOP? → Luokat ja Objektit
+4. **Opettele OOP-konseptit**: Kapselointi → Perintä → Polymorfismi → Yhdistäminen → Rajapinnat
+5. **Harjoittele koodiesimerkeillä**: Esimerkit-kansiosta
 
 ## Hyödyllisiä linkkejä
 
