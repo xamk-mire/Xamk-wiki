@@ -4,6 +4,101 @@
 
 [Rajapinnat](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/interface) antavat mahdollisuuden määritellä "sopimus", jonka toteuttavat luokat on täytettävä. Toisin kuin perintä, joka kuvaa "on" -suhdetta, rajapinnat usein kuvaavat **"voi tehdä"** -suhteita, esimerkiksi "Lentokone voi lentää". Rajapinnat antavat luokille mahdollisuuden toteuttaa useita toimintoja ilman monen perinnän monimutkaisuutta.
 
+## Perussyntaksi
+
+```csharp
+// Rajapinnan määrittely
+public interface IInterfaceName
+{
+    // Metodien, propertyjen, tapahtumien määrittelyt
+    void MethodName();
+    string PropertyName { get; set; }
+}
+
+// Luokan toteutus
+public class MyClass : IInterfaceName
+{
+    // Täytyy toteuttaa kaikki rajapinnan jäsenet
+    public void MethodName()
+    {
+        // Toteutus
+    }
+    
+    public string PropertyName { get; set; }
+}
+```
+
+## Esimerkki 1: Yksinkertainen rajapinta
+
+```csharp
+public interface IDriveable
+{
+    void StartEngine();
+    void StopEngine();
+}
+
+public class Car : IDriveable
+{
+    public void StartEngine()
+    {
+        Console.WriteLine("Auton moottori käynnistyy");
+    }
+    
+    public void StopEngine()
+    {
+        Console.WriteLine("Auton moottori sammuu");
+    }
+}
+
+// Käyttö
+IDriveable vehicle = new Car();
+vehicle.StartEngine();
+vehicle.StopEngine();
+```
+
+## Esimerkki 2: Useita rajapintoja
+
+```csharp
+public interface IDriveable
+{
+    void StartEngine();
+    void StopEngine();
+}
+
+public interface IRefuelable
+{
+    void Refuel();
+}
+
+// ✅ Luokka voi toteuttaa useita rajapintoja
+public class Car : IDriveable, IRefuelable
+{
+    public void StartEngine()
+    {
+        Console.WriteLine("Auton moottori käynnistyy");
+    }
+    
+    public void StopEngine()
+    {
+        Console.WriteLine("Auton moottori sammuu");
+    }
+    
+    public void Refuel()
+    {
+        Console.WriteLine("Tankataan autoa");
+    }
+}
+
+// Käyttö
+Car car = new Car();
+IDriveable driveable = car;
+IRefuelable refuelable = car;
+
+driveable.StartEngine();
+refuelable.Refuel();
+driveable.StopEngine();
+```
+
 ## Miksi rajapintoja käytetään?
 
 ### 1. Monimuotoisuus (Polymorphism)

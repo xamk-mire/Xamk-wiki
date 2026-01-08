@@ -62,6 +62,24 @@ public class Cat
 
 ## Perinnän avulla (ratkaisu)
 
+### Perussyntaksi
+
+```csharp
+// Yläluokka (base/parent class)
+public class BaseClass
+{
+    // Yläluokan jäsenet
+}
+
+// Aliluokka (derived/child class) - perii yläluokan
+public class DerivedClass : BaseClass
+{
+    // Aliluokan jäsenet
+    // Voi käyttää yläluokan jäseniä
+    // Voi ylikirjoittaa yläluokan metodeja
+}
+```
+
 ### Perusperintä
 
 ```csharp

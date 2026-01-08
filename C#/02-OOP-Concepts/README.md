@@ -4,6 +4,7 @@ Tässä osiossa syvennämme olio-ohjelmoinnin keskeisiin konsepteihin.
 
 ## Sisältö
 
+0. [OOP-tekniikat - Yleiskuvaus](OOP-Techniques-Overview.md) - Kaikkien tekniikoiden yhteenveto
 1. [Kapselointi (Encapsulation)](Encapsulation.md) - Datan ja metodien yhdistäminen, tietoturva
 2. [Perintä (Inheritance)](Inheritance.md) - Luokkien periytyminen ja koodin uudelleenkäyttö
 3. [Polymorfismi (Polymorphism)](Polymorphism.md) - Yhtenäinen käsittely eri luokkien olioille
