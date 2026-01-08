@@ -273,6 +273,40 @@ string reversed = email.Reverse();
 
 3. **Staattinen luokka ei voi periä tai olla peritty**
 
+## Hyödyt ja milloin käyttää
+
+`static`-avainsanan käyttö C#:ssa tarjoaa useita etuja:
+
+### 1. Muistin säästö
+
+Koska `static`-muuttujat ovat yhteisiä kaikille luokan instansseille, ne vievät muistia vain kerran, riippumatta siitä, kuinka monta instanssia luokasta on luotu. Tämä voi säästää merkittävästi muistia, kun muuttujan arvon on oltava sama kaikissa instansseissa.
+
+### 2. Globaalien arvojen hallinta
+
+`static`-muuttujien avulla voidaan helposti taata, että koko sovellus käyttää samoja arvoja. (Globaali tarkoittaa luokkaa/metodia, joka on saatavilla/näkyvissä koko ohjelmalle)
+
+### 3. Ei tarvetta olion instanssille
+
+`static`-metodeita voidaan kutsua ilman, että luokasta pitäisi tehdä olio. Tämä tekee niistä käteviä toiminnallisuuksille, jotka eivät vaadi pääsyä olion erityiseen tilaan, kuten apufunktioille tai matemaattisille laskutoimituksille.
+
+### 4. Organisointi
+
+`static`-luokat, kuten `System.Math`, voivat ryhmitellä yhteen liittyviä funktioita ja arvoja, jolloin koodista tulee selkeämpää ja helpompaa ylläpitää.
+
+### 5. Suorituskyky
+
+Joissakin tapauksissa `static`-metodien käyttö voi olla hieman nopeampaa kuin ei-static-metodien, koska ei ole tarvetta olion viitteelle tai `this`-avainsanan käytölle. Vaikka tämä ero on usein minimaalinen, se voi olla merkittävä tietyissä suorituskykyherkissä tilanteissa.
+
+### 6. Vältetään virheitä
+
+Kun luokka on merkitty `static`, se ei voi olla instansioitu, mikä tarkoittaa, että kehittäjät eivät voi vahingossa yrittää tehdä siitä instanssia. Tämä voi estää tiettyjä ohjelmointivirheitä.
+
+## Haasteet ja huomiot
+
+Toisaalta `static`-jäsenten käytössä on myös haittapuolia ja haasteita, erityisesti kun puhutaan monisäikeisistä sovelluksista:
+
+- **Monisäikeisyys**: Koska `static`-muuttujat ovat yhteisiä kaikille säikeille, niiden arvojen muuttaminen yhdestä säikeestä voi aiheuttaa odottamattomia tuloksia toisissa säikeissä, ellei asiaa käsitellä asianmukaisesti (esim. käyttämällä `lock`-lauseita tai muita synkronointimekanismeja).
+
 ## Yhteenveto
 
 - `static` tarkoittaa, että jäsen kuuluu luokalle, ei olioille
@@ -280,6 +314,7 @@ string reversed = email.Reverse();
 - Staattiset muuttujat ovat jaettuja kaikkien instanssien kesken
 - Staattiset luokat eivät voi luoda instansseja
 - Käytä staattisia jäseniä utility-metodeihin ja vakioihin
+- Yleisesti ottaen `static`-avainsana tarjoaa keinoja tehdä koodista tehokkaampaa ja järjestäytyneempää tietyissä tilanteissa, mutta sen käyttöön liittyy myös vastuuta varmistaa, että se ei aiheuta odottamattomia sivuvaikutuksia
 
 Seuraavaksi: [Funktiot ja Metodit](Functions-and-Methods.md)
 

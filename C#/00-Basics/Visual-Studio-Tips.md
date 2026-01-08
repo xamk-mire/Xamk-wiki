@@ -2,206 +2,149 @@
 
 Visual Studio on tehokas IDE (Integrated Development Environment) C#-ohjelmointiin. Tässä on hyödyllisiä vinkkejä sen käyttöön.
 
-## Peruslyöntitaulut (Keyboard Shortcuts)
+## Miten ajaa projekteja
 
-### Tärkeimmät lyöntitaulut
+Visual Studiossa olevia projekteja voi ajaa muutamalla eri tavalla:
 
-| Lyöntitaulu | Toiminto | Kuvaus |
-|------------|----------|--------|
-| `F5` | Käynnistä debug | Käynnistää sovelluksen debug-tilassa |
-| `Ctrl+F5` | Käynnistä ilman debug | Käynnistää sovelluksen ilman debug-ominaisuuksia |
-| `F9` | Toggle Breakpoint | Lisää/poistaa keskeytyspisteen |
-| `F10` | Step Over | Siirtyy seuraavalle riville (ei mene funktioon) |
-| `F11` | Step Into | Siirtyy funktioon sisään |
-| `Shift+F11` | Step Out | Poistuu funktiosta |
-| `Ctrl+K, Ctrl+C` | Kommentoi | Kommentoi valitut rivit |
-| `Ctrl+K, Ctrl+U` | Poista kommentit | Poistaa kommentit valituilta riveiltä |
-| `Ctrl+.` | Quick Actions | Näyttää nopeat toiminnot (esim. using-lause) |
-| `Ctrl+Shift+B` | Build | Kääntää projektin |
-| `Ctrl+F` | Etsi | Etsii tekstiä tiedostosta |
-| `Ctrl+Shift+F` | Etsi kaikista | Etsii tekstiä koko projektista |
-| `Ctrl+R, Ctrl+R` | Nimeä uudelleen | Nimeää muuttujan/metodin uudelleen |
-| `Ctrl+.` | Quick Fix | Korjaa virheet automaattisesti |
+1. **Vihreä ajo-nappi**: Painamalla vihreää ajo-nappia, joka löytyy ylhäältä työkaluriviltä
+2. **F5**: Voit myös halutessasi painaa **F5**, joka ajaa saman asian kuin yllä olevan napin painaminen
 
-## Koodin automaattinen muotoilu
+### Debug vs Release
 
-### Format Document
-- **Lyöntitaulu**: `Ctrl+K, Ctrl+D`
-- Muotoilee koko dokumentin automaattisesti
+- **Debug**: Käynnistää ohjelman debug-tilassa (voit debugata)
+- **Release**: Versio, jota ei voi debugata. Release-versio on aina, joka annetaan asiakkaalle tai ohjelma joka pyörii oikeassa ympäristössä
 
-```csharp
-// Ennen muotoilua:
-public class Example{public void Method(){if(true){DoSomething();}}}
+Valitse ylhäältä työkaluriviltä Debug tai Release -moodi.
 
-// Muotoilun jälkeen:
-public class Example
-{
-    public void Method()
-    {
-        if (true)
-        {
-            DoSomething();
-        }
-    }
-}
-```
+## Ajettavan projektin vaihto
+
+### Mistä tietää mikä projekti on valittu
+
+Visual Studion solutionissa voi olla useampi projekti. Valittu projekti näkyy:
+- Projektin nimi on **boldattu** Solution Explorerissa
+- Ylhäältä löytyvästä palkista, josta projekteja ajetaan
+
+### Miten vaihtaa projekti
+
+Voit vaihtaa projektin muutamalla eri tavalla:
+
+1. **Vetovalikosta**: Valitse ylhäältä vetovalikosta eri projekti
+2. **Oikea hiiren nappi**: Painamalla halutun projektin päällä oikealla hiiren napilla ja valitsemalla **Set as Startup Project**
+
+## Projektin kääntäminen
+
+### Build
+
+Kun suoritat **Build** (kääntäminen) toiminnon tietylle projektille tai ratkaisulle (solution) Visual Studiossa, IDE tarkistaa, onko koodissa tapahtunut muutoksia viimeisen käännöksen jälkeen. Jos muutoksia on tapahtunut, Visual Studio kääntää vain ne tiedostot, jotka ovat muuttuneet (ja mahdollisesti niistä riippuvaiset tiedostot).
+
+**Build vaihtoehdot löydät ylhäältä löytyvästä valikosta nimeltä Build**
+
+- Tämä on tehokasta, koska se nopeuttaa käännösaikaa, erityisesti suurissa projekteissa. Sinun ei tarvitse kääntää koko projektia uudelleen, jos vain yksi tai muutama tiedosto on muuttunut.
+- Jos käännöksessä havaitaan virheitä, ne näytetään **Error List** -ikkunassa, ja voit korjata ne ennen ohjelman suorittamista.
+
+### Rebuild All
+
+**Rebuild All** (uudelleenrakennus) toiminto tekee periaatteessa kaksi asiaa:
+1. Ensin se suorittaa **Clean** toiminnon, joka poistaa kaikki aikaisemmat käännöstiedostot (kuten objektitiedostot ja lopulliset binääritiedostot)
+2. Sen jälkeen se rakentaa koko ratkaisun uudelleen alusta alkaen
+
+Tämä tarkoittaa, että kaikki projektin tiedostot käännetään uudelleen, riippumatta siitä, ovatko ne muuttuneet vai eivät.
+
+Tätä toimintoa voi olla hyvä käyttää, jos kohtaat ongelmia, jotka saattavat johtua vanhoista käännöstiedostoista tai jos haluat varmistaa, että koko projekti on konsistentti ja rakentuu puhtaalta pöydältä.
+
+### Clean Solution
+
+Visual Studiossa **Clean Solution** (puhdista ratkaisu) on toiminto, joka poistaa kaikki käännöksen aikana syntyneet väliaikaiset tiedostot ja lopulliset binääritiedostot (kuten `.exe`, `.dll` ja muut tiedostot) projektista tai koko ratkaisusta (solution).
+
+**Clean Solution** -toiminnon tarkoituksena on:
+
+1. **Levytilan vapauttaminen**: Poistamalla väliaikaiset tiedostot voit vapauttaa levytilaa.
+2. **Ongelmien ratkaiseminen**: Joskus käännöksen tai linkityksen aikana voi syntyä ongelmia, jotka johtuvat vanhoista tai korruptoituneista väliaikaistiedostoista. Näissä tapauksissa **Clean Solution** voi auttaa poistamaan vanhat tiedostot, jolloin voit rakentaa ratkaisun uudelleen puhtaalta pöydältä.
+3. **Riippuvuuksien varmistaminen**: Joskus on hyödyllistä varmistaa, että kaikki osat ratkaisusta kääntyvät oikein ja riippuvuudet ovat kunnossa. Tämä on helpompi tehdä, kun kaikki vanhat tiedostot on ensin poistettu.
+
+**Huomio**: **Clean Solution** ei tee muutoksia itse lähdekoodiisi tai muihin projektiin kuuluviin resursseihin. Se kohdistuu vain käännöksen ja linkityksen aikana syntyneisiin tiedostoihin.
 
 ## IntelliSense
 
-Visual Studio tarjoaa automaattisen täydennyksen kirjoitettaessa:
+IntelliSense on koodin kirjoittamisen avustusominaisuus, joka on integroitu moniin Microsoftin kehitysympäristöihin, kuten Visual Studioon. Se auttaa kehittäjiä kirjoittamaan koodia nopeammin ja virheettömämmin tarjoamalla eri koodiehdotuksia heidän kirjoittaessaan.
 
-```csharp
-// Kirjoita "Con" ja Visual Studio ehdottaa:
-// - Console
-// - Convert
-// - Configuration
-// - jne.
+**HUOM!** Aina ehdotus ei ole oikea tai paras mahdollinen.
 
-Console.WriteLine("Hei maailma!");
-```
+### IntelliSensen pääominaisuudet
 
-### IntelliSense-komennot
-- `Ctrl+Space`: Pakota IntelliSense-näkyviin
-- `Tab`: Hyväksy ehdotus
-- `Esc`: Sulje IntelliSense
+1. **Koodin täydennys**: Kun kirjoitat koodia, IntelliSense näyttää ehdotuksia luokista, funktioista, muuttujista ja muista nimetyistä kohteista, jotka voivat täsmätä siihen, mitä olet kirjoittamassa (vähän niinkuin ennakoiva tekstintäyttö). Voit valita ehdotetun kohteen painamalla **Enter** ja se täydentää koodin puolestasi. Ehdotus näkyy aina **harmaana**!
 
-## Snippetit (Code Snippets)
+2. **Parametri-informaatio**: Kun kutsut funktiota tai metodia, IntelliSense näyttää saatavilla olevat parametrit ja niiden tyypit, jotta voit tietää mitä argumentteja sille pitäisi antaa.
 
-Snippetit ovat valmiita koodipohjia:
+3. **Quick Info**: Kun viet hiiren koodissa olevan objektin päälle, IntelliSense näyttää pienen infoikkunan, joka sisältää tietoa kyseisestä objektista, kuten sen tyyppi tai kuvaus.
 
-### Yleisimmät snippetit
+4. **Luettelo jäsenistä**: Kun kirjoitat pistettä objektin jälkeen, IntelliSense näyttää luettelon kyseisen objektin metodeista, ominaisuuksista ja muista jäsenistä.
 
-| Snippet | Lyöntitaulu | Tulos |
-|---------|------------|-------|
-| `for` | `for` + Tab + Tab | For-silmukka |
-| `foreach` | `foreach` + Tab + Tab | Foreach-silmukka |
-| `if` | `if` + Tab + Tab | If-lause |
-| `try` | `try` + Tab + Tab | Try-catch-lohko |
-| `prop` | `prop` + Tab + Tab | Auto-property |
-| `propfull` | `propfull` + Tab + Tab | Property get/set |
-| `ctor` | `ctor` + Tab + Tab | Konstruktori |
+5. **Värin koodaus ja korostus**: Tämä auttaa erottamaan erilaiset koodin osat toisistaan, kuten muuttujat, luokat ja avainsanat.
 
-### Esimerkki: for-silmukka
+## Pikanäppäimet
 
-```csharp
-// Kirjoita "for" ja paina Tab kahdesti
-for (int i = 0; i < length; i++)
-{
-    // Koodi täällä
-}
-```
+### Koodin muokkaaminen
 
-## Debug-ominaisuudet
+- **Ctrl + X** / **Ctrl + C** / **Ctrl + V** - Leikkaa / kopioi / liitä
+- **Ctrl + Z** / **Ctrl + Y** - Kumoa / tee uudelleen
+- **Ctrl + K** → **Ctrl + C** - Kommentoi valittu koodi
+- **Ctrl + K** → **Ctrl + U** - Poista kommentointi valitusta koodista
+- **Ctrl + Space** - Koodin täydennys / IntelliSense
+- **Ctrl + .** - Näyttää pikatoimenpiteet ja korjaukset
 
-### Keskeytyspisteet (Breakpoints)
+### Navigointi
 
-1. **Lisää keskeytyspiste**: Klikkaa vasemmalla reunalla tai paina `F9`
-2. **Ehdollinen keskeytyspiste**: Klikkaa oikealla hiiren napilla → Condition
+- **F12** - Siirry määrittelyyn
+- **Shift + F12** - Näytä kaikki viittaukset
+- **Ctrl + -** / **Ctrl + Shift + -** - Siirry taaksepäin / eteenpäin navigoinnissa
+- **Ctrl + T** tai **Ctrl + ,** - Etsi kaikista tiedostoista (Solution Explorerin pikahaku)
 
-```csharp
-// Keskeytyspiste, joka aktivoituu vain kun i == 5
-for (int i = 0; i < 10; i++)
-{
-    Console.WriteLine(i); // Breakpoint täällä, condition: i == 5
-}
-```
+### Koodin muotoilu
 
-### Immediate Window
-- **Avaa**: `Ctrl+Alt+I`
-- Voit suorittaa koodia debug-tilassa
+- **Ctrl + K** → **Ctrl + D** - Muotoile koko tiedosto
+- **Ctrl + K** → **Ctrl + F** - Muotoile valittu koodi
 
-### Watch Window
-- **Avaa**: `Ctrl+Alt+W, 1`
-- Seuraa muuttujien arvoja debug-tilassa
+### Koodin kääntäminen ja suorittaminen
 
-## Projektin hallinta
+- **F5** - Aloita (käännä ja suorita)
+- **Ctrl + F5** - Aloita ilman virheenkorjausta
+- **Shift + F5** - Lopeta virheenkorjaus
+- **F9** - Aseta tai poista katkaisupiste (breakpoint)
 
-### Solution Explorer
-- **Avaa**: `Ctrl+Alt+L`
-- Näyttää projektin rakenteen
+### Ikkunoiden hallinta
 
-### NuGet Package Manager
-- **Avaa**: Tools → NuGet Package Manager → Manage NuGet Packages
-- Asenna kirjastoja projektiin
+- **Ctrl + M** → **Ctrl + O** - Minimoi tai laajenna kaikki koodilohkot
+- **Ctrl + Alt + L** - Siirry Solution Exploreriin
+- **Ctrl + W** → **Ctrl + S** - Avaa/halkeama ikkunat
 
-### Add Reference
-- Klikkaa projektia oikealla → Add → Reference
-- Lisää viittauksia muihin projekteihin
+### Tiedostojen hallinta
 
-## Koodin navigointi
+- **Ctrl + Shift + A** - Lisää uusi tiedosto projektiin
+- **Ctrl + O** - Avaa tiedosto
+- **Ctrl + S** - Tallenna tiedosto
+- **Ctrl + Shift + S** - Tallenna kaikki
 
-### Go to Definition
-- **Lyöntitaulu**: `F12`
-- Siirtyy muuttujan/metodin määrittelyyn
+### Debuggaus
 
-### Find All References
-- **Lyöntitaulu**: `Shift+F12`
-- Näyttää kaikki kohdat, joissa muuttujaa/metodia käytetään
-
-### Navigate Back/Forward
-- **Takaisin**: `Ctrl+-`
-- **Eteenpäin**: `Ctrl+Shift+-`
-
-## Koodin refaktorointi
-
-### Extract Method
-1. Valitse koodi
-2. Klikkaa oikealla → Quick Actions → Extract Method
-
-```csharp
-// Ennen:
-public void ProcessOrder()
-{
-    // Pitkä koodi...
-    decimal total = 0;
-    foreach (var item in items)
-    {
-        total += item.Price * item.Quantity;
-    }
-    // ...
-}
-
-// Jälkeen:
-public void ProcessOrder()
-{
-    decimal total = CalculateTotal(items);
-    // ...
-}
-
-private decimal CalculateTotal(List<Item> items)
-{
-    decimal total = 0;
-    foreach (var item in items)
-    {
-        total += item.Price * item.Quantity;
-    }
-    return total;
-}
-```
-
-### Rename
-- **Lyöntitaulu**: `Ctrl+R, Ctrl+R`
-- Nimeää muuttujan/metodin uudelleen kaikkialla
-
-## Hyödyllisiä asetuksia
-
-### Fontin suuruus
-- **Suurennus**: `Ctrl+Shift+.`
-- **Pienennys**: `Ctrl+Shift+,`
-
-### Dark/Light Theme
-- Tools → Options → Environment → General → Color theme
-
-### Line Numbers
-- Tools → Options → Text Editor → C# → General → Line numbers
+- **F9** - Lisää breakpoint
+- **F10** - Aja ohjelma seuraavalle riville (Step Over)
+- **F11** - Hyppää funktion sisälle debuggaamaan (Step Into)
+- **Shift + F11** - Hyppää pois suoritettavasta funktiosta (Step Out)
+- **Ctrl + F10** - Ajaa ohjelman valitulle riville (Run to cursor)
 
 ## Yhteenveto
 
-Nämä vinkit auttavat työskentelemään tehokkaammin Visual Studiossa:
-- Opi tärkeimmät lyöntitaulut
-- Käytä IntelliSensea ja snippettejä
-- Hyödynnä debug-ominaisuuksia
-- Refaktoroi koodia automaattisesti
+Visual Studio tarjoaa monia työkaluja, jotka helpottavat ohjelmointia:
 
-Lisätietoja: [Visual Studio Documentation](https://learn.microsoft.com/en-us/visualstudio/)
+- **IntelliSense** auttaa kirjoittamaan koodia nopeammin
+- **Pikanäppäimet** nopeuttavat työskentelyä
+- **Build/Rebuild/Clean** auttavat projektin hallinnassa
+- **Debug-työkalut** auttavat virheiden löytämisessä
 
+## Hyödyllisiä linkkejä
+
+- [Productivity guide - Visual Studio (Windows) | Microsoft Learn](https://learn.microsoft.com/en-us/visualstudio/ide/productivity-features?view=vs-2022)
+- [Visual Studio Keyboard Shortcuts Cheat Sheet](https://learn.microsoft.com/en-us/visualstudio/ide/default-keyboard-shortcuts-in-visual-studio)
+
+Seuraavaksi: [Muuttujat](Variables.md)

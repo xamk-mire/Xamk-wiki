@@ -1,8 +1,42 @@
 # Funktiot ja Metodit (Functions and Methods)
 
-C#-kielessä termit "funktio" ja "metodi" viittaavat samaan asiaan: koodilohkoon, joka suorittaa tietyn tehtävän ja voidaan kutsua uudelleen.
+C#-kielessä funktiot ovat koodin palasia, jotka suorittavat tietyn toiminnon ja voidaan kutsua nimellä. Funktion avulla voidaan ryhmitellä koodia loogisiksi kokonaisuuksiksi, jotka tekevät yhden tietyn asian. Tämä helpottaa koodin ylläpitoa ja tekee siitä selkeämpää.
+
+## Funktion osat
+
+Funktio koostuu seuraavista osista:
+
+1. **Paluuarvotyyppi**: Tyyppi, jota funktio palauttaa. Jos funktio ei palauta arvoa, käytetään `void`-tyyppiä.
+2. **Funktio nimi**: Nimi, jolla funktiota kutsutaan.
+3. **Parametrit**: Arvot tai muuttujat, jotka annetaan funktion sisälle. Parametrit määritellään suluissa.
+
+### Esimerkki
+
+```csharp
+public int Summa(int a, int b)
+{
+    return a + b;
+}
+```
+
+Tässä esimerkissä `Summa` on funktio, joka ottaa kaksi kokonaislukuparametria (`int a` ja `int b`) ja palauttaa niiden summan. Paluuarvotyyppi on `int`.
+
+## Void
+
+`void` on avainsana useimmissa ohjelmointikielissä, mukaan lukien C#. Se tarkoittaa, että funktio ei palauta arvoa.
+
+Kun näet funktion tai metodin määritelmän, jossa paluuarvo on `void`, se tarkoittaa, että kyseinen funktio suorittaa toiminnon mutta ei palauta mitään arvoa kutsujalleen.
+
+```csharp
+public void TulostaTervehdys()
+{
+    Console.WriteLine("Hei maailma!");
+}
+```
 
 ## Mitä ovat metodit?
+
+Metodi on nimetty koodilohko, joka suorittaa tietyn tehtävän. Metodit auttavat:
 
 Metodi on nimetty koodilohko, joka suorittaa tietyn tehtävän. Metodit auttavat:
 - **Koodin uudelleenkäytössä**: Sama koodi voidaan käyttää useita kertoja
@@ -307,10 +341,123 @@ bool isValid = email.IsValidEmail();  // Extension-metodi
 string reversed = email.Reverse();
 ```
 
+## Funktio vs. Metodi
+
+Funktion ja metodin ero liittyy niiden käyttökontekstiin ja yhteyteen olio-ohjelmoinnin kanssa. Molemmat ovat lohkoja koodia, jotka suorittavat tietyn tehtävän, mutta ne eroavat toisistaan siinä, missä ja miten niitä käytetään.
+
+### 1. Yhteys olioon tai luokkaan
+
+- **Funktio**: Funktio on yleinen ohjelmoinnin käsite, joka ei välttämättä ole sidottu mihinkään luokkaan tai olioon. Se on itsenäinen koodilohko, joka suorittaa tietyn tehtävän ja voi palauttaa arvon. Funktiot voivat olla käytössä esimerkiksi ohjelmissa, jotka eivät noudata olio-ohjelmoinnin periaatteita (kuten C tai Python-projektit, joissa käytetään vain funktioita).
+
+- **Metodi**: Metodi on funktio, joka on määritelty luokan sisällä ja liittyy tiettyyn olioon. Metodit ovat aina osa luokkaa, ja niitä kutsutaan yleensä olion kautta. Metodi käyttää ja muokkaa yleensä sen olion tilaa, johon se liittyy.
+
+### 2. Syntaksi ja käyttö
+
+- **Funktio**: Funktiot määritellään ja kutsutaan suoraan, ilman että ne liittyvät mihinkään olioon tai luokkaan. Esimerkiksi C# voidaan kirjoittaa `static`-funktio luokan ulkopuolella (C# tosin kaikki funktiot ovat osana jotain luokkaa, mutta ne voivat olla `static`, jolloin ne eivät ole sidottuja mihinkään olioon).
+
+```csharp
+public static class MathHelper
+{
+    // Staattinen funktio - ei tarvitse olion instanssia
+    public static int Add(int a, int b)
+    {
+        return a + b;
+    }
+}
+
+// Käyttö
+int sum = MathHelper.Add(5, 3);
+```
+
+- **Metodi**: Metodit määritellään luokan sisällä ja niitä kutsutaan yleensä olion kautta. Metodit voivat käyttää ja muokata olion tilaa (eli olion kenttiä ja ominaisuuksia).
+
+```csharp
+public class Calculator
+{
+    private int result = 0;
+    
+    // Metodi - käyttää olion tilaa
+    public void Add(int number)
+    {
+        result += number;
+    }
+    
+    public int GetResult()
+    {
+        return result;
+    }
+}
+
+// Käyttö
+Calculator calc = new Calculator();
+calc.Add(5);
+calc.Add(3);
+int total = calc.GetResult(); // 8
+```
+
+### 3. Olio-ohjelmoinnin merkitys
+
+- **Funktio**: Funktiot voivat esiintyä missä tahansa ohjelmoinnin paradigmassa, ei vain olio-ohjelmoinnissa. Esimerkiksi funktionaalisessa ohjelmoinnissa funktiot ovat keskeisiä.
+
+- **Metodi**: Metodit ovat olio-ohjelmoinnin keskeinen osa. Ne kuvaavat, mitä toimintoja luokan oliot voivat suorittaa, ja ne voivat käsitellä olion sisäistä tilaa.
+
+### 4. Esimerkki
+
+- **Funktio**: C#-ohjelmassa `static`-avainsanalla määritelty funktio voi olla osa luokkaa, mutta sitä kutsutaan ilman olion instanssia.
+
+```csharp
+public static class StringHelper
+{
+    public static string Reverse(string text)
+    {
+        char[] chars = text.ToCharArray();
+        Array.Reverse(chars);
+        return new string(chars);
+    }
+}
+
+// Käyttö - ei tarvitse luoda oliota
+string reversed = StringHelper.Reverse("Hei");
+```
+
+- **Metodi**: C#-ohjelmassa metodi liittyy aina olioon, ellei se ole `static`.
+
+```csharp
+public class Person
+{
+    private string name;
+    
+    // Metodi - käyttää olion tilaa
+    public void SetName(string name)
+    {
+        this.name = name;
+    }
+    
+    public string GetName()
+    {
+        return name;
+    }
+}
+
+// Käyttö - tarvitsee olion instanssin
+Person person = new Person();
+person.SetName("Matti");
+string name = person.GetName();
+```
+
+### Yhteenveto
+
+- **Funktio** on itsenäinen koodilohko, joka suorittaa tehtävän, mutta ei ole sidottu mihinkään olioon tai luokkaan.
+- **Metodi** on funktio, joka on sidottu tiettyyn luokkaan ja liittyy sen olioihin. Se käyttää ja muokkaa yleensä olion tilaa.
+
+Funktiot ovat yleisempiä ja voivat olla osa mitä tahansa ohjelmointiparadigmaa, kun taas metodit ovat erityisesti osa olio-ohjelmointia ja liittyvät läheisesti olioihin ja luokkiin.
+
 ## Yhteenveto
 
-- Metodit ovat nimettyjä koodilohkoja, jotka suorittavat tehtävän
-- Parametrit välittävät dataa metodeihin
+- Funktiot ovat koodin palasia, jotka suorittavat tietyn toiminnon
+- Metodit ovat funktioita, jotka liittyvät luokkiin ja olioihin
+- `void` tarkoittaa, että funktio ei palauta arvoa
+- Parametrit välittävät dataa funktioihin/metodeihin
 - Palautusarvot palauttavat tuloksen
 - Metodin ylikuormitus mahdollistaa useita versioita
 - Lambda-lausekkeet ovat lyhyitä tapoja määritellä metodeja
