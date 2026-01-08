@@ -12,10 +12,20 @@ Tervetuloa C# olio-ohjelmoinnin oppimateriaaliin! Tämä materiaali käsittelee 
 - [Poikkeusten käsittely](00-Basics/Exception-Handling.md)
 - [Funktiot ja Metodit](00-Basics/Functions-and-Methods.md)
 - [Ohjausrakenteet](00-Basics/Control-Structures.md)
-- [Debuggaus](00-Basics/Debugging.md)
+- [Debuggaus](00-Basics/Debug.md)
 - [Satunnaislukujen generointi](00-Basics/Random-Numbers.md)
 - [Datastruktuurit](00-Basics/Data-Structures.md)
 - [Thread.Sleep](00-Basics/Thread-Sleep.md)
+- [Enum](00-Basics/Enum.md)
+- [DateTime](00-Basics/DateTime.md)
+- [Properties](00-Basics/Properties.md)
+- [Scopes](00-Basics/Scopes.md)
+- [Region](00-Basics/Region.md)
+- [Access Modifiers](00-Basics/Access-Modifiers.md)
+- [Casting](00-Basics/Casting.md)
+- [LINQ](00-Basics/LINQ.md)
+- [JSON](00-Basics/JSON.md)
+- [RegEx](00-Basics/RegEx.md)
 - [StopWatch](00-Basics/StopWatch.md)
 - [Rekursio](00-Basics/Recursion.md)
 - [Koodin kääntäminen](00-Basics/Code-Compilation.md)
@@ -32,6 +42,11 @@ Tervetuloa C# olio-ohjelmoinnin oppimateriaaliin! Tämä materiaali käsittelee 
 ### 3. [Koodiesimerkit](03-Examples/)
 Lisäesimerkit
 
+### 4. [Edistyneet aiheet](04-Advanced/)
+- [Yksikkötestaus](04-Advanced/Unit-Testing.md)
+- [Suunnittelumallit](04-Advanced/Design-Patterns.md)
+- [Suunnittelu periaatteet](04-Advanced/Design-Principles.md)
+
 ### 99. [Yleiset ohjelmointimateriaalit](99-General/)
 Materiaalit, jotka eivät ole suoraan C#-kieleen liittyviä:
 - [IDE](99-General/IDE.md)
@@ -47,11 +62,11 @@ Materiaalit, jotka eivät ole suoraan C#-kieleen liittyviä:
 ## Oppimisjärjestys
 
 Suosittelemme opiskelua seuraavassa järjestyksessä:
-1. **Lue johdanto**: [Johdanto C#:n opiskeluun](01-Introduction/) - Ymmärrä materiaalin rakenne ja oppimisreitti
-2. **Aloita perusteista**: Muuttujat → Ohjausrakenteet → Funktiot → Poikkeusten käsittely
-3. **Tutustu OOP:hen**: Mitä on OOP? → Luokat ja Objektit
-4. **Opettele OOP-konseptit**: Kapselointi → Perintä → Polymorfismi → Yhdistäminen → Rajapinnat
-5. **Harjoittele koodiesimerkeillä**: Esimerkit-kansiosta
+1. **Aloita perusteista**: [C# Perusteet](00-Basics/) - Muuttujat → Ohjausrakenteet → Funktiot → Poikkeusten käsittely
+2. **Tutustu OOP:hen**: [OOP-konseptit](02-OOP-Concepts/) - Kapselointi → Perintä → Polymorfismi → Yhdistäminen → Rajapinnat
+3. **Syvenny perusteisiin**: Enum, DateTime, Properties, LINQ, JSON, jne.
+4. **Opettele edistyneitä aiheita**: Yksikkötestaus → Suunnittelu periaatteet → Suunnittelumallit
+5. **Harjoittele koodiesimerkeillä**: [Esimerkit](03-Examples/)-kansiosta
 
 ## Hyödyllisiä linkkejä
 

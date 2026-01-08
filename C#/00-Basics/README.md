@@ -12,10 +12,26 @@ Tervetuloa C#-ohjelmoinnin perusteisiin! Tämä osio käsittelee C#-ohjelmoinnin
 - [Poikkeuksien käsittely](Exception-Handling.md) - try-catch-finally
 - [Funktiot ja Metodit](Functions-and-Methods.md) - Funktion ja metodin ero
 - [Ohjausrakenteet](Control-Structures.md) - if, while, for, foreach, switch
-- [Debuggaus](Debugging.md) - Virheiden etsiminen ja korjaaminen
+- [Debuggaus](Debug.md) - Virheiden etsiminen ja korjaaminen Visual Studiossa
 - [Satunnaislukujen generointi](Random-Numbers.md) - Random-luokka
 - [Datastruktuurit](Data-Structures.md) - List, Array, Dictionary
 - [Thread.Sleep](Thread-Sleep.md) - Säikeen viivästyttäminen
+
+### Tietotyypit ja rakenteet
+- [Enum](Enum.md) - Enumeraatiot
+- [DateTime](DateTime.md) - Päivämäärien ja kellonaikojen käsittely
+- [Properties](Properties.md) - Ominaisuudet (getter/setter)
+- [Casting](Casting.md) - Tyyppimuunnokset
+
+### Näkyvyys ja rakenne
+- [Scopes](Scopes.md) - Näkyvyysalueet
+- [Region](Region.md) - Koodin ryhmittely
+- [Access Modifiers](Access-Modifiers.md) - Käyttöoikeusmääreet (public, private, jne.)
+
+### Teknologiat ja työkalut
+- [LINQ](LINQ.md) - LINQ ja Lambda-lausekkeet
+- [JSON](JSON.md) - JSON-serialisointi ja deserialisointi
+- [RegEx](RegEx.md) - Säännölliset lausekkeet
 
 ### Lisämateriaalit
 - [StopWatch](StopWatch.md) - Ajan mittaus
@@ -33,4 +49,6 @@ Suosittelemme opiskelua seuraavassa järjestyksessä:
 
 ## Seuraavaksi
 
-Kun olet hallinnut perusteet, siirry [Olio-ohjelmoinnin perusteisiin](../01-Introduction/README.md).
+Kun olet hallinnut perusteet, siirry:
+- [OOP-konsepteihin](../02-OOP-Concepts/) - Olio-ohjelmoinnin perusteet
+- [Edistyneisiin aiheisiin](../04-Advanced/) - Yksikkötestaus, Design Patterns, jne.
