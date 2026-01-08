@@ -365,6 +365,9 @@ Console.WriteLine($"Valid email: {isValidEmail}"); // True
 - [Events and Delegates (YouTube)](https://www.youtube.com/watch?v=OuZrhykVytg)
 
 ### Liittyvät materiaalit
-- [LINQ ja Lambda-lausekkeet](LINQ.md)
-- [Exception Handling](Exception-Handling.md)
+- [Lambda-lausekkeet](Lambda.md) - Syvällinen oppimateriaali lambda-lausekkeista
+- [Predikaatit](Predicate.md) - Predikaattien käyttö ja esimerkit
+- [Closures](Closures.md) - Muuttujien kaappaus ja sulkeumat
+- [LINQ](LINQ.md) - LINQ-kyselyt ja tiedon käsittely
+- [Exception Handling](Exception-Handling.md) - Poikkeuksien käsittely
 

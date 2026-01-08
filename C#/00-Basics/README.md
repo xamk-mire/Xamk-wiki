@@ -28,9 +28,14 @@ Tervetuloa C#-ohjelmoinnin perusteisiin! Tämä osio käsittelee C#-ohjelmoinnin
 - [Region](Region.md) - Koodin ryhmittely
 - [Access Modifiers](Access-Modifiers.md) - Käyttöoikeusmääreet (public, private, jne.)
 
-### Teknologiat ja työkalut
-- [LINQ](LINQ.md) - LINQ ja Lambda-lausekkeet
+### Funktionaalinen ohjelmointi
+- [Lambda-lausekkeet](Lambda.md) - Lambda-lausekkeet ja anonyymit funktiot
 - [Delegaatit](Delegates.md) - Delegaatit, Action, Func, ja Predicate
+- [Predikaatit](Predicate.md) - Predikaatit ja ehtojen testaus
+- [Closures](Closures.md) - Sulkeumat ja muuttujien kaappaus
+- [LINQ](LINQ.md) - LINQ-kyselyt ja tiedon käsittely
+
+### Teknologiat ja työkalut
 - [JSON](JSON.md) - JSON-serialisointi ja deserialisointi
 - [RegEx](RegEx.md) - Säännölliset lausekkeet
 

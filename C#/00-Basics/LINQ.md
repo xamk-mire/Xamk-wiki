@@ -20,7 +20,9 @@ var oddNumbers = numbers.Where(n => n % 2 != 0).ToList();
 
 ## Mikä on Lambda?
 
-**Lambda**-lausekkeet ovat lyhyt tapa esittää [anonyymi funktioita](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/lambda-expressions) C#:ssa. Ne ovat usein käytettyjä LINQ-kyselyissä ja [delegate](https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/delegates/)-tietotyyppien kanssa.
+**Lambda**-lausekkeet ovat lyhyt tapa esittää anonyymi funktioita C#:ssa. Ne ovat usein käytettyjä LINQ-kyselyissä ja [delegate](Delegates.md)-tietotyyppien kanssa.
+
+> **Tutustu tarkemmin:** [Lambda-lausekkeet](Lambda.md) - Syvällinen oppimateriaali lambda-lausekkeista ja anonyymistä funktioista
 
 ### Lambda-lausekkeen syntaksi
 
@@ -247,6 +249,8 @@ List<int> evenNumbers = numbers.Where(n => n % 2 == 0).ToList();
 > **Huom!** LINQ:n kanssa käytetään usein myös [delegaatteja](Delegates.md). Tutustu niiden käyttöön LINQ-operaatioiden yhteydessä.
 
 ## Predikaatti
+
+> **Tutustu tarkemmin:** [Predikaatit](Predicate.md) - Kattava oppimateriaali predikaateista
 
 ### Mikä on predikaatti C#:ssa?
 
@@ -509,9 +513,10 @@ Esimerkkikoodia löytyy myös [CollectionExamples](https://github.com/xamk-ture/
 ## Yhteenveto
 
 - **LINQ** tarjoaa yhtenäisen tavan kysyä tietoja eri lähteistä
-- **Lambda-lausekkeet** ovat lyhyt tapa määritellä anonyymejä funktioita
+- **Lambda-lausekkeet** ovat lyhyt tapa määritellä anonyymejä funktioita (lue lisää: [Lambda.md](Lambda.md))
 - **Delegaatit** mahdollistavat metodien käsittelyn muuttujina (lue lisää: [Delegates.md](Delegates.md))
-- **Predikaatit** ovat funktioita, jotka palauttavat `true` tai `false`
+- **Predikaatit** ovat funktioita, jotka palauttavat `true` tai `false` (lue lisää: [Predicate.md](Predicate.md))
+- **Closures** mahdollistavat lambdojen kaapata ulkoisia muuttujia (lue lisää: [Closures.md](Closures.md))
 - **LINQ ja lambda** tekevät C#-koodista tiiviimpää ja luettavampaa, erityisesti kun käsitellään kokoelmia tai tietolähteitä
 
 ## Suositeltuja harjoituksia
@@ -546,4 +551,10 @@ Esimerkkikoodia löytyy myös [CollectionExamples](https://github.com/xamk-ture/
 ### Interaktiiviset harjoitukset
 - [LINQPad](https://www.linqpad.net/) - Ilmainen työkalu LINQ-kyselyjen testaamiseen
 - [.NET Fiddle](https://dotnetfiddle.net/) - Selainpohjainen C#-editori LINQ-kokeiluihin
+
+### Liittyvät materiaalit
+- [Lambda-lausekkeet](Lambda.md) - Syvällinen oppimateriaali lambda-lausekkeista
+- [Delegaatit](Delegates.md) - Delegaattien käyttö ja sisäänrakennetut delegaatit
+- [Predikaatit](Predicate.md) - Predikaattien käyttö ja esimerkit
+- [Closures](Closures.md) - Muuttujien kaappaus ja sulkeumat
 
