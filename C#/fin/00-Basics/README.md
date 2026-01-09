@@ -58,3 +58,7 @@ Suosittelemme opiskelua seuraavassa järjestyksessä:
 Kun olet hallinnut perusteet, siirry:
 - [OOP-konsepteihin](../02-OOP-Concepts/) - Olio-ohjelmoinnin perusteet
 - [Edistyneisiin aiheisiin](../04-Advanced/) - Yksikkötestaus, Design Patterns, jne.
+
+## Takaisin
+
+- [C#-materiaalit](../) - Takaisin pääsivulle
