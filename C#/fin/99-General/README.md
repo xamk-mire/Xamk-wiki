@@ -7,6 +7,7 @@ Tämä kansio sisältää materiaaleja, jotka eivät ole suoraan C#-kieleen liit
 ### Työkalut ja ympäristöt
 - [IDE](IDE.md) - Integroitu kehitysympäristö
 - [GitHub (Git)](GitHub.md) - Versionhallinta
+- [Markdown](Markdown.md) - Dokumentoinnin perusteet
 - [Tehtävien palautusohjeet](Assignment-Submission.md) - Ohjeet tehtävien palauttamiseen
 
 ### Ohjelmointikäsitteet
