@@ -1,160 +1,275 @@
 # Yksikkötestaus (Unit Testing)
 
-## HUOM!
+## Sisällysluettelo
 
-- Esimerkkikoodit löydät esimerkki solutionista UnitTestExamples-projektin alta, ClassLibraryTests-luokasta
-- Lisää yksikkötestiesimerkkejä löytyy aina tehtävien yksikkötestiprojekteista, joiden avulla voitte tarkastaa tehtäviä
+1. [Johdanto](#johdanto)
+2. [Mikä on yksikkötestaus?](#mikä-on-yksikkötestaus)
+3. [Miksi yksikkötestaus on tärkeää?](#miksi-yksikkötestaus-on-tärkeää)
+4. [xUnit - Testausframework](#xunit---testausframework)
+5. [Testien anatomia - AAA-malli](#testien-anatomia---aaa-malli)
+6. [xUnit Attribuutit](#xunit-attribuutit)
+7. [Assert-metodit](#assert-metodit)
+8. [Mocking](#mocking)
+9. [Testien organisointi](#testien-organisointi)
+10. [Parhaat käytännöt](#parhaat-käytännöt)
+11. [Esimerkit](#esimerkit)
+
+---
+
+## Johdanto
+
+Yksikkötestaus on ohjelmistokehityksen keskeinen osa, joka varmistaa koodin laadun ja toimivuuden. Tämä materiaali käsittelee yksikkötestausta C#-kielessä käyttäen xUnit-frameworkia.
+
+### Materiaalin rakenne
+
+- **Tämä tiedosto**: Teoria ja käsitteet
+- **[Unit-Testing-Examples.md](Unit-Testing-Examples.md)**: Kattavat koodiesimerkit
+- **Tehtävät**: Käytännön harjoitukset löytyvät kurssin tehtävärepositorioista
+
+### Hyödyllisiä linkkejä
+
 - [Microsoftin virallinen dokumentaatio](https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-with-dotnet-test)
-- [Miten ajaa yksikkötestejä Visual Studiossa](https://learn.microsoft.com/en-us/visualstudio/test/run-unit-tests-with-test-explorer?view=vs-2022)
+- [xUnit dokumentaatio](https://xunit.net/)
+- [Miten ajaa testejä Visual Studiossa](https://learn.microsoft.com/en-us/visualstudio/test/run-unit-tests-with-test-explorer?view=vs-2022)
+
+---
 
 ## Mikä on yksikkötestaus?
 
-Yksikkötestaus on ohjelmointiprosessi, jossa pieni osa koodista (tyypillisesti yksittäinen funktio tai luokka) testataan erikseen varmistaakseen, että se toimii odotetulla tavalla.
+**Yksikkötestaus** (Unit Testing) on automaattinen testi, joka testaa **pienen osan koodista** eristettynä muusta järjestelmästä. Tyypillisesti yksikkötesti testaa:
+- Yhtä metodia
+- Yhtä luokkaa
+- Yhden toiminnallisuuden
 
-### xUnit
+### Yksikkötestin ominaisuudet
 
-**xUnit** on suosittu yksikkötestaustyökalu C#-ohjelmointikielessä. Se on kirjoitettu .NET-kielellä ja sitä käytetään .NET-sovellusten yksikkötestaukseen. xUnit on erityisen suosittu .NET Core -yhteisössä, ja se on yksi monista testauskehyksistä, kuten MSTest ja NUnit, mutta se on suunniteltu erityisesti modernilla otteella, ottaen huomioon parhaat käytännöt ja oppimukset muista testauskehyksistä.
+✅ **Nopea** - Suoritus kestää millisekunteja  
+✅ **Eristetty** - Ei riipu ulkoisista resursseista (tietokanta, verkko)  
+✅ **Toistettava** - Antaa aina saman tuloksen samoilla syötteillä  
+✅ **Itsenäinen** - Ei riipu muista testeistä  
+✅ **Selkeä** - Testaa yhtä asiaa kerrallaan
 
-## Yksikkötestaamisen hyödyt
+### Mitä yksikkötesti EI ole
 
-1. **Varmistaa koodin toiminta**: Voit olla varma, että koodisi tekee sen, mitä sen on tarkoitus tehdä.
-2. **Havaitsee virheet aikaisin**: Mahdolliset virheet löydetään ja korjataan ennen kuin ne päätyvät tuotantoon.
-3. **Helpottaa muutoksia**: Jos teet muutoksia koodiin, voit ajaa yksikkötestit varmistaaksesi, ettet rikkonut mitään.
-4. **Parantaa koodin laatua**: Yksikkötestaus kannustaa suunnittelemaan koodin paremmin ja tekemään se modulaarisemmaksi.
+❌ **Integraatiotesti** - Testaa useita komponentteja yhdessä
 
-## Perusesimerkki
+Integraatiotestit testaavat, miten eri osat järjestelmästä toimivat yhdessä. Esimerkiksi testataan, että sovellus pystyy tallentamaan datan oikeasti tietokantaan, ei mockattuna. Nämä testit ovat hitaampia ja monimutkaisempia kuin yksikkötestit.
 
-Oletetaan, että sinulla on seuraava yksinkertainen funktio, joka laskee kahden luvun summan:
+**Esimerkki:** Testataan UserService:n ja oikean tietokannan yhteistoimintaa.
+
+❌ **End-to-End testi (E2E)** - Testaa koko järjestelmää
+
+E2E-testit testaavat koko sovelluksen toimintaa käyttäjän näkökulmasta, alusta loppuun. Ne simuloivat oikean käyttäjän toimintaa (esim. selaimessa), sisältäen käyttöliittymän, backendin, tietokannan ja kaikki välikomponentit.
+
+**Esimerkki:** Käyttäjä kirjautuu sisään, luo tuotteen, lisää sen ostoskoriin ja maksaa tilauksen.
+
+❌ **Manuaalinen testi** - Testataan käsin
+
+Manuaalisessa testauksessa ihminen suorittaa testit käsin, ei automaattisesti. Tämä on hidasta, altista virheille ja vaikeaa toistaa systemaattisesti.  
+
+---
+
+## Miksi yksikkötestaus on tärkeää?
+
+### 1. Varmistaa koodin toiminnan
+
+Yksikkötestit varmistavat, että koodisi tekee sen, mitä sen pitää tehdä. Kun kirjoitat testin ennen tai heti koodin jälkeen, olet pakotettuna miettimään, mitä koodin pitää tehdä.
+
+### 2. Havaitsee virheet aikaisin
+
+Virheet löydetään heti kehitysvaiheessa, ei tuotannossa. Mitä aikaisemmin virhe löydetään, sitä halvempaa on korjata se.
+
+**Virheen korjauksen hinta:**
+- Kehitysvaiheessa: 1x
+- Testausvaiheessa: 10x
+- Tuotannossa: 100x
+
+### 3. Helpottaa refaktorointia
+
+Kun sinulla on kattavat testit, voit rohkeasti tehdä muutoksia koodiin. Jos rikot jotain, testit kertovat sen heti.
+
+```
+Ilman testejä: Pelkäät muuttaa koodia → Koodi muuttuu legacy-koodiksi
+Testien kanssa: Muutokset ovat turvallisia → Koodi pysyy puhtaana
+```
+
+### 4. Dokumentoi koodia
+
+Hyvät testit kertovat, miten koodia pitää käyttää. Ne ovat "elävää dokumentaatiota" joka pysyy ajan tasalla.
+
+### 5. Parantaa arkkitehtuuria
+
+Testattava koodi on yleensä paremmin suunniteltua:
+- Modulaarinen (pienet, itsenäiset osat)
+- Riippuvuudet injektoidaan
+- Selkeät rajapinnat
+- Single Responsibility Principle
+
+### 6. Säästää aikaa pitkällä tähtäimellä
+
+Vaikka testien kirjoittaminen vie aikaa alussa, se säästää aikaa:
+- Vähemmän bugeja
+- Nopea debuggaus
+- Turvallinen refaktorointi
+- Vähemmän regressioita
+
+---
+
+## xUnit - Testausframework
+
+**xUnit** on moderni, avoimen lähdekoodin testausframework .NET-sovelluksille. Se on suosituin testausframework .NET Core -yhteisössä.
+
+### Miksi xUnit?
+
+✅ **Moderni** - Suunniteltu .NET Core -ajalle  
+✅ **Suosittu** - Laajasti käytetty, hyvä tuki  
+✅ **Yksinkertainen** - Helppo oppia ja käyttää  
+✅ **Joustava** - Tukee erilaisia testausmalleja  
+✅ **Suorituskykyinen** - Nopea testien suoritus
+
+### Muita vaihtoehtoja
+
+- **NUnit** - Vanhempi, myös suosittu
+- **MSTest** - Microsoftin oma framework
+- **xUnit** - Suositeltu uusiin projekteihin
+
+### xUnit:n asennus
+
+**NuGet-paketit:**
+```xml
+<PackageReference Include="xunit" Version="2.6.0" />
+<PackageReference Include="xunit.runner.visualstudio" Version="2.5.0" />
+<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+```
+
+**dotnet CLI:**
+```bash
+dotnet add package xunit
+dotnet add package xunit.runner.visualstudio
+dotnet add package Microsoft.NET.Test.Sdk
+```
+
+---
+
+## Testien anatomia - AAA-malli
+
+AAA (Arrange-Act-Assert) on yleinen malli yksikkötestauksessa. Se jakaa testin kolmeen selkeään osaan.
+
+### 1. Arrange (Järjestä)
+
+**Valmistele testi:**
+- Luo tarvittavat objektit
+- Aseta alkuarvot
+- Konfiguroi mock-objektit
 
 ```csharp
-public class Calculator
+// Arrange
+Calculator calculator = new Calculator();
+int a = 5;
+int b = 3;
+int expected = 8;
+```
+
+### 2. Act (Toimi)
+
+**Suorita testattava toiminto:**
+- Kutsu testattavaa metodia
+- Yleensä vain yksi rivi
+- Tallenna tulos muuttujaan
+
+```csharp
+// Act
+int result = calculator.Add(a, b);
+```
+
+### 3. Assert (Varmista)
+
+**Tarkista tulos:**
+- Vertaa tulosta odotukseen
+- Käytä Assert-metodeja
+- Jos Assert epäonnistuu, testi epäonnistuu
+
+```csharp
+// Assert
+Assert.Equal(expected, result);
+```
+
+### Täydellinen esimerkki
+
+```csharp
+[Fact]
+public void Add_ShouldReturnSum_WhenGivenTwoNumbers()
 {
-    public int Add(int a, int b)
-    {
-        return a + b;
-    }
+    // Arrange - Valmistele
+    Calculator calculator = new Calculator();
+    int a = 5;
+    int b = 3;
+    int expected = 8;
+
+    // Act - Toimi
+    int result = calculator.Add(a, b);
+
+    // Assert - Varmista
+    Assert.Equal(expected, result);
 }
 ```
 
-Tämä yksikkötesti varmistaa, että Add-funktion palauttama tulos on oikea:
+---
 
+## xUnit Attribuutit
+
+xUnit käyttää attribuutteja testin määrittelyyn ja konfigurointiin.
+
+### [Fact] - Yksittäinen testi
+
+`[Fact]` on perus-attribuutti yksittäiselle testille. Se ei ota parametreja.
+
+**Käyttö:**
 ```csharp
-using Xunit;
-
-public class CalculatorTests
+[Fact]
+public void TestMethodName()
 {
-    [Fact]
-    public void Add_ShouldReturnSum_WhenGivenTwoNumbers()
-    {
-        // Arrange
-        Calculator calculator = new Calculator();
-        int a = 5;
-        int b = 3;
-        int expected = 8;
-
-        // Act
-        int result = calculator.Add(a, b);
-
-        // Assert
-        Assert.Equal(expected, result);
-    }
+    // Testi
 }
 ```
 
-Jos joku muuttaisi Add-funktiota myöhemmin (esim. vahingossa), ja funktio ei enää palauttaisi oikeaa tulosta, tämä testi epäonnistuisi ja ilmoittaisi virheestä.
-
-## Yksikkötestauksen syntaksi
-
-### Arrange-Act-Assert (AAA)
-
-AAA on yleinen malli, jota käytetään yksikkötestauksessa kuvaamaan testin kolmea päävaihetta:
-
-1. **Arrange** (Järjestä)
-   - Tässä vaiheessa luodaan testin edellyttämät objektit ja asetetaan niiden alkuarvot.
-   - Testin lähtötilanne rakennetaan: luodaan tarvittavat objektit, asetetaan mock-objekteille odotetut arvot ja toiminnot jne.
-
-2. **Act** (Toimi)
-   - Testattavaa toimintoa kutsutaan tässä vaiheessa.
-   - Yleensä tämä vaihe koostuu yhdestä toimintokutsusta, joka on testin keskeinen osa.
-
-3. **Assert** (Varmista)
-   - Tässä vaiheessa testin tulos tarkistetaan.
-   - Käytetään yleensä `Assert`-luokan funktioita (kuten `Assert.Equal`, `Assert.True` jne.) varmistaakseen, että testattava koodi toimii odotetusti.
-   - Jos jokin `Assert` epäonnistuu, testi katsotaan epäonnistuneeksi.
-
-### [Fact]-attribuutti
-
-`[Fact]`-attribuutti käytetään yksittäisen testin määrittelemiseen. Toisin kuin muissa kehyksissä, joissa saatetaan käyttää esim. `[Test]`-attribuuttia, xUnitissa käytetään `[Fact]`.
-
+**Esimerkkejä:**
 ```csharp
-using Xunit;
-
-public class CalculatorTests
+[Fact]
+public void IsEven_ShouldReturnTrue_WhenNumberIsEven()
 {
-    [Fact]
-    public void Add_ShouldReturnSum_WhenGivenTwoNumbers()
-    {
-        // Arrange
-        Calculator calculator = new Calculator();
-        int a = 5;
-        int b = 3;
+    // ...
+}
 
-        // Act
-        int result = calculator.Add(a, b);
-
-        // Assert
-        Assert.Equal(8, result);
-    }
+[Fact]
+public void GetUser_ShouldReturnNull_WhenUserNotFound()
+{
+    // ...
 }
 ```
 
-### [Theory] ja [InlineData]
+### [Theory] ja [InlineData] - Parametrisoidut testit
 
-`Theory` on attribuutti, jota käytetään ilmoittamaan, että testausmetodi on tarkoitettu suoritettavaksi useilla eri syötedataseteillä. Toisin kuin `Fact`-attribuutti, joka osoittaa, että metodi on testi, joka suoritetaan tarkalleen yhdellä määritellyllä tavalla, `Theory`-attribuutti kertoo, että testi odottaa syötettä.
+`[Theory]` mahdollistaa saman testin suorittamisen useilla eri syötteillä.
 
-Kun merkitset testausmetodin `Theory`-attribuutilla, sinun on yhdistettävä se johonkin datalähteen attribuuttiin, joka toimittaa syötedatan.
-
-`InlineData` on atribuutti parametrisoiduille testausmetodeille. Se mahdollistaa eri syötedatojen syöttämisen samaan testausmetodiin. Tämän avulla voit suorittaa saman testin useilla eri syötearvoilla ilman, että sinun tarvitsee kirjoittaa useita erillisiä testejä.
-
-**HUOM!** Voit käyttää vain jompaa kumpaa attributeja, joko `Theory`:a tai `Fact`:a, koska ne sulkevat toisensa pois (toimivat eri logiikalla).
-
+**Käyttö:**
 ```csharp
-using Xunit;
-
-public class WordCounterTests
+[Theory]
+[InlineData(param1, param2, expected)]
+[InlineData(param1, param2, expected)]
+public void TestMethodName(Type param1, Type param2, Type expected)
 {
-    [Theory]
-    [InlineData("Hello World", 2)]
-    [InlineData("", 0)]
-    [InlineData("One", 1)]
-    public void CountWords_ShouldReturnCorrectCount_WhenGivenString(string input, int expected)
-    {
-        // Arrange
-        WordCounter counter = new WordCounter();
-
-        // Act
-        int result = counter.CountWords(input);
-
-        // Assert
-        Assert.Equal(expected, result);
-    }
+    // Testi
 }
 ```
 
-Tässä esimerkissä `WordCounterTheoryTest` -testi suoritetaan kolme kertaa eri syötedataarvoilla:
-1. `input` = "Hello World", `expected` = 2
-2. `input` = "", `expected` = 0
-3. `input` = "One", `expected` = 1
-
-**Syntaksi**: `[InlineData(value1, expected)]`
-
-Jos testi-metodissa olisi useampi parametri, niin silloin InlineData attribuutin parametrien määrä pitää täsmätä. Alla olevassa esimerkissä on testi, joka ottaa kaksi parametria:
-
+**Esimerkki:**
 ```csharp
 [Theory]
 [InlineData(2, 3, 5)]
-[InlineData(10, 20, 30)]
-[InlineData(-5, 5, 0)]
+[InlineData(0, 0, 0)]
+[InlineData(-1, 1, 0)]
+[InlineData(100, 200, 300)]
 public void Add_ShouldReturnSum_WhenGivenTwoNumbers(int a, int b, int expected)
 {
     // Arrange
@@ -168,189 +283,525 @@ public void Add_ShouldReturnSum_WhenGivenTwoNumbers(int a, int b, int expected)
 }
 ```
 
-## Mocking testauksessa
+**Hyödyt:**
+- Vähemmän toistoa
+- Helppo lisätä uusia testausskenaarioita
+- Selkeä ja kompakti
+
+### [MemberData] - Monimutkainen testdata
+
+Kun testdata on liian monimutkaista `InlineData`:lle, käytä `MemberData`:a.
+
+```csharp
+public static IEnumerable<object[]> GetTestData()
+{
+    yield return new object[] { 2, 3, 5 };
+    yield return new object[] { -1, -1, -2 };
+    yield return new object[] { 0, 0, 0 };
+}
+
+[Theory]
+[MemberData(nameof(GetTestData))]
+public void Add_ShouldReturnSum(int a, int b, int expected)
+{
+    // Testi
+}
+```
+
+### [Skip] - Ohita testi
+
+Välillä haluat tilapäisesti ohittaa testin.
+
+```csharp
+[Fact(Skip = "Ei vielä toteutettu")]
+public void FutureTest()
+{
+    // ...
+}
+```
+
+---
+
+## Assert-metodit
+
+xUnit tarjoaa monia `Assert`-metodeja tulosten tarkistamiseen.
+
+### Perustarkistukset
+
+```csharp
+// Yhtäsuuruus
+Assert.Equal(expected, actual);
+Assert.NotEqual(expected, actual);
+
+// True/False
+Assert.True(condition);
+Assert.False(condition);
+
+// Null-tarkistukset
+Assert.Null(object);
+Assert.NotNull(object);
+
+// Sama objekti
+Assert.Same(expected, actual);
+Assert.NotSame(expected, actual);
+```
+
+### Numeeriset tarkistukset
+
+```csharp
+// Väli
+Assert.InRange(actual, low, high);
+Assert.NotInRange(actual, low, high);
+
+// Desimaalien vertailu
+Assert.Equal(expected, actual, precision: 2);
+```
+
+### String-tarkistukset
+
+```csharp
+// Sisältö
+Assert.Contains("sub", "substring");
+Assert.DoesNotContain("x", "string");
+
+// Alku/Loppu
+Assert.StartsWith("Hei", "Hei maailma");
+Assert.EndsWith("ma", "Hei maailma");
+
+// Tyhjyys
+Assert.Empty(collection);
+Assert.NotEmpty(collection);
+
+// Regex
+Assert.Matches(@"\d+", "123");
+```
+
+### Kokoelmat
+
+```csharp
+// Yksittäinen alkio
+Assert.Single(collection);
+
+// Sisältö
+Assert.Contains(item, collection);
+Assert.DoesNotContain(item, collection);
+
+// Kaikki alkiot täyttävät ehdon
+Assert.All(collection, item => Assert.True(item > 0));
+
+// Tyhjyys
+Assert.Empty(collection);
+Assert.NotEmpty(collection);
+```
+
+### Poikkeukset
+
+```csharp
+// Odota poikkeusta
+Assert.Throws<ArgumentException>(() => 
+{
+    method.Call();
+});
+
+// Tarkempi poikkeustesti
+ArgumentException exception = Assert.Throws<ArgumentException>(() => 
+{
+    method.Call();
+});
+Assert.Equal("Parameter cannot be null", exception.Message);
+
+// Async-poikkeukset
+await Assert.ThrowsAsync<InvalidOperationException>(async () => 
+{
+    await method.CallAsync();
+});
+```
+
+### Tyyppi-tarkistukset
+
+```csharp
+// Tyyppi
+Assert.IsType<MyClass>(object);
+Assert.IsNotType<OtherClass>(object);
+
+// Peritty tyyppi
+Assert.IsAssignableFrom<BaseClass>(object);
+```
+
+---
+
+## Mocking
 
 ### Mitä on mocking?
 
-Mocking eli "mock-olioiden" (tai testidummyjen) käyttäminen on tekniikka, jossa luodaan "teko-olioita" (mockkeja) korvaamaan sovelluksen oikeat riippuvuudet testin ajaksi. Tarkoituksena on testata **yhtä koodin osaa** kerrallaan eristettynä muista osista. Näin ulkoinen tai monimutkainen riippuvuus (kuten tietokanta, API-kutsu tai sähköpostipalvelu) korvataan mockilla, joka joko antaa ennalta määritellyt tulokset tai jonka metodeja voidaan seurata ja varmistaa, että niitä kutsutaan oikeilla parametreilla.
+**Mocking** on tekniikka, jossa luodaan "teko-objekteja" (mockeja) korvaamaan oikeat riippuvuudet testeissä. Näin voit testata koodia eristettynä ulkoisista riippuvuuksista.
 
-**Muita materiaaleja**:
-- [How to use Moq for mocking objects with xUnit and .NET](https://www.roundthecode.com/dotnet-tutorials/moq-mocking-objects-xunit-dotnet)
-- [Moq Mocking Framework With xUnit.net Unit Test In C#](https://www.csharp.com/article/moq-mocking-framework-with-xunit-net-testing-fr/)
+### Miksi mockata?
 
-### Mihin mockingia käytetään?
+#### 1. Eristäminen
 
-1. **Eristämään testattava koodi ulkoisista riippuvuuksista**
-   - Voit testata metodisi logiikkaa ilman, että kutsut oikeaa tietokantaa, ulkoista palvelua tai sähköpostijärjestelmää.
+```
+Ilman mockausta:
+YourClass → RealDatabase → Network → Database Server
+  ↓
+Testi riippuu kaikesta tästä
 
-2. **Hallitsemaan testin olosuhteet**
-   - Mock-palvelu voi palauttaa tai tehdä juuri sen, mitä testitilanteessa halutaan tarkastella. Esim. voit testata, miten metodi reagoi, jos riippuvuus heittää poikkeuksen.
-
-3. **Varmistamaan tiettyjen metodikutsujen toteutuminen**
-   - Voit testata esimerkiksi, että `SendEmail`-metodia on varmasti kutsuttu, kun luot uuden käyttäjän.
-
-### Milloin mockingia kannattaa käyttää?
-
-1. **Riippuvuus on hidas tai epävakaa**
-   - Testien ajaminen on nopeampaa ja luotettavampaa, kun et oikeasti kutsu ulkoisia palveluita tai käytä tietokantaa.
-
-2. **Riippuvuus on vaikea tai raskas konfiguroida**
-   - Paljon asetuksia tai iso testidata voidaan välttää käyttämällä mockia, joka antaa suoraan halutun vastauksen.
-
-3. **Tarve testata virhetilanteita**
-   - Voit pakottaa mock-olion heittämään poikkeuksia ja varmistaa, miten koodisi toimii niissä tilanteissa.
-
-4. **Tahdot varmistaa spesifin metodikutsun**
-   - Useimmissa mocking-kehyksissä voit helposti seurata, onko metodia kutsuttu, kuinka monta kertaa ja millä parametreilla.
-
-**Huomaa**: Ettei kaikkea kannata välttämättä mockata. Jos riippuvuuden toteutus on yksinkertainen eikä aiheuta hidastuksia tai hankaluuksia, voi olla helpompaa käyttää oikeaa toteutusta myös testissä.
-
-### Mitä ongelmia mocking ratkaisee?
-
-1. **Hitaat testit**: Testit pysyvät nopeina, koska vältytään oikeilta verkko- tai tietokantakutsuilta.
-2. **Epävakaat testit**: Kun riippuvuus on mockattu, testin tulos ei muutu ulkoisten häiriöiden takia.
-3. **Monimutkaiset riippuvuudet**: Testit säilyvät selkeinä, koska monimutkainen "oikea" riippuvuus voidaan korvata yksinkertaisella mockilla.
-4. **Kattavuuden lisääminen**: Voit hallita tarkasti mockin palauttamat arvot ja virhetilanteet, jolloin testaat kattavasti erilaiset skenaariot.
-
-### Mitä mocking vaatii ja miksi rajapinnat (interface) ovat tässä hyödyllisiä?
-
-1. **Mitä mocking vaatii?**
-   - Usein mocking-työkalut (esim. Moq C#-kielessä) tarvitsevat, että testattavan luokan riippuvuus on tarjolla **rajapintana** (interface) tai vähintäänkin *virtual-metodeina*. Ilman rajapintaa tai virtual-metodeja mocking-framework ei saa luotua "teko-oliota", joka toteuttaa tai yliajaa tarvittavia metodeja.
-
-2. **Miksi rajapinnat (interface) ovat hyvä asia?**
-   - Kun käytät luokan sijaan **rajapintaa**, sen toteutus on helppo vaihtaa: joko oikeaan toteutukseen tuotantokoodissa tai mock-olioihin testikoodissa. Koko järjestelmä pysyy modulaarisempana ja testausystävällisempänä, koska luokka riippuu ainoastaan rajapinnasta (eli metodeista, ei konkreettisesta toteutuksesta). Tämä tukee parempaa arkkitehtuuria ja koodin ylläpidettävyyttä.
-
-### Esimerkki xUnit-testeistä (C# + Moq)
-
-Alla yksinkertainen esimerkki siitä, miten mocking tehdään C#:ssa käyttäen [Moq-kirjastoa](https://github.com/moq/moq). Testaamme luokkaa, joka luo käyttäjän ja lähettää tervetulotoivotuksen sähköpostilla.
-
-#### 1. Rajapinta (IEmailService)
-
-```csharp
-public interface IEmailService
-{
-    void SendEmail(string to, string subject, string body);
-}
+Mockauksen kanssa:
+YourClass → MockDatabase
+  ↓
+Testi riippuu vain YourClass:sta
 ```
 
-#### 2. Testattava luokka (UserService)
+#### 2. Nopeus
 
-```csharp
-public class UserService
-{
-    private readonly IEmailService _emailService;
+- Oikea tietokantakutsu: 100-1000ms
+- Mock-kutsu: <1ms
+- Testisarja 1000 testillä: tunti → sekunti
 
-    public UserService(IEmailService emailService)
-    {
-        _emailService = emailService;
-    }
+#### 3. Kontrolli
 
-    public void CreateUser(string username, string email)
-    {
-        // Luodaan käyttäjä...
-        
-        // Lähetetään tervetuloviesti
-        _emailService.SendEmail(email, "Tervetuloa!", $"Hei {username}!");
-    }
-}
+Voit määrittää tarkalleen mitä mock palauttaa:
+- Normaali tulos
+- Virhetilanne
+- Null-arvo
+- Poikkeus
+
+#### 4. Testattavuus
+
+Voit testata tilanteita, jotka olisivat vaikeita tai mahdottomia oikeilla objekteilla:
+- Verkkovirhe
+- Tietokannan täyttyminen
+- Aikaleimaan liittyvät ongelmat
+
+### Moq-kirjasto
+
+**Moq** on suosituin mocking-kirjasto C#:lle.
+
+**Asennus:**
+```bash
+dotnet add package Moq
 ```
 
-#### 3. Testi (xUnit + Moq)
-
+**Perusesimerkki:**
 ```csharp
-using Xunit;
 using Moq;
 
-public class UserServiceTests
-{
-    [Fact]
-    public void CreateUser_ShouldSendWelcomeEmail_WhenUserIsCreated()
-    {
-        // Arrange
-        var emailServiceMock = new Mock<IEmailService>();
-        var userService = new UserService(emailServiceMock.Object);
+// 1. Luo mock-olio
+Mock<IEmailService> mock = new Mock<IEmailService>();
 
-        // Act
-        userService.CreateUser("matti", "matti@example.com");
+// 2. Määrittele mitä mock palauttaa
+mock.Setup(x => x.SendEmail(It.IsAny<string>()))
+    .Returns(true);
 
-        // Assert
-        emailServiceMock.Verify(
-            x => x.SendEmail("matti@example.com", "Tervetuloa!", "Hei matti!"),
-            Times.Once
-        );
-    }
-}
+// 3. Käytä mockia
+UserService service = new UserService(mock.Object);
+
+// 4. Varmista että metodia kutsuttiin
+mock.Verify(x => x.SendEmail("test@example.com"), Times.Once);
 ```
 
-**Mitä testissä tapahtuu?**
+### Milloin mockata?
 
-1. **Luodaan mock-olio**: `new Mock<IEmailService>()` luo dynaamisen "teko-olion", joka toteuttaa `IEmailService`:n.
-2. **Injektoidaan mock**: `userService` käyttää `emailServiceMock.Object`-olioa sähköpostin lähetykseen.
-3. **Kutsutaan testattavaa metodia**: `userService.CreateUser("matti", "matti@example.com")`.
-4. **Tarkistetaan metodikutsu**: `Verify`-metodi varmistaa, että `SendEmail`-metodia kutsuttiin **täsmälleen kerran** annetuille parametreille.
+✅ **Mockata:**
+- Tietokannat
+- Ulkoiset API:t
+- Tiedostojärjestelmä
+- Sähköposti/SMS
+- Aika (DateTime.Now)
+- Satunnaisuus (Random)
 
-### Yhteenveto mockingista
+❌ **Älä mockata:**
+- Yksinkertaiset data-luokat
+- Value Objects
+- Omia yksinkertaisia luokkia
+- .NET:n perusluokat (String, List, etc.)
 
-- **Mocking** tarkoittaa ulkoisten tai monimutkaisten riippuvuuksien "feikkaamista" testikoodissa.
-- Se pitää testit **nopeina**, **luotettavina** ja **selkeinä**, keskittyen vain testattavan koodipalan logiikkaan.
-- **Rajapinnat (interface)** helpottavat mockin käyttöä: mocking-framework pystyy helposti luomaan dynaamisia olioita rajapintojen pohjalta.
-- Mocking säästää aikaa, vaivaa ja estää ulkoisten ja monimutkaisten elementtien sotkemasta yksikkötestejä.
-- Kokonaisuudessaan mocking on keskeinen työkalu yksikkötestauksessa ja kannustaa koodin palasteluun, mikä johtaa parempaan arkkitehtuuriseen suunnitteluun ja ylläpidettävyyteen.
+### Rajapinnat (Interface) ja mocking
 
-## Attribuutit (Attributes)
-
-[Microsoftin virallinen dokumentaatio](https://learn.microsoft.com/en-us/dotnet/csharp/advanced-topics/reflection-and-attributes/)
-
-C#-kielellä attribuutit (Attributes) ovat erityisiä deklaraatioita, jotka voidaan liittää koodi-elementteihin (esim. luokkiin, menetelmiin, ominaisuuksiin) ja jotka määrittelevät lisätietoja tai ohjeita kääntäjälle. Attribuutteja käytetään usein määrittämään metatietoja koodista tai ohjaamaan tiettyjä toimintoja, kuten sarjoittamista tai yksikkötestausta.
-
-### Esimerkki attribuutin käytöstä
+Mocking toimii parhaiten **rajapintojen** kanssa:
 
 ```csharp
-public class MyClass
+// ❌ Vaikea mockata - konkreettinen luokka
+public class UserService
 {
-    [Obsolete("Käytä NewMethod() sen sijaan")]
-    public void OldMethod()
-    {
-        // Vanha toteutus
-    }
-
-    public void NewMethod()
-    {
-        // Uusi toteutus
-    }
+    private EmailService _emailService; // Konkreettinen luokka
 }
 
-// Käyttö
-MyClass obj = new MyClass();
-obj.OldMethod();  // Varoitus: metodi on vanhentunut
+// ✅ Helppo mockata - rajapinta
+public class UserService
+{
+    private IEmailService _emailService; // Rajapinta
+}
 ```
 
-Tässä `Obsolete` on attribuutti, joka merkitsee `OldMethod`-metodin vanhentuneeksi. Kun kehittäjä yrittää kutsua tätä metodia, hän saa varoituksen siitä, että metodi on vanhentunut ja että hänen pitäisi käyttää jotain muuta metodia sen sijaan.
+**Hyödyt:**
+- Mock voidaan luoda automaattisesti
+- Riippuvuuden voi vaihtaa helposti
+- Parempi arkkitehtuuri (Dependency Inversion)
 
-### Yksikkötestauksessa käytetyt attribuutit
+---
+
+## Testien organisointi
+
+### Nimeämiskäytännöt
+
+#### Testien nimeäminen
+
+Käytä kuvaavaa nimeä, joka kertoo:
+1. Mitä testataan
+2. Millä syötteellä
+3. Mitä odotetaan
+
+**Kaava:**
+```
+MethodName_Scenario_ExpectedBehavior
+```
+
+**Esimerkkejä:**
+```csharp
+Add_PositiveNumbers_ReturnsSum
+Add_NegativeNumbers_ReturnsSum
+Add_ZeroAndNumber_ReturnsNumber
+Divide_ByZero_ThrowsException
+GetUser_ValidId_ReturnsUser
+GetUser_InvalidId_ReturnsNull
+```
+
+#### Projektin nimeäminen
+
+```
+ProjectName → ProjectName.Tests
+MyApp → MyApp.Tests
+MyApp.Core → MyApp.Core.Tests
+```
+
+### Testien organisointi kansioihin
+
+```
+MyApp.Tests/
+├── Unit/              # Yksikkötestit
+│   ├── Services/
+│   ├── Controllers/
+│   └── Helpers/
+├── Integration/       # Integraatiotestit
+└── Fixtures/          # Yhteiset testidatat
+```
+
+### Test Class per Class
+
+Luo yksi testiluokka jokaiselle testattavalle luokalle:
+
+```
+Calculator.cs → CalculatorTests.cs
+UserService.cs → UserServiceTests.cs
+```
+
+---
+
+## Parhaat käytännöt
+
+### 1. Yksi Assert per testi (yleensä)
+
+**Milloin käyttää:** Yleensä aina. Yksi testi testaa yhtä asiaa.
+
+**Miksi:** Kun testi epäonnistuu, tiedät heti mikä meni pieleen. Jos testissä on monta Assertia, ensimmäinen epäonnistuminen pysäyttää testin eikä muita tarkistuksia suoriteta.
+
+**Poikkeus:** Voit käyttää useampaa Assertia, kun testataan saman objektin useita ominaisuuksia, jotka kuuluvat yhteen (esim. koordinaatit x ja y).
 
 ```csharp
-using Xunit;
-
-public class MyTests
+// ❌ Huono - useita asserteja eri asioista
+[Fact]
+public void BadTest()
 {
-    [Fact]  // Yksittäinen testi
-    public void Test1()
-    {
-        // Testin toteutus
-    }
+    Assert.Equal(5, result.Count);
+    Assert.True(result.IsValid);
+    Assert.Equal("OK", result.Status);
+}
 
-    [Theory]  // Parametrisoitu testi
-    [InlineData(1, 2, 3)]
-    [InlineData(5, 5, 10)]
-    public void Test2(int a, int b, int expected)
-    {
-        Assert.Equal(expected, a + b);
-    }
+// ✅ Hyvä - yksi asia kerrallaan
+[Fact]
+public void Count_ShouldBeFive()
+{
+    Assert.Equal(5, result.Count);
+}
+
+[Fact]
+public void IsValid_ShouldBeTrue()
+{
+    Assert.True(result.IsValid);
 }
 ```
+
+### 2. Testit ovat itsenäisiä
+
+**Milloin käyttää:** Aina. Jokainen testi on täysin riippumaton muista.
+
+**Miksi:** Testit voidaan ajaa missä tahansa järjestyksessä ja rinnakkain. Jos testit riippuvat toisistaan, yksi epäonnistunut testi voi kaataa kaikki muut.
+
+```csharp
+// ❌ Huono - riippuu toisesta testistä
+private static int sharedCounter = 0;
+
+[Fact]
+public void Test1() 
+{ 
+    sharedCounter++; 
+}
+
+[Fact]
+public void Test2() 
+{ 
+    Assert.Equal(1, sharedCounter); // Epäonnistuu jos Test1 ei aja ensin
+}
+
+// ✅ Hyvä - itsenäinen
+[Fact]
+public void Test2() 
+{ 
+    int counter = 0;
+    counter++;
+    Assert.Equal(1, counter);
+}
+```
+
+### 3. Testaa myös virhetilanteet
+
+**Milloin käyttää:** Aina kun metodisi voi epäonnistua tai heittää poikkeuksen.
+
+**Miksi:** Suurin osa bugeista tapahtuu virhetilanteissa. Pelkkien "happy path" -tapausten testaaminen ei riitä.
+
+```csharp
+// Testaa normaali tapaus
+[Fact]
+public void Divide_ValidNumbers_ReturnsQuotient()
+{
+    // ...
+}
+
+// Testaa virhetilanne
+[Fact]
+public void Divide_ByZero_ThrowsException()
+{
+    Assert.Throws<DivideByZeroException>(() => 
+    {
+        calculator.Divide(10, 0);
+    });
+}
+
+// Testaa rajatapaukset
+[Fact]
+public void Divide_ZeroDividedByNumber_ReturnsZero()
+{
+    // ...
+}
+```
+
+### 4. Käytä kuvaavia muuttujanimiä
+
+**Milloin käyttää:** Aina.
+
+**Miksi:** Testit ovat dokumentaatiota. Niiden pitää olla helppo lukea ja ymmärtää.
+
+```csharp
+// ❌ Huono
+[Fact]
+public void Test1()
+{
+    Thing x = new Thing();
+    int y = x.Do(5);
+    Assert.Equal(10, y);
+}
+
+// ✅ Hyvä
+[Fact]
+public void Double_ShouldReturnTwiceTheInput()
+{
+    Calculator calculator = new Calculator();
+    int result = calculator.Double(5);
+    Assert.Equal(10, result);
+}
+```
+
+### 5. Älä testaa .NET:n perusominaisuuksia
+
+**Milloin käyttää:** Älä koskaan testaa framework:n tai kirjastojen toimintaa.
+
+**Miksi:** Microsoft on jo testannut .NET:n perusluokat. Keskity omaan logiikkaasi.
+
+```csharp
+// ❌ Turha - testaa List:in toimintaa
+[Fact]
+public void List_Add_IncreasesCount()
+{
+    List<int> list = new List<int>();
+    list.Add(5);
+    Assert.Equal(1, list.Count);
+}
+
+// ✅ Hyvä - testaa omaa logiikkaa
+[Fact]
+public void AddUser_ShouldIncreaseUserCount()
+{
+    UserService userService = new UserService();
+    userService.AddUser(new User());
+    Assert.Equal(1, userService.GetUserCount());
+}
+```
+
+### 6. FIRST-periaatteet
+
+**Milloin käyttää:** Pidä nämä periaatteet mielessä aina kun kirjoitat testejä.
+
+Hyvät testit ovat:
+
+- **F**ast (Nopeat) - Millisekunteja, ei sekunteja
+- **I**ndependent (Riippumattomat) - Ei riipu toisista testeistä
+- **R**epeatable (Toistettavat) - Sama tulos aina
+- **S**elf-validating (Itsevalidoivat) - Pass/Fail, ei manuaalista tarkistusta
+- **T**imely (Ajoissa) - Kirjoita ennen tai heti koodin jälkeen
+
+---
+
+## Esimerkit
+
+Katso kattavat koodiesimerkit tiedostosta:
+
+### [Unit-Testing-Examples.md](Unit-Testing-Examples.md)
+
+Esimerkit sisältävät:
+1. Perus-Assert esimerkit
+2. Theory ja InlineData
+3. Mocking Moq:lla
+4. Async-testit
+5. Exception-testit
+6. Kokoelma-testit
+7. Kattava esimerkki: UserService
+
+---
 
 ## Yhteenveto
 
-Yksikkötestaus on keskeinen osa laadukkaan ohjelmiston kehitystä. Se auttaa varmistamaan, että koodi toimii oikein, havaitsee virheet aikaisin ja helpottaa koodin ylläpitoa. Mocking ja attribuutit ovat tärkeitä työkaluja tehokkaan yksikkötestauksen toteuttamiseen.
+### Yksikkötestauksen hyödyt:
+✅ Varmistaa koodin toiminnan  
+✅ Havaitsee virheet aikaisin  
+✅ Helpottaa refaktorointia  
+✅ Dokumentoi koodia  
+✅ Parantaa arkkitehtuuria  
+✅ Säästää aikaa pitkällä tähtäimellä
 
+### Muista:
+- Käytä AAA-mallia (Arrange-Act-Assert)
+- Kirjoita selkeät ja kuvaavat nimet
+- Testit ovat itsenäisiä
+- Mockkaa ulkoiset riippuvuudet
+- Testaa myös virhetilanteet
+- Noudata FIRST-periaatteita
+
+### Seuraavaksi:
+1. Tutustu esimerkkeihin: [Unit-Testing-Examples.md](Unit-Testing-Examples.md)
+2. Harjoittele omilla projekteilla
+3. Lue lisää: [Microsoftin dokumentaatio](https://learn.microsoft.com/en-us/dotnet/core/testing/)
+
+---
+
+**Onnea testaamiseen!**

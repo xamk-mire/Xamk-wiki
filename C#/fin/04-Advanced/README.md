@@ -5,7 +5,8 @@ Tervetuloa C#-ohjelmoinnin edistyneisiin aiheisiin! Tämä osio käsittelee kehi
 ## Sisältö
 
 ### Testaus
-- [Yksikkötestaus](Unit-Testing.md) - Testien kirjoittaminen, xUnit, Mocking, Attribuutit
+- [Yksikkötestaus - Teoria](Unit-Testing.md) - Yksikkötestauksen käsitteet, xUnit, Mocking, AAA-malli
+- [Yksikkötestaus - Esimerkit](Unit-Testing-Examples.md) - Kattavat koodiesimerkit xUnit-testeistä
 
 ### Suunnittelu
 - [Suunnittelumallit](Design-Patterns.md) - Yleisimmät design patternit (Singleton, Factory, Builder, Observer, jne.)
