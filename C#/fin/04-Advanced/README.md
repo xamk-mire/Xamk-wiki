@@ -17,7 +17,8 @@ Tervetuloa C#-ohjelmoinnin edistyneisiin aiheisiin! Tämä osio käsittelee kehi
 - [Suunnittelumallit](Design-Patterns.md) - Yleisimmät design patternit (Singleton, Factory, Builder, Observer, jne.)
 
 ### Ohjelmistoarkkitehtuuri
-- [Arkkitehtuuri - Yleiskatsaus](Architecture/README.md) - Johdanto eri arkkitehtuurimalleihin
+- [Johdanto - Mikä on arkkitehtuuri?](Architecture/Johdanto.md) - **Aloita tästä!** Historia, perusteet ja käsitteet
+- [Arkkitehtuuri - Yleiskatsaus](Architecture/README.md) - Vertailu ja oppimisjärjestys
 - [Layered Architecture](Architecture/Layered-Architecture.md) - Kerrosarkkitehtuuri, yksinkertainen ja yleinen
 - [Clean Architecture](Architecture/Clean-Architecture.md) - Domain-keskinen, riippuvuudet sisäänpäin
 - [Hexagonal Architecture](Architecture/Hexagonal-Architecture.md) - Portit ja adapterit -malli

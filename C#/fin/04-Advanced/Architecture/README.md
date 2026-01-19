@@ -2,6 +2,21 @@
 
 Tervetuloa ohjelmistoarkkitehtuurin maailmaan! Tämä osio käsittelee eri arkkitehtuurimalleja, niiden soveltamista ja parhaita käytäntöjä.
 
+## Aloita tästä
+
+Jos olet uusi ohjelmistoarkkitehtuurin parissa, aloita lukemalla:
+
+👉 **[Johdanto - Mikä on ohjelmistoarkkitehtuuri?](Johdanto.md)**
+
+Johdanto-sivu kattaa:
+- Mikä on ohjelmistoarkkitehtuuri?
+- Historia 1950-luvulta nykypäivään
+- Miksi arkkitehtuuria tarvitaan?
+- Yleiset käsitteet (komponentti, moduuli, kerros, jne.)
+- Arkkitehdin rooli
+
+---
+
 ## Mikä on ohjelmistoarkkitehtuuri?
 
 Ohjelmistoarkkitehtuuri määrittelee sovelluksen rakenteen, komponenttien väliset suhteet ja periaatteet, joiden mukaan sovellus rakennetaan. Hyvä arkkitehtuuri tekee koodista:
@@ -185,6 +200,15 @@ public async Task CreateOrder_ValidOrder_ReturnsOrderId()
 ### Blogit
 - [The Clean Architecture Blog](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
 - [Martin Fowler's Blog](https://martinfowler.com/)
+
+## Oppimisjärjestys
+
+Suosittelemme tutustumaan materiaaleihin tässä järjestyksessä:
+
+1. **[Johdanto](Johdanto.md)** - Aloita tästä! Historia, perusteet ja käsitteet
+2. **[Layered Architecture](Layered-Architecture.md)** - Yksinkertainen ja yleinen malli
+3. **[Clean Architecture](Clean-Architecture.md)** - Domain-keskinen, modernimpi lähestymistapa
+4. **[Hexagonal Architecture](Hexagonal-Architecture.md)** - Portit ja adapterit, integraatiorikkaisiin sovelluksiin
 
 ## Seuraavaksi
 
