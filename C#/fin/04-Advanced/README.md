@@ -13,16 +13,26 @@ Tervetuloa C#-ohjelmoinnin edistyneisiin aiheisiin! Tämä osio käsittelee kehi
 - [Attribuutit - Esimerkit](Attributes-Examples.md) - Kattavat koodiesimerkit attribuuteista
 
 ### Suunnittelu
+- [Suunnitteluperiaatteet](Design-Principles.md) - SOLID-periaatteet ja muut suunnitteluohjeet
 - [Suunnittelumallit](Design-Patterns.md) - Yleisimmät design patternit (Singleton, Factory, Builder, Observer, jne.)
-- [Suunnittelu periaatteet](Design-Principles.md) - SOLID-periaatteet ja muut suunnitteluohjeet
+
+### Ohjelmistoarkkitehtuuri
+- [Arkkitehtuuri - Yleiskatsaus](Architecture/README.md) - Johdanto eri arkkitehtuurimalleihin
+- [Layered Architecture](Architecture/Layered-Architecture.md) - Kerrosarkkitehtuuri, yksinkertainen ja yleinen
+- [Clean Architecture](Architecture/Clean-Architecture.md) - Domain-keskinen, riippuvuudet sisäänpäin
+- [Hexagonal Architecture](Architecture/Hexagonal-Architecture.md) - Portit ja adapterit -malli
 
 ## Oppimisjärjestys
 
 Suosittelemme opiskelua seuraavassa järjestyksessä:
-1. **Suunnittelu periaatteet** - Ymmärrä perusperiaatteet (SOLID, DRY, KISS, jne.)
+1. **Suunnitteluperiaatteet** - Ymmärrä perusperiaatteet (SOLID, DRY, KISS, jne.)
 2. **Yksikkötestaus** - Opettele testaamaan koodia ja mockaamaan riippuvuuksia
 3. **Attribuutit** - Opettele käyttämään ja luomaan attribuutteja
 4. **Suunnittelumallit** - Opettele yleisimmät mallit ja niiden käyttökohteet
+5. **Ohjelmistoarkkitehtuuri** - Ymmärrä eri arkkitehtuurimallit
+   - Aloita Layered Architecture:sta
+   - Jatka Clean Architecture:en
+   - Syventyminen: Hexagonal Architecture
 
 ## Seuraavaksi
 
