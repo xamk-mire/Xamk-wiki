@@ -804,4 +804,3 @@ Esimerkit sisältävät:
 
 ---
 
-**Onnea testaamiseen!**
