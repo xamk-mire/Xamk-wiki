@@ -24,6 +24,8 @@ Yksikkötestaus on ohjelmistokehityksen keskeinen osa, joka varmistaa koodin laa
 
 - **Tämä tiedosto**: Teoria ja käsitteet
 - **[Unit-Testing-Examples.md](Unit-Testing-Examples.md)**: Kattavat koodiesimerkit
+- **[TDD.md](TDD.md)**: Test-Driven Development teoria
+- **[TDD-Examples.md](TDD-Examples.md)**: TDD käytännössä
 - **Tehtävät**: Käytännön harjoitukset löytyvät kurssin tehtävärepositorioista
 
 ### Hyödyllisiä linkkejä
@@ -779,6 +781,14 @@ Esimerkit sisältävät:
 
 ---
 
+## Seuraavaksi
+
+Kun hallitset yksikkötestauksen perusteet, jatka:
+- **[TDD.md](TDD.md)** - Opi Test-Driven Development
+- **[TDD-Examples.md](TDD-Examples.md)** - TDD käytännössä
+
+---
+
 ## Yhteenveto
 
 ### Yksikkötestauksen hyödyt:
@@ -797,9 +807,9 @@ Esimerkit sisältävät:
 - Testaa myös virhetilanteet
 - Noudata FIRST-periaatteita
 
-### Seuraavaksi:
+### Lisäresurssit:
 1. Tutustu esimerkkeihin: [Unit-Testing-Examples.md](Unit-Testing-Examples.md)
-2. Harjoittele omilla projekteilla
+2. Opi TDD: [TDD.md](TDD.md)
 3. Lue lisää: [Microsoftin dokumentaatio](https://learn.microsoft.com/en-us/dotnet/core/testing/)
 
 ---

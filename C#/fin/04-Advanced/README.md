@@ -5,8 +5,11 @@ Tervetuloa C#-ohjelmoinnin edistyneisiin aiheisiin! Tämä osio käsittelee kehi
 ## Sisältö
 
 ### Testaus
-- [Yksikkötestaus - Teoria](Unit-Testing.md) - Yksikkötestauksen käsitteet, xUnit, Mocking, AAA-malli
-- [Yksikkötestaus - Esimerkit](Unit-Testing-Examples.md) - Kattavat koodiesimerkit xUnit-testeistä
+- [Yksikkötestaus ja TDD](UnitTesting/) - Yksikkötestaus ja Test-Driven Development
+  - [Yksikkötestaus - Teoria](UnitTesting/Unit-Testing.md) - Testauksen käsitteet, xUnit, Mocking, AAA-malli
+  - [Yksikkötestaus - Esimerkit](UnitTesting/Unit-Testing-Examples.md) - Kattavat koodiesimerkit
+  - [TDD - Teoria](UnitTesting/TDD.md) - Test-Driven Development, Red-Green-Refactor
+  - [TDD - Esimerkit](UnitTesting/TDD-Examples.md) - TDD askel-askeleelta
 
 ### Edistyneet käsitteet
 - [Attribuutit - Teoria](Attributes.md) - Mitä attribuutit ovat, sisäänrakennetut attribuutit, omien luominen
@@ -27,7 +30,9 @@ Tervetuloa C#-ohjelmoinnin edistyneisiin aiheisiin! Tämä osio käsittelee kehi
 
 Suosittelemme opiskelua seuraavassa järjestyksessä:
 1. **Suunnitteluperiaatteet** - Ymmärrä perusperiaatteet (SOLID, DRY, KISS, jne.)
-2. **Yksikkötestaus** - Opettele testaamaan koodia ja mockaamaan riippuvuuksia
+2. **Yksikkötestaus ja TDD** - Opettele testaamaan koodia ja Test-Driven Development
+   - Aloita yksikkötestauksesta
+   - Jatka TDD:hen
 3. **Attribuutit** - Opettele käyttämään ja luomaan attribuutteja
 4. **Suunnittelumallit** - Opettele yleisimmät mallit ja niiden käyttökohteet
 5. **Ohjelmistoarkkitehtuuri** - Ymmärrä eri arkkitehtuurimallit
