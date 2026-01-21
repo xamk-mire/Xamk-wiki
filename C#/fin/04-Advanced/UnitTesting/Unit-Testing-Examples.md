@@ -1,4 +1,4 @@
-﻿# Yksikkötestaus - Esimerkit
+# Yksikkötestaus - Esimerkit
 
 Tämä tiedosto sisältää kattavat koodiesimerkit yksikkötestauksesta xUnit:illa.
 
@@ -41,7 +41,7 @@ public class Calculator
     public double Divide(int a, int b)
     {
         if (b == 0)
-            throw new DivideByZeroException(\"Cannot divide by zero\\");
+            throw new DivideByZeroException("Cannot divide by zero");
         return (double)a / b;
     }
 
@@ -188,10 +188,10 @@ public class StringHelperTests
         StringHelper helper = new StringHelper();
 
         // Act
-        string result = helper.Reverse(\"hello\\");
+        string result = helper.Reverse("hello");
 
         // Assert
-        Assert.Equal(\"olleh\\", result);
+        Assert.Equal("olleh", result);
     }
 
     [Fact]
@@ -201,10 +201,10 @@ public class StringHelperTests
         StringHelper helper = new StringHelper();
 
         // Act
-        string result = helper.Reverse(\"\\");
+        string result = helper.Reverse("");
 
         // Assert
-        Assert.Equal(\"\\", result);
+        Assert.Equal("", result);
     }
 
     [Fact]
@@ -214,7 +214,7 @@ public class StringHelperTests
         StringHelper helper = new StringHelper();
 
         // Act
-        bool result = helper.IsPalindrome(\"racecar\\");
+        bool result = helper.IsPalindrome("racecar");
 
         // Assert
         Assert.True(result);
@@ -227,7 +227,7 @@ public class StringHelperTests
         StringHelper helper = new StringHelper();
 
         // Act
-        bool result = helper.IsPalindrome(\"hello\\");
+        bool result = helper.IsPalindrome("hello");
 
         // Assert
         Assert.False(result);
@@ -240,7 +240,7 @@ public class StringHelperTests
         StringHelper helper = new StringHelper();
 
         // Act
-        int result = helper.CountWords(\"Hello world from tests\\");
+        int result = helper.CountWords("Hello world from tests");
 
         // Assert
         Assert.Equal(4, result);
@@ -253,7 +253,7 @@ public class StringHelperTests
         StringHelper helper = new StringHelper();
 
         // Act
-        int result = helper.CountWords(\"\\");
+        int result = helper.CountWords("");
 
         // Assert
         Assert.Equal(0, result);
@@ -481,17 +481,17 @@ public class UserServiceTests
         UserService userService = new UserService(userRepoMock.Object, emailServiceMock.Object);
 
         // Act
-        userService.CreateUser(\"Matti\", \"matti@example.com\\");
+        userService.CreateUser("Matti", "matti@example.com");
 
         // Assert
         userRepoMock.Verify(x => x.Save(It.Is<User>(u => 
-            u.Name == \"Matti\\" && 
-            u.Email == \"matti@example.com\\" &&
+            u.Name == "Matti" && 
+            u.Email == "matti@example.com" &&
             u.IsActive == true)), 
             Times.Once);
 
         emailServiceMock.Verify(x => 
-            x.SendWelcomeEmail(\"matti@example.com\", \"Matti\\"), 
+            x.SendWelcomeEmail("matti@example.com", "Matti"), 
             Times.Once);
     }
 
@@ -499,7 +499,7 @@ public class UserServiceTests
     public void GetUser_ValidId_ReturnsUser()
     {
         // Arrange
-        User expectedUser = new User { Id = 1, Name = \"Test\", Email = \"test@test.com\\" };
+        User expectedUser = new User { Id = 1, Name = "Test", Email = "test@test.com" };
         Mock<IUserRepository> userRepoMock = new Mock<IUserRepository>();
         userRepoMock.Setup(x => x.GetById(1)).Returns(expectedUser);
 
@@ -543,7 +543,7 @@ public class UserServiceTests
     public void DeactivateUser_ExistingUser_DeactivatesAndSaves()
     {
         // Arrange
-        User user = new User { Id = 1, Name = \"Test\", IsActive = true };
+        User user = new User { Id = 1, Name = "Test", IsActive = true };
         Mock<IUserRepository> userRepoMock = new Mock<IUserRepository>();
         userRepoMock.Setup(x => x.GetById(1)).Returns(user);
 
@@ -622,16 +622,16 @@ public class DataServiceTests
         // Arrange
         Mock<IApiClient> apiClientMock = new Mock<IApiClient>();
         apiClientMock.Setup(x => x.GetDataAsync(It.IsAny<string>()))
-            .ReturnsAsync(\"test data\");
+            .ReturnsAsync("test data");
 
         DataService service = new DataService(apiClientMock.Object);
 
         // Act
-        string result = await service.FetchDataAsync(\"http://test.com\");
+        string result = await service.FetchDataAsync("http://test.com");
 
         // Assert
-        Assert.Equal(\"test data\", result);
-        apiClientMock.Verify(x => x.GetDataAsync(\"http://test.com\"), Times.Once);
+        Assert.Equal("test data", result);
+        apiClientMock.Verify(x => x.GetDataAsync("http://test.com"), Times.Once);
     }
 
     [Fact]
@@ -642,7 +642,7 @@ public class DataServiceTests
         DataService service = new DataService(apiClientMock.Object);
 
         // Act
-        int result = await service.ProcessDataAsync(\"hello\");
+        int result = await service.ProcessDataAsync("hello");
 
         // Assert
         Assert.Equal(5, result);
@@ -654,13 +654,13 @@ public class DataServiceTests
         // Arrange
         Mock<IApiClient> apiClientMock = new Mock<IApiClient>();
         apiClientMock.Setup(x => x.GetDataAsync(It.IsAny<string>()))
-            .ThrowsAsync(new HttpRequestException(\"Network error\"));
+            .ThrowsAsync(new HttpRequestException("Network error"));
 
         DataService service = new DataService(apiClientMock.Object);
 
         // Act & Assert
         await Assert.ThrowsAsync<HttpRequestException>(
-            async () => await service.FetchDataAsync(\"http://test.com\"));
+            async () => await service.FetchDataAsync("http://test.com"));
     }
 }
 ```
@@ -675,17 +675,17 @@ public class ValidationService
     public void ValidateAge(int age)
     {
         if (age < 0)
-            throw new ArgumentException(\"Age cannot be negative\\", nameof(age));
+            throw new ArgumentException("Age cannot be negative", nameof(age));
         if (age > 150)
-            throw new ArgumentException(\"Age is too high\\", nameof(age));
+            throw new ArgumentException("Age is too high", nameof(age));
     }
 
     public void ValidateEmail(string email)
     {
         if (string.IsNullOrWhiteSpace(email))
             throw new ArgumentNullException(nameof(email));
-        if (!email.Contains(\"@\\"))
-            throw new FormatException(\"Invalid email format\\");
+        if (!email.Contains("@"))
+            throw new FormatException("Invalid email format");
     }
 }
 
@@ -701,7 +701,7 @@ public class ValidationServiceTests
         ArgumentException exception = Assert.Throws<ArgumentException>(() => 
             service.ValidateAge(-1));
         
-        Assert.Equal(\"Age cannot be negative (Parameter 'age')\\", exception.Message);
+        Assert.Equal("Age cannot be negative (Parameter 'age')", exception.Message);
     }
 
     [Fact]
@@ -742,7 +742,7 @@ public class ValidationServiceTests
         ValidationService service = new ValidationService();
 
         // Act & Assert
-        Assert.Throws<FormatException>(() => service.ValidateEmail(\"notanemail\"));
+        Assert.Throws<FormatException>(() => service.ValidateEmail("notanemail"));
     }
 }
 ```
@@ -874,13 +874,13 @@ public class UserService
     {
         // Validointi
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException(\"Name is required\\", nameof(name));
+            throw new ArgumentException("Name is required", nameof(name));
         if (string.IsNullOrWhiteSpace(email))
-            throw new ArgumentException(\"Email is required\\", nameof(email));
+            throw new ArgumentException("Email is required", nameof(email));
 
         // Tarkista duplikaatti
         if (await _repository.ExistsAsync(email))
-            throw new InvalidOperationException(\"User already exists\\");
+            throw new InvalidOperationException("User already exists");
 
         // Luo käyttäjä
         User user = new User
@@ -895,12 +895,12 @@ public class UserService
         {
             await _repository.SaveAsync(user);
             await _emailService.SendWelcomeEmailAsync(email, name);
-            _logger.LogInfo(\$\"User created: {email}\\");
+            _logger.LogInfo($"User created: {email}");
             return user;
         }
         catch (Exception ex)
         {
-            _logger.LogError(\"Failed to create user\\", ex);
+            _logger.LogError("Failed to create user", ex);
             throw;
         }
     }
@@ -908,7 +908,7 @@ public class UserService
     public async Task<User> GetUserAsync(int id)
     {
         if (id <= 0)
-            throw new ArgumentException(\"Invalid id\\", nameof(id));
+            throw new ArgumentException("Invalid id", nameof(id));
 
         return await _repository.GetByIdAsync(id);
     }
@@ -917,12 +917,12 @@ public class UserService
     {
         User user = await _repository.GetByIdAsync(id);
         if (user == null)
-            throw new InvalidOperationException(\"User not found\\");
+            throw new InvalidOperationException("User not found");
 
         user.IsActive = false;
         await _repository.SaveAsync(user);
         await _emailService.SendDeactivationEmailAsync(user.Email);
-        _logger.LogInfo(\$\"User deactivated: {user.Email}\\");
+        _logger.LogInfo($"User deactivated: {user.Email}");
     }
 
     public async Task<int> GetActiveUserCountAsync()
@@ -955,32 +955,32 @@ public class UserServiceTests
     public async Task CreateUserAsync_ValidData_CreatesUserAndSendsEmail()
     {
         // Arrange
-        _repositoryMock.Setup(x => x.ExistsAsync(\"test@test.com\\"))
+        _repositoryMock.Setup(x => x.ExistsAsync("test@test.com"))
             .ReturnsAsync(false);
         _emailServiceMock.Setup(x => x.SendWelcomeEmailAsync(It.IsAny<string>(), It.IsAny<string>()))
             .ReturnsAsync(true);
 
         // Act
-        User user = await _userService.CreateUserAsync(\"Test User\", \"test@test.com\\");
+        User user = await _userService.CreateUserAsync("Test User", "test@test.com");
 
         // Assert
         Assert.NotNull(user);
-        Assert.Equal(\"Test User\\", user.Name);
-        Assert.Equal(\"test@test.com\\", user.Email);
+        Assert.Equal("Test User", user.Name);
+        Assert.Equal("test@test.com", user.Email);
         Assert.True(user.IsActive);
 
         _repositoryMock.Verify(x => x.SaveAsync(It.IsAny<User>()), Times.Once);
         _emailServiceMock.Verify(x => 
-            x.SendWelcomeEmailAsync(\"test@test.com\", \"Test User\\"), Times.Once);
+            x.SendWelcomeEmailAsync("test@test.com", "Test User"), Times.Once);
         _loggerMock.Verify(x => 
-            x.LogInfo(It.Is<string>(s => s.Contains(\"User created\\"))), Times.Once);
+            x.LogInfo(It.Is<string>(s => s.Contains("User created"))), Times.Once);
     }
 
     [Theory]
-    [InlineData(null, \"test@test.com\\")]
-    [InlineData(\"\", \"test@test.com\\")]
-    [InlineData(\"Test\", null)]
-    [InlineData(\"Test\", \"\\")]
+    [InlineData(null, "test@test.com")]
+    [InlineData("", "test@test.com")]
+    [InlineData("Test", null)]
+    [InlineData("Test", "")]
     public async Task CreateUserAsync_InvalidData_ThrowsArgumentException(string name, string email)
     {
         // Act & Assert
@@ -992,12 +992,12 @@ public class UserServiceTests
     public async Task CreateUserAsync_DuplicateEmail_ThrowsInvalidOperationException()
     {
         // Arrange
-        _repositoryMock.Setup(x => x.ExistsAsync(\"test@test.com\\"))
+        _repositoryMock.Setup(x => x.ExistsAsync("test@test.com"))
             .ReturnsAsync(true);
 
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(
-            async () => await _userService.CreateUserAsync(\"Test\", \"test@test.com\\"));
+            async () => await _userService.CreateUserAsync("Test", "test@test.com"));
 
         _repositoryMock.Verify(x => x.SaveAsync(It.IsAny<User>()), Times.Never);
     }
@@ -1006,7 +1006,7 @@ public class UserServiceTests
     public async Task GetUserAsync_ValidId_ReturnsUser()
     {
         // Arrange
-        User expectedUser = new User { Id = 1, Name = \"Test\", Email = \"test@test.com\\" };
+        User expectedUser = new User { Id = 1, Name = "Test", Email = "test@test.com" };
         _repositoryMock.Setup(x => x.GetByIdAsync(1))
             .ReturnsAsync(expectedUser);
 
@@ -1032,7 +1032,7 @@ public class UserServiceTests
     public async Task DeactivateUserAsync_ExistingUser_DeactivatesAndSendsEmail()
     {
         // Arrange
-        User user = new User { Id = 1, Name = \"Test\", Email = \"test@test.com\\", IsActive = true };
+        User user = new User { Id = 1, Name = "Test", Email = "test@test.com", IsActive = true };
         _repositoryMock.Setup(x => x.GetByIdAsync(1))
             .ReturnsAsync(user);
 
@@ -1043,9 +1043,9 @@ public class UserServiceTests
         Assert.False(user.IsActive);
         _repositoryMock.Verify(x => x.SaveAsync(user), Times.Once);
         _emailServiceMock.Verify(x => 
-            x.SendDeactivationEmailAsync(\"test@test.com\\"), Times.Once);
+            x.SendDeactivationEmailAsync("test@test.com"), Times.Once);
         _loggerMock.Verify(x => 
-            x.LogInfo(It.Is<string>(s => s.Contains(\"deactivated\\"))), Times.Once);
+            x.LogInfo(It.Is<string>(s => s.Contains("deactivated"))), Times.Once);
     }
 
     [Fact]
@@ -1097,3 +1097,4 @@ Nämä esimerkit kattavat:
 - Kattavan esimerkin kaikilla elementeillä
 
 Palaa teoriaan: [Unit-Testing.md](Unit-Testing.md)
+
