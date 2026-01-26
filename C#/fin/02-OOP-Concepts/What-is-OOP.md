@@ -1,25 +1,150 @@
 # Mitä on OOP? (Object-Oriented Programming)
 
+## Sisällysluettelo
+
+1. [Johdanto](#johdanto)
+2. [Miksi OOP syntyi?](#miksi-oop-syntyi)
+3. [OOP:n neljä pilaria](#oopn-neljä-pilaria)
+4. [OOP:n lisätekniikat](#oopn-lisätekniikat)
+5. [OOP vs muut paradigmat](#oop-vs-muut-paradigmat)
+6. [OOP:n edut ja haitat](#oopn-edut-ja-haitat)
+7. [Milloin käyttää OOP:ta?](#milloin-käyttää-oopta)
+8. [Yhteenveto](#yhteenveto)
+
+---
+
 ## Johdanto
 
-Olio-ohjelmointi (OOP, eli Object-Oriented Programming) on ohjelmoinnin paradigma, joka keskittyy objektien ja luokkien käyttöön ohjelmistosuunnittelussa. OOP:n tavoitteena on parantaa ohjelmiston modulaarisuutta, jälleenkäytettävyyttä ja ylläpidettävyyttä.
+**Olio-ohjelmointi** (OOP, eli Object-Oriented Programming) on ohjelmoinnin paradigma, jossa **ohjelmat rakennetaan objekteista**, jotka yhdistävät datan ja toiminnallisuuden yhteen.
 
-**Tämä sivu antaa lyhyen yleiskuvan OOP:sta. Yksityiskohtaisempi materiaali löytyy [OOP-konseptit](../02-OOP-Concepts/) -osiosta.**
+**Yksinkertaisesti:** Sen sijaan että kirjoittaisit koodia joka käsittelee dataa ja funktiota erikseen, OOP yhdistää ne **objekteiksi** jotka edustavat todellisen maailman asioita.
 
-## OOP:n Keskeiset Konseptit
+### Lyhyt esimerkki:
 
-Olio-ohjelmoinnissa on neljä peruskäsitettä, jotka muodostavat OOP:n perustan:
+```csharp
+// ❌ Ilman OOP:ta (Proseduraalinen tyyli)
+string dogName = "Rex";
+int dogAge = 3;
+void MakeDogSound(string name)
+{
+    Console.WriteLine($"{name} haukkuu!");
+}
+MakeDogSound(dogName);
 
-### 1. Kapselointi (Encapsulation)
+// ✅ OOP:lla
+public class Dog
+{
+    public string Name { get; set; }
+    public int Age { get; set; }
+    
+    public void MakeSound()
+    {
+        Console.WriteLine($"{Name} haukkuu!");
+    }
+}
 
-Kapselointi tarkoittaa datan (muuttujat) ja siihen liittyvän toiminnallisuuden (metodit) yhdistämistä yhdeksi yksiköksi (objektiksi tai luokaksi). Kapseloinnin avulla voimme piilottaa yksityiskohdat ja näyttää vain olennaiset ominaisuudet.
+Dog dog = new Dog { Name = "Rex", Age = 3 };
+dog.MakeSound();
+```
 
-**Yksinkertainen esimerkki:**
+**Hyödyt:**
+- ✅ Data ja toiminnallisuus yhdessä
+- ✅ Helpompi ymmärtää (edustaa todellista koiraa)
+- ✅ Helppo luoda useita koiria
+- ✅ Voi lisätä uusia ominaisuuksia helposti
+
+---
+
+## Miksi OOP syntyi?
+
+### Ongelma: Proseduraalinen ohjelmointi kasvoi liian monimutkaiseksi
+
+**1960-70-luvuilla** ohjelmat kirjoitettiin **proseduraalisesti**:
+- Funktioita jotka käsittelevät dataa
+- Data ja logiikka erillään
+- Kun ohjelmat kasvoivat, niistä tuli vaikeita hallita
+
+```csharp
+// Proseduraalinen esimerkki (1970-luku tyyli)
+string[] studentNames = new string[100];
+int[] studentAges = new int[100];
+double[] studentGrades = new double[100];
+
+void AddStudent(int index, string name, int age, double grade)
+{
+    studentNames[index] = name;
+    studentAges[index] = age;
+    studentGrades[index] = grade;
+}
+
+void PrintStudent(int index)
+{
+    Console.WriteLine($"{studentNames[index]}, {studentAges[index]}, {studentGrades[index]}");
+}
+
+// Ongelmat:
+// - Kaikki taulukot pitää ylläpitää erikseen
+// - Helppo sekoittaa indeksit
+// - Vaikea laajentaa (lisää kenttä → muuta kaikkea)
+```
+
+### Ratkaisu: Olio-ohjelmointi
+
+**1980-luvulla** OOP yleistyi (C++, Smalltalk):
+- Data ja logiikka yhdistetty **objekteiksi**
+- Objektit edustavat todellisia asioita
+- Helpompi hallita monimutkaisuutta
+
+```csharp
+// OOP-esimerkki (moderni tyyli)
+public class Student
+{
+    public string Name { get; set; }
+    public int Age { get; set; }
+    public double Grade { get; set; }
+    
+    public void Print()
+    {
+        Console.WriteLine($"{Name}, {Age} vuotta, Arvosana: {Grade}");
+    }
+    
+    public bool IsPassing()
+    {
+        return Grade >= 1.0;
+    }
+}
+
+List<Student> students = new List<Student>();
+students.Add(new Student { Name = "Matti", Age = 20, Grade = 4.5 });
+students.Add(new Student { Name = "Liisa", Age = 22, Grade = 3.8 });
+
+foreach (Student student in students)
+{
+    student.Print();
+}
+
+// Hyödyt:
+// ✅ Kaikki opiskelijan data yhdessä paikassa
+// ✅ Helppo lisätä uusia kenttiä
+// ✅ Metodeita voi kutsua luonnollisesti: student.Print()
+```
+
+---
+
+## OOP:n neljä pilaria
+
+OOP perustuu **neljään keskeiseen periaatteeseen**:
+
+### 1. 🔒 Kapselointi (Encapsulation)
+
+**"Piilota sisäiset yksityiskohdat, näytä vain olennainen"**
+
+Kapselointi tarkoittaa datan ja metodien yhdistämistä, ja **pääsyn rajoittamista** niihin.
 
 ```csharp
 public class BankAccount
 {
-    private decimal balance; // Piilotettu ulkopuolelta
+    private decimal balance; // ❌ Ei pääsyä ulkopuolelta!
     
     public decimal Balance
     {
@@ -28,167 +153,555 @@ public class BankAccount
     
     public void Deposit(decimal amount)
     {
-        if (amount > 0)
+        if (amount > 0) // ✅ Validointi
+        {
             balance += amount;
+            Console.WriteLine($"Talletettu: {amount:C}");
+        }
+    }
+    
+    public bool Withdraw(decimal amount)
+    {
+        if (amount > 0 && amount <= balance) // ✅ Turvallisuus
+        {
+            balance -= amount;
+            Console.WriteLine($"Nostettu: {amount:C}");
+            return true;
+        }
+        Console.WriteLine("Ei tarpeeksi rahaa!");
+        return false;
     }
 }
+
+// Käyttö:
+BankAccount account = new BankAccount();
+account.Deposit(100);
+account.Withdraw(30);
+// account.balance = 1000000; // ❌ EI TOIMI - suojattu!
 ```
 
-**Lisätietoja:** [Kapselointi (Encapsulation)](../02-OOP-Concepts/Encapsulation.md)
+**Miksi tärkeää?**
+- ✅ Estää virheellisen datan
+- ✅ Voi muuttaa sisäistä toteutusta
+- ✅ Parempi turvallisuus
 
-### 2. Perintä (Inheritance)
+**Lue lisää:** [Kapselointi (Encapsulation)](Encapsulation.md)
 
-Perintä mahdollistaa olemassa olevan luokan ominaisuuksien ja toimintojen perimisen, jolloin voidaan luoda uusi luokka ilman tarvetta kirjoittaa samoja toimintoja uudestaan.
+---
 
-**Yksinkertainen esimerkki:**
+### 2. 👪 Perintä (Inheritance)
+
+**"Luo uusia luokkia olemassa olevien pohjalta"**
+
+Perintä mahdollistaa **"is-a"** (on) -suhteen: "Koira ON eläin".
 
 ```csharp
-// Yläluokka (base class)
+// Yläluokka (parent/base class)
 public class Animal
 {
     public string Name { get; set; }
+    public int Age { get; set; }
     
     public virtual void MakeSound()
     {
-        Console.WriteLine("Eläin tekee ääntä");
+        Console.WriteLine($"{Name} tekee äänen");
+    }
+    
+    public void Eat()
+    {
+        Console.WriteLine($"{Name} syö");
     }
 }
 
-// Aliluokka (derived class)
+// Aliluokat (child/derived classes)
 public class Dog : Animal
+{
+    public string Breed { get; set; }
+    
+    public override void MakeSound()
+    {
+        Console.WriteLine($"{Name} haukkuu: Hau hau!");
+    }
+    
+    public void Fetch()
+    {
+        Console.WriteLine($"{Name} noutaa pallon");
+    }
+}
+
+public class Cat : Animal
 {
     public override void MakeSound()
     {
-        Console.WriteLine("Hau hau!");
+        Console.WriteLine($"{Name} naukuu: Miau!");
+    }
+    
+    public void Scratch()
+    {
+        Console.WriteLine($"{Name} raapii");
     }
 }
+
+// Käyttö:
+Dog dog = new Dog { Name = "Rex", Age = 3, Breed = "Labrador" };
+dog.MakeSound(); // "Rex haukkuu: Hau hau!"
+dog.Eat();       // Peritty Animal:sta
+dog.Fetch();     // Vain Dog:lla
+
+Cat cat = new Cat { Name = "Whiskers", Age = 2 };
+cat.MakeSound(); // "Whiskers naukuu: Miau!"
+cat.Eat();       // Peritty Animal:sta
+cat.Scratch();   // Vain Cat:lla
 ```
 
-**Lisätietoja:** [Perintä (Inheritance)](../02-OOP-Concepts/Inheritance.md)
+**Miksi tärkeää?**
+- ✅ Vältytään koodin toistolta
+- ✅ Yhteinen toiminnallisuus yhdessä paikassa
+- ✅ Hierarkia pysyy selkeänä
 
-### 3. Polymorfismi (Polymorphism)
+**Lue lisää:** [Perintä (Inheritance)](Inheritance.md)
 
-Polymorfismi tarkoittaa, että samaa rajapintaa voidaan käyttää eri objektityyppien kanssa. Aliluokat voivat määrittää oman yksilöllisen toimintansa ja silti jakaa saman toiminnallisuuden yläluokan kanssa.
+---
 
-**Yksinkertainen esimerkki:**
+### 3. 🎭 Polymorfismi (Polymorphism)
+
+**"Sama rajapinta, eri toteutukset"**
+
+Polymorfismi tarkoittaa että **voit käsitellä eri tyyppisiä objekteja samalla tavalla**.
 
 ```csharp
+// Polymorfismi toiminnassa
 Animal[] animals = new Animal[]
 {
-    new Dog { Name = "Rex" },
-    new Cat { Name = "Whiskers" }
+    new Dog { Name = "Rex", Age = 3 },
+    new Cat { Name = "Whiskers", Age = 2 },
+    new Dog { Name = "Buddy", Age = 5 },
+    new Cat { Name = "Fluffy", Age = 1 }
 };
 
+// Käsittele kaikkia samalla tavalla!
 foreach (Animal animal in animals)
 {
-    animal.MakeSound(); // Kukin eläin tekee oman äänensä
+    animal.MakeSound(); // ✅ Kutsuu oikeaa versiota!
+    animal.Eat();
+    Console.WriteLine();
+}
+
+// Output:
+// Rex haukkuu: Hau hau!
+// Rex syö
+//
+// Whiskers naukuu: Miau!
+// Whiskers syö
+//
+// ... jne
+```
+
+**Miksi tärkeää?**
+- ✅ Ei if-else lauseita tyyppitarkistuksiin
+- ✅ Koodi pysyy yksinkertaisena
+- ✅ Helppo lisätä uusia tyyppejä
+
+**Lue lisää:** [Polymorfismi (Polymorphism)](Polymorphism.md)
+
+---
+
+### 4. 🎨 Abstraktio (Abstraction)
+
+**"Piilota monimutkaisuus, näytä vain olennainen"**
+
+Abstraktio tarkoittaa että **keskityt MITÄ tehdään, ei MITEN**.
+
+```csharp
+// Abstrakti luokka - ei voi luoda suoraan
+public abstract class Shape
+{
+    public string Name { get; set; }
+    public string Color { get; set; }
+    
+    // Abstrakti metodi - PAKKO toteuttaa aliluokissa
+    public abstract double CalculateArea();
+    
+    // Tavallinen metodi - voi käyttää suoraan
+    public void Display()
+    {
+        Console.WriteLine($"{Color} {Name}, Pinta-ala: {CalculateArea():F2}");
+    }
+}
+
+public class Circle : Shape
+{
+    public double Radius { get; set; }
+    
+    public override double CalculateArea()
+    {
+        return Math.PI * Radius * Radius;
+    }
+}
+
+public class Rectangle : Shape
+{
+    public double Width { get; set; }
+    public double Height { get; set; }
+    
+    public override double CalculateArea()
+    {
+        return Width * Height;
+    }
+}
+
+// Käyttö:
+Shape[] shapes = new Shape[]
+{
+    new Circle { Name = "Ympyrä", Color = "Punainen", Radius = 5 },
+    new Rectangle { Name = "Suorakulmio", Color = "Sininen", Width = 4, Height = 6 }
+};
+
+foreach (Shape shape in shapes)
+{
+    shape.Display(); // ✅ Polymorfismi + Abstraktio!
 }
 ```
 
-**Lisätietoja:** [Polymorfismi (Polymorphism)](../02-OOP-Concepts/Polymorphism.md)
+**Miksi tärkeää?**
+- ✅ Pakottaa yhtenäisen rakenteen
+- ✅ Piilottaa monimutkaisuuden
+- ✅ Helppo laajentaa
 
-### 4. Abstraktio (Abstraction)
+**Lue lisää:** [Rajapinnat (Interfaces)](Interfaces.md) ja [Polymorfismi](Polymorphism.md)
 
-Abstraktio tarkoittaa monimutkaisten ongelmien yksinkertaistamista piilottamalla tarpeettomat yksityiskohdat ja keskittymällä olennaisiin asioihin.
+---
 
-**Lisätietoja:** Abstraktio toteutetaan usein [rajapintojen (Interfaces)](../02-OOP-Concepts/Interfaces.md) avulla.
+## OOP:n lisätekniikat
 
-## Yhdistäminen (Composition)
+### 5. 🧩 Yhdistäminen (Composition)
 
-Yhdistäminen on tapa yhdistää useita yksinkertaisia osia yhteen monimutkaisempaan kokonaisuuteen. Se on vaihtoehto perinnälle tietyissä tilanteissa.
+**"Rakenna monimutkaiset objektit yksinkertaisista osista"**
 
-**Yksinkertainen esimerkki:**
+Composition kuvaa **"has-a"** (omistaa) -suhdetta: "Autolla ON moottori".
 
 ```csharp
+// Osat
 public class Engine
 {
-    public void Start()
-    {
-        Console.WriteLine("Moottori käynnistyy");
-    }
+    public void Start() => Console.WriteLine("Moottori käynnistyy");
+    public void Stop() => Console.WriteLine("Moottori sammuu");
 }
 
+public class Wheel
+{
+    public string Brand { get; set; }
+    public void Rotate() => Console.WriteLine($"{Brand} rengas pyörii");
+}
+
+// Auto koostuu osista
 public class Car
 {
-    private Engine engine; // Yhdistäminen
+    private Engine engine;    // Car HAS-A Engine
+    private Wheel[] wheels;   // Car HAS-A Wheels
     
-    public Car()
+    public string Brand { get; set; }
+    
+    public Car(string brand)
     {
+        Brand = brand;
         engine = new Engine();
+        wheels = new Wheel[4]
+        {
+            new Wheel { Brand = "Michelin" },
+            new Wheel { Brand = "Michelin" },
+            new Wheel { Brand = "Michelin" },
+            new Wheel { Brand = "Michelin" }
+        };
     }
     
     public void Start()
     {
+        Console.WriteLine($"{Brand} käynnistyy");
         engine.Start();
+        foreach (Wheel wheel in wheels)
+        {
+            wheel.Rotate();
+        }
+    }
+    
+    public void Stop()
+    {
+        Console.WriteLine($"{Brand} pysähtyy");
+        engine.Stop();
     }
 }
+
+// Käyttö:
+Car car = new Car("Toyota");
+car.Start();
+car.Stop();
 ```
 
-**Lisätietoja:** [Yhdistäminen (Composition)](../02-OOP-Concepts/Composition.md)
+**Miksi tärkeää?**
+- ✅ Joustavampi kuin perintä
+- ✅ Voit vaihtaa osia ajonaikana
+- ✅ Välttää syvän perinnän hierarkian
 
-## Perintä vs. Rajapinnat
+**"Composition over Inheritance"** - suosi yhdistämistä perinnän sijaan!
 
-### Perintä
+**Lue lisää:** [Yhdistäminen (Composition)](Composition.md)
 
-Perinnällä uusi luokka voi hyödyntää ja laajentaa olemassa olevan luokan toimintoja. Perintä kuvaa usein **"on"** -suhdetta, esimerkiksi "Koira on eläin".
+---
+
+### 6. 🔌 Rajapinnat (Interfaces)
+
+**"Määrittele 'sopimus' mitä luokan pitää toteuttaa"**
+
+Rajapinnat määrittelevät **MITÄ** pitää tehdä, mutta ei **MITEN**.
 
 ```csharp
-public class Animal { }
-public class Dog : Animal { } // Koira ON eläin
-```
-
-### Rajapinnat
-
-Rajapinnat antavat mahdollisuuden määritellä "sopimus", jonka toteuttavat luokat on täytettävä. Rajapinnat usein kuvaavat **"voi tehdä"** -suhteita, esimerkiksi "Lentokone voi lentää".
-
-```csharp
+// Rajapinta - "sopimus"
 public interface IFlyable
 {
+    void TakeOff();
     void Fly();
+    void Land();
 }
 
-public class Airplane : IFlyable // Lentokone VOI lentää
+// Luokat toteuttavat sopimuksen
+public class Airplane : IFlyable
 {
-    public void Fly()
-    {
-        Console.WriteLine("Lentokone lentää");
-    }
+    public void TakeOff() => Console.WriteLine("Lentokone nousee kiitotieltä");
+    public void Fly() => Console.WriteLine("Lentokone lentää");
+    public void Land() => Console.WriteLine("Lentokone laskeutuu");
+}
+
+public class Bird : IFlyable
+{
+    public void TakeOff() => Console.WriteLine("Lintu lähtee lentoon");
+    public void Fly() => Console.WriteLine("Lintu lentää");
+    public void Land() => Console.WriteLine("Lintu laskeutuu");
+}
+
+// Käyttö - polymorfismi rajapintojen kanssa
+IFlyable[] flyers = new IFlyable[]
+{
+    new Airplane(),
+    new Bird()
+};
+
+foreach (IFlyable flyer in flyers)
+{
+    flyer.TakeOff();
+    flyer.Fly();
+    flyer.Land();
+    Console.WriteLine();
 }
 ```
 
-**Lisätietoja:** [Rajapinnat (Interfaces)](../02-OOP-Concepts/Interfaces.md)
+**Miksi tärkeää?**
+- ✅ Luokka voi toteuttaa **useita** rajapintoja (vs yksi yläluokka)
+- ✅ Löyhä kytkentä (loose coupling)
+- ✅ Helppo testata (mock-objektit)
 
-## Miksi käyttää OOP:ta?
+**Lue lisää:** [Rajapinnat (Interfaces)](Interfaces.md)
 
-Olio-ohjelmoinnin käyttö tarjoaa useita etuja:
+---
 
-1. **Koodin uudelleenkäytettävyys**: Luokkia voidaan käyttää uudelleen eri projekteissa
-2. **Modulaarisuus**: Monimutkaiset ongelmat voidaan jakaa pienempiin osiin
-3. **Ylläpidettävyys**: Koodi on helpompi ylläpitää ja muokata
-4. **Skaalautuvuus**: Ohjelmisto on helpompi laajentaa uusilla ominaisuuksilla
-5. **Testattavuus**: Luokat tekevät yksikkötestien kirjoittamisesta helpompaa
+## OOP vs muut paradigmat
 
-## Seuraavat askeleet
+### Proseduraalinen ohjelmointi (C, Pascal)
 
-Nyt kun ymmärrät OOP:n peruskäsitteet, voit syventää tietämystäsi:
+```csharp
+// Proseduraalinen tyyli
+string[] names = new string[100];
+int[] ages = new int[100];
 
-1. **Tutustu luokkiin ja objekteihin**: [Luokat ja Objektit](Classes-and-Objects.md)
-2. **Syvenny OOP-konsepteihin**: [OOP-konseptit](../02-OOP-Concepts/)
-   - [OOP-tekniikat - Yleiskuvaus](../02-OOP-Concepts/OOP-Techniques-Overview.md) - Kaikkien tekniikoiden yhteenveto
-   - [Kapselointi](../02-OOP-Concepts/Encapsulation.md)
-   - [Perintä](../02-OOP-Concepts/Inheritance.md)
-   - [Polymorfismi](../02-OOP-Concepts/Polymorphism.md)
-   - [Yhdistäminen](../02-OOP-Concepts/Composition.md)
-   - [Rajapinnat](../02-OOP-Concepts/Interfaces.md)
+void PrintPerson(int index)
+{
+    Console.WriteLine($"{names[index]}, {ages[index]}");
+}
+```
+
+**Ominaisuudet:**
+- ✅ Yksinkertainen pieniin ohjelmiin
+- ❌ Vaikea hallita suuria ohjelmia
+- ❌ Data ja logiikka erillään
+
+### Funktionaalinen ohjelmointi (F#, Haskell)
+
+```csharp
+// Funktionaalinen tyyli C#:ssa
+var adults = people
+    .Where(p => p.Age >= 18)
+    .Select(p => p.Name)
+    .ToList();
+```
+
+**Ominaisuudet:**
+- ✅ Immutable data
+- ✅ Puhdas funktiot (ei sivuvaikutuksia)
+- ⚠️ Voi olla vaikea ymmärtää
+
+### Olio-ohjelmointi (C#, Java, Python)
+
+```csharp
+// OOP tyyli
+public class Person
+{
+    public string Name { get; set; }
+    public int Age { get; set; }
+    
+    public bool IsAdult() => Age >= 18;
+}
+
+List<Person> adults = people.Where(p => p.IsAdult()).ToList();
+```
+
+**Ominaisuudet:**
+- ✅ Selkeä rakenne
+- ✅ Helppo mallintaa todellista maailmaa
+- ✅ Hyvä suuriin projekteihin
+
+**Todellisuudessa:** Moderni C# yhdistää kaikkia paradigmoja!
+
+---
+
+## OOP:n edut ja haitat
+
+### ✅ Edut:
+
+1. **Uudelleenkäytettävyys**
+```csharp
+// Luo kerran, käytä monesti
+public class Logger
+{
+    public void Log(string message) { }
+}
+
+// Käytetään monessa projektissa
+```
+
+2. **Modulaarisuus**
+```csharp
+// Jaa iso ongelma pienempiin osiin
+public class Car
+{
+    private Engine engine;
+    private GPS gps;
+    private Radio radio;
+}
+```
+
+3. **Ylläpidettävyys**
+```csharp
+// Muutokset paikallisia
+public class BankAccount
+{
+    // Muuta vain tätä luokkaa, ei kaikkea koodia
+}
+```
+
+4. **Skaalautuvuus**
+```csharp
+// Helppo lisätä uusia ominaisuuksia
+public class NewAnimal : Animal { }
+```
+
+5. **Testattavuus**
+```csharp
+// Testaa luokat erikseen
+[Test]
+public void BankAccount_Deposit_IncreasesBalance()
+{
+    BankAccount account = new BankAccount();
+    account.Deposit(100);
+    Assert.AreEqual(100, account.Balance);
+}
+```
+
+### ❌ Haitat:
+
+1. **Monimutkaisuus**
+- Voi olla liian monimutkaista pieniin ohjelmiin
+- Oppimiskäyrä jyrkempi
+
+2. **Suorituskyky**
+- Hieman hitaampi kuin proseduraalinen (mutta harvoin ongelma)
+- Enemmän muistia
+
+3. **Ylitutkittu**
+- Helppo tehdä liian monimutkainen rakenne
+- "God objects" - liian isot luokat
+
+**Ratkaisu:** Käytä OOP:ta **järkevästi** - älä pakota kaikkea objekteihin.
+
+---
+
+## Milloin käyttää OOP:ta?
+
+### ✅ Käytä OOP:ta kun:
+
+- ✅ Suuret projektit (1000+ riviä)
+- ✅ Tiimi kehittää yhdessä
+- ✅ Haluat uudelleenkäyttää koodia
+- ✅ Mallinnat todellista maailmaa (auto, tili, käyttäjä)
+- ✅ Projekti kasvaa ajan myötä
+
+### ⚠️ Harkitse vaihtoehtoja kun:
+
+- ⚠️ Pieni skripti (<100 riviä)
+- ⚠️ Yksinkertainen data-käsittely
+- ⚠️ Suorituskyky on kriittinen (game loop, reaaliaikainen)
+
+**Muista:** C# tukee useita paradigmoja - käytä parasta työkalua työhön!
+
+---
 
 ## Yhteenveto
 
-Olio-ohjelmointi perustuu neljään keskeiseen konseptiin:
-- **Kapselointi**: Datan ja metodien yhdistäminen
-- **Perintä**: Olemassa olevan luokan laajentaminen
-- **Polymorfismi**: Samaa rajapintaa eri objektityypeillä
-- **Abstraktio**: Monimutkaisten ongelmien yksinkertaistaminen
+### OOP:n neljä pilaria:
 
-Nämä konseptit yhdessä muodostavat vahvan perustan modernille ohjelmistokehitykselle.
+| Pilari | Kuvaus | Avain |
+|--------|--------|-------|
+| **Kapselointi** | Piilota sisäiset yksityiskohdat | Data + Metodit yhdessä |
+| **Perintä** | Jaa yhteinen toiminnallisuus | "Is-a" suhde |
+| **Polymorfismi** | Käsittele eri objekteja samalla tavalla | Sama rajapinta |
+| **Abstraktio** | Piilota monimutkaisuus | MITÄ, ei MITEN |
 
-**Seuraava askel:** Tutustu [Luokat ja Objektit](Classes-and-Objects.md) -materiaaliin, jotta ymmärrät, miten luokat ja objektit toimivat käytännössä.
+### Lisätekniikat:
+
+- **Composition** - Rakenna osista ("has-a")
+- **Interfaces** - Määrittele sopimuksia
+
+### Miksi OOP?
+
+- ✅ Helppo mallintaa todellista maailmaa
+- ✅ Selkeä rakenne suuriin projekteihin
+- ✅ Uudelleenkäytettävä ja ylläpidettävä koodi
+- ✅ Helppo testata
+- ✅ Tiimityöhön sopiva
+
+---
+
+## Seuraavat askeleet
+
+### 1. **Syvenny yksittäisiin konsepteihin:**
+
+Suositeltu oppimisjärjestys:
+
+1. [Kapselointi (Encapsulation)](Encapsulation.md) - Aloita tästä!
+2. [Perintä (Inheritance)](Inheritance.md)
+3. [Polymorfismi (Polymorphism)](Polymorphism.md)
+4. [Rajapinnat (Interfaces)](Interfaces.md)
+5. [Yhdistäminen (Composition)](Composition.md)
+
+### 2. **Katso yleiskuvaus:**
+
+- [OOP-tekniikat - Yleiskuvaus](OOP-Techniques-Overview.md) - Kaikkien tekniikoiden yhteenveto
+
+### 3. **Jatka edistyneisiin aiheisiin:**
+
+- [Design Principles](../04-Advanced/Design-Principles.md) - SOLID-periaatteet
+- [Design Patterns](../04-Advanced/Design-Patterns.md) - Valmiit ratkaisumallit
+
+---
+
+**Valmis aloittamaan?** Aloita [Kapselointi (Encapsulation)](Encapsulation.md) materiaalista ja etene järjestyksessä!
+
