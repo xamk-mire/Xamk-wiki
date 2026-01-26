@@ -49,6 +49,110 @@ Layered Architecture jakaa sovelluksen **vaakasuoriin kerroksiin**, jossa jokain
 
 ## Kerrokset
 
+### Kerrosten vastuualueet - Ytimekäs yhteenveto
+
+| Layer | Vastaa kysymykseen |
+|-------|-------------------|
+| **Presentation** | Miten tähän päästään käsiksi? |
+| **Business Logic** | Mitä sovellus tekee? |
+| **Data Access** | Miten tämä on teknisesti toteutettu? |
+| **Database** | Missä data säilytetään? |
+
+### Yksityiskohtainen vastuunjako
+
+#### 1. Presentation / UI Layer
+
+**Kysymys: Miten käyttäjä tai ulkoinen järjestelmä käyttää sovellusta?**
+
+**Vastaa esimerkiksi:**
+- HTTP-rajapinta (Controllerit)
+- UI-validointi (onko data edes järkevää?)
+- Request → Response -muunnokset
+- Käyttöliittymän logiikka
+
+**Ei vastaa:**
+- Miten liiketoimintasäännöt toimivat
+- Miten data tallennetaan
+- Mitä liiketoimintalogiikkaa pyyntö aiheuttaa
+
+**Tyypillinen sisältö:**
+- Controllers
+- DTO:t / ViewModelit
+- HTTP-statuskoodit
+- UI-validointi
+
+---
+
+#### 2. Business Logic / Service Layer
+
+**Kysymys: Mitä sovellus tekee käyttäjän pyynnölle?**
+
+**Vastaa esimerkiksi:**
+- Mitä tapahtuu, kun käyttäjä "luo tilauksen"
+- Missä järjestyksessä asioita tehdään
+- Mitkä liiketoimintasäännöt ovat voimassa
+- Mitä useita objekteja tarvitaan yhden toiminnon suorittamiseen
+
+**Ei vastaa:**
+- Miten data fyysisesti tallennetaan
+- Miten käyttöliittymä näyttää asiat
+- Mitä tietokantateknologiaa käytetään
+
+**Tyypillinen sisältö:**
+- Service-luokat
+- Liiketoimintalogiikka
+- Validointi (liiketoimintasäännöt)
+- Domain-mallit
+- Kutsut repositoryihin
+
+---
+
+#### 3. Data Access Layer
+
+**Kysymys: Miten data tallennetaan ja haetaan?**
+
+**Vastaa esimerkiksi:**
+- Miten data tallennetaan tietokantaan
+- Miten data haetaan tietokannasta
+- SQL-kyselyt ja LINQ
+- Datan muunnokset (Entity ↔ Model)
+
+**Ei vastaa:**
+- Milloin jotain tehdään (se on Business Logic)
+- Miksi jokin sääntö on olemassa (se on Business Logic)
+- Miten käyttäjä käyttää sovellusta (se on Presentation)
+
+**Tyypillinen sisältö:**
+- Repository-luokat
+- Database Context (EF Core)
+- Entity-mallit
+- SQL-kyselyt
+
+---
+
+#### 4. Database
+
+**Kysymys: Missä data fyysisesti säilytetään?**
+
+**Vastaa esimerkiksi:**
+- Tietokantataulut
+- Indeksit
+- Suhteet (foreign keys)
+- Tallennusrakenne
+
+**Ei vastaa:**
+- Miten dataa käytetään
+- Mitkä ovat liiketoimintasäännöt
+- Miten käyttäjä käyttää sovellusta
+
+**Tyypillinen sisältö:**
+- SQL-taulut
+- Views
+- Stored procedures
+- Triggers
+
+---
+
 ### 1. Presentation Layer (Esityskerros)
 
 **Vastuu:** Käyttöliittymä ja käyttäjän vuorovaikutus
