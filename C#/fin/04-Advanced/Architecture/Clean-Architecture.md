@@ -56,6 +56,142 @@ Riippuvuudet: ← ← ← ← ← (Sisäänpäin)
 
 ## Kerrokset
 
+### Kerrosten vastuualueet - Ytimekäs yhteenveto
+
+| Layer | Vastaa kysymykseen |
+|-------|-------------------|
+| **Entities (Domain)** | Mitkä ovat säännöt ja käsitteet? |
+| **Use Cases (Application)** | Mitä sovellus tekee? |
+| **Interface Adapters** | Miten data muunnetaan? |
+| **Infrastructure** | Miten tämä on teknisesti toteutettu? |
+
+### Yksityiskohtainen vastuunjako
+
+#### 1. Entities / Domain Layer (Sisimmäinen kehä)
+
+**Kysymys: Mitkä säännöt ja käsitteet tässä liiketoiminnassa ovat?**
+
+**Vastaa esimerkiksi:**
+- Mitä tarkoittaa "tilaus", "käyttäjä", "tuote", "lasku"
+- Mitkä säännöt ovat aina totta
+- Mikä on sallittua ja mikä ei
+- Mitä liiketoiminnan invariantit ovat (esim. "saldo ei voi olla negatiivinen")
+
+**Ei vastaa:**
+- HTTP:stä tai API:sta
+- Tietokannasta tai SQL:stä
+- Frameworkeista
+- Miten käyttöliittymä toimii
+- Miten data tallennetaan
+
+**Tyypillinen sisältö:**
+- Domain-oliot (Entities)
+- Value Objects
+- Liiketoimintasäännöt
+- Domain-logiikka
+- Rajapinnat repositoryille (määritellään täällä!)
+
+**Ei riippuvuuksia mihinkään!** - Tärkein kerros, puhtain koodi.
+
+---
+
+#### 2. Use Cases / Application Layer
+
+**Kysymys: Mitä sovellus tekee käyttäjän pyynnölle?**
+
+**Vastaa esimerkiksi:**
+- Mitä tapahtuu, kun käyttäjä "luo tilauksen"
+- Missä järjestyksessä asioita tehdään
+- Mitä useita domain-olioita tarvitaan yhden toiminnon suorittamiseen
+- Miten työnkulut (workflows) toteutetaan
+- Miten transaktiot hallitaan
+
+**Ei vastaa:**
+- Miten data fyysisesti tallennetaan
+- Miten käyttöliittymä näyttää asiat
+- HTTP-protokollan yksityiskohdista
+- Tietokantateknologiasta
+
+**Tyypillinen sisältö:**
+- Use Case -luokat (yksi per käyttötapaus)
+- Application services
+- DTO:t (Data Transfer Objects)
+- Kutsut repositoryihin (rajapintojen kautta)
+- Orkestrointi logiikka
+
+**Riippuu vain:** Domain Layer:stä
+
+---
+
+#### 3. Interface Adapters
+
+**Kysymys: Miten data muunnetaan eri muotojen välillä?**
+
+**Vastaa esimerkiksi:**
+- HTTP Request → DTO → Domain Entity
+- Domain Entity → DTO → HTTP Response
+- Miten ulkoinen API kommunikoi sisäisten Use Case:jen kanssa
+- Miten UI saa dataa muodossa jota se ymmärtää
+
+**Ei vastaa:**
+- Mitä liiketoimintasäännöt ovat (se on Domain)
+- Miten työnkulku toimii (se on Use Cases)
+- Konkreettisesta tietokantateknologiasta (se on Infrastructure)
+
+**Tyypillinen sisältö:**
+- Controllers (API endpoints)
+- Presenters
+- View Models
+- API Request/Response -mallit
+- Muunnokset (Mappers)
+
+**Riippuu:** Use Cases Layer:stä
+
+---
+
+#### 4. Frameworks & Drivers / Infrastructure
+
+**Kysymys: Miten sovellus on kytketty ulkomaailmaan?**
+
+**Vastaa esimerkiksi:**
+- Miten data tallennetaan tietokantaan (EF Core, SQL)
+- Miten lähetetään sähköposti (SMTP, SendGrid)
+- Miten kutsutaan ulkoista APIa
+- Miten lokitus toimii
+- Miten tiedostoja käsitellään
+
+**Ei vastaa:**
+- Milloin jotain tehdään (se on Use Cases)
+- Miksi jokin sääntö on olemassa (se on Domain)
+- Mitä liiketoimintalogiikkaa suoritetaan
+
+**Tyypillinen sisältö:**
+- Repository-toteutukset (IOrderRepository → OrderRepository)
+- Database Context (EF Core)
+- External API -klientit
+- File system, cache (Redis), cloud services (Azure)
+- Email services, logging frameworks
+
+**Riippuu:** Kaikista sisemmistä kerroksista (rajapintojen kautta)
+
+---
+
+### Riippuvuussuunta (Dependency Rule)
+
+```
+Infrastructure → Interface Adapters → Use Cases → Domain
+     ✅               ✅                 ✅
+     ❌ ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ← ←
+```
+
+**Tärkeää:** 
+- Ulommat kerrokset tuntevat sisemmät kerrokset
+- Sisemmät kerrokset EIVÄT tunne ulompia kerroksia
+- Domain on täysin riippumaton kaikesta
+- Riippuvuudet käännetään rajapintojen avulla (Dependency Inversion)
+
+---
+
 ### 1. Entities (Domain Layer) - Sisimmäinen kehä
 
 **Vastuu:** Liiketoiminnan ydinlogiikka
