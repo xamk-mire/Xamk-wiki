@@ -50,6 +50,15 @@ Ohjelmistoarkkitehtuuri määrittelee sovelluksen rakenteen, komponenttien väli
    - Domain Services vs. Application Services
    - Sopii: Domain-Driven Design (DDD) projektit
 
+### Suunnittelufilosofia
+
+**[Domain-Driven Design (DDD)](Domain-Driven-Design.md)**
+- Lähestymistapa kompleksisten domain-mallien rakentamiseen
+- Ubiquitous Language - yhteinen kieli kehittäjien ja liiketoiminnan välillä
+- Bounded Context, Entities, Value Objects, Aggregates
+- Sopii: Suuret projektit kompleksisella liiketoimintalogiikalla
+- **[Käytännön esimerkki: DDD + Clean Architecture](DDD-Example.md)**
+
 ### Skaalautuvat arkkitehtuurit
 
 5. **[Microservices Architecture](Microservices-Architecture.md)**
@@ -82,6 +91,7 @@ Ohjelmistoarkkitehtuuri määrittelee sovelluksen rakenteen, komponenttien väli
 | **Clean** | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | Keskisuuret-suuret projektit |
 | **Hexagonal** | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | Integraatiorikkaat projektit |
 | **Onion** | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | DDD-projektit |
+| **DDD** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | Kompleksinen domain-logiikka |
 | **Microservices** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | Suuret organisaatiot |
 | **CQRS** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | Suorituskykykriittiset |
 | **Event-Driven** | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | Real-time, integraatiot |
@@ -92,10 +102,11 @@ Suosittelemme opiskelua seuraavassa järjestyksessä:
 
 1. **Layered Architecture** - Aloita yksinkertaisesta
 2. **Clean Architecture** - Ymmärrä riippuvuuksien suunta
-3. **Hexagonal Architecture** - Opettele portit ja adapterit
-4. **CQRS** - Erottele lukeminen ja kirjoittaminen
-5. **Event-Driven** - Asynkroninen kommunikaatio
-6. **Microservices** - Hajautetut järjestelmät
+3. **Domain-Driven Design** - Kompleksisen domain-logiikan hallinta
+4. **Hexagonal Architecture** - Opettele portit ja adapterit
+5. **CQRS** - Erottele lukeminen ja kirjoittaminen
+6. **Event-Driven** - Asynkroninen kommunikaatio
+7. **Microservices** - Hajautetut järjestelmät
 
 ## Valitse arkkitehtuuri projektin mukaan
 
@@ -109,7 +120,7 @@ Suosittelemme opiskelua seuraavassa järjestyksessä:
 → **Clean Architecture** + **CQRS** tai **Microservices**
 
 ### Kompleksinen domain
-→ **Clean/Onion Architecture** + Domain-Driven Design
+→ **[Domain-Driven Design](Domain-Driven-Design.md)** + **Clean/Onion Architecture**
 
 ### Korkea suorituskyky
 → **CQRS** + Event Sourcing
@@ -192,10 +203,11 @@ public async Task CreateOrder_ValidOrder_ReturnsOrderId()
 - [Martin Fowler: Software Architecture Guide](https://martinfowler.com/architecture/)
 
 ### Kirjat
-- Clean Architecture by Robert C. Martin
-- Patterns of Enterprise Application Architecture by Martin Fowler
-- Domain-Driven Design by Eric Evans
-- Building Microservices by Sam Newman
+- **Clean Architecture** by Robert C. Martin (2017)
+- **Patterns of Enterprise Application Architecture** by Martin Fowler (2002)
+- **Domain-Driven Design: Tackling Complexity in the Heart of Software** by Eric Evans (2003) ⭐
+- **Implementing Domain-Driven Design** by Vaughn Vernon (2013)
+- **Building Microservices** by Sam Newman (2021)
 
 ### Blogit
 - [The Clean Architecture Blog](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
@@ -208,15 +220,18 @@ Suosittelemme tutustumaan materiaaleihin tässä järjestyksessä:
 1. **[Johdanto](Johdanto.md)** - Aloita tästä! Historia, perusteet ja käsitteet
 2. **[Layered Architecture](Layered-Architecture.md)** - Yksinkertainen ja yleinen malli
 3. **[Clean Architecture](Clean-Architecture.md)** - Domain-keskinen, modernimpi lähestymistapa
-4. **[Hexagonal Architecture](Hexagonal-Architecture.md)** - Portit ja adapterit, integraatiorikkaisiin sovelluksiin
+4. **[Domain-Driven Design](Domain-Driven-Design.md)** - Kompleksisen domain-logiikan hallinta
+   - **[DDD Käytännön esimerkki](DDD-Example.md)** - Verkkokaupan tilausjärjestelmä DDD:llä
+5. **[Hexagonal Architecture](Hexagonal-Architecture.md)** - Portit ja adapterit, integraatiorikkaisiin sovelluksiin
 
 ## Seuraavaksi
 
 Kun olet tutustunut arkkitehtuureihin, voit syventää tietämystäsi:
 
+- **[Domain-Driven Design](Domain-Driven-Design.md)** - Kompleksisten domain-mallien hallinta
 - [Suunnitteluperiaatteet](../Design-Principles.md) - SOLID, DRY, KISS
 - [Suunnittelumallit](../Design-Patterns.md) - Singleton, Factory, Observer, jne.
-- [Yksikkötestaus](../Unit-Testing.md) - Testaa arkkitehtuuria
+- [Yksikkötestaus](../UnitTesting/Unit-Testing.md) - Testaa arkkitehtuuria
 
 ---
 
