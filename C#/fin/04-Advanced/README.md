@@ -17,6 +17,7 @@ Tervetuloa C#-ohjelmoinnin edistyneisiin aiheisiin! Tämä osio käsittelee kehi
 
 ### Suunnittelu
 - [Suunnitteluperiaatteet](Design-Principles.md) - SOLID-periaatteet ja muut suunnitteluohjeet
+- [Dependency Injection](Dependency-Injection.md) - DI ja DIP, testattavuus, löysä kytkentä
 - [Suunnittelumallit](Design-Patterns.md) - Yleisimmät design patternit (Singleton, Factory, Builder, Observer, jne.)
 
 ### Ohjelmistoarkkitehtuuri
