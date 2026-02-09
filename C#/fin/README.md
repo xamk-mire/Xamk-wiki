@@ -43,9 +43,11 @@ Tervetuloa C# olio-ohjelmoinnin oppimateriaaliin! Tämä materiaali käsittelee 
 Lisäesimerkit
 
 ### 4. [Edistyneet aiheet](04-Advanced/)
-- [Yksikkötestaus](04-Advanced/Unit-Testing.md)
+- [Yksikkötestaus](04-Advanced/UnitTesting/)
 - [Suunnittelumallit](04-Advanced/Design-Patterns.md)
 - [Suunnittelu periaatteet](04-Advanced/Design-Principles.md)
+- [Docker C#/.NET-kehityksessä](04-Advanced/Docker/) - .NET-sovellusten kontitus ja Docker Compose
+- [Salaisuuksien hallinta](04-Advanced/Secrets-Management/) - User Secrets, Azure Environment Variables, Azure Key Vault
 
 ### 99. [Yleiset ohjelmointimateriaalit](99-General/)
 Materiaalit, jotka eivät ole suoraan C#-kieleen liittyviä:

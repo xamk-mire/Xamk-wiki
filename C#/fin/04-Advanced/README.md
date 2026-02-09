@@ -27,6 +27,19 @@ Tervetuloa C#-ohjelmoinnin edistyneisiin aiheisiin! Tämä osio käsittelee kehi
 - [Clean Architecture](Architecture/Clean-Architecture.md) - Domain-keskinen, riippuvuudet sisäänpäin
 - [Hexagonal Architecture](Architecture/Hexagonal-Architecture.md) - Portit ja adapterit -malli
 
+### Docker
+- [Docker C#/.NET-kehityksessä](Docker/) - Docker .NET-sovellusten kehityksessä ja käyttöönotossa
+  - [.NET ja Docker](Docker/DotNet-Docker.md) - .NET-imaget, Dockerfile, multi-stage build, debuggaus
+  - [Docker Compose .NET-projekteissa](Docker/DotNet-Docker-Compose.md) - ASP.NET Core + SQL Server/PostgreSQL, health checkit
+- [Docker-perusteet (yleiset)](https://github.com/xamk-mire/Xamk-wiki/tree/main/Development-guidelines/Docker) - Dockerin yleiset perusteet, komennot, volumet ja verkot
+
+### Salaisuuksien hallinta
+- [Salaisuuksien hallinta .NET-sovelluksissa](Secrets-Management/) - Salaisuuksien turvallinen hallinta eri ympäristöissä
+  - [User Secrets](Secrets-Management/User-Secrets.md) - Lokaalikehityksen salaisuudet (`dotnet user-secrets`)
+  - [Azure Environment Variables](Secrets-Management/Azure-Environment-Variables.md) - Ympäristömuuttujat Azure App Servicessa
+  - [Azure Key Vault](Secrets-Management/Azure-Key-Vault.md) - Key Vault, RBAC ja Managed Identity
+- [Salaisuuksien hallinnan yleiset periaatteet](https://github.com/xamk-mire/Xamk-wiki/tree/main/Development-guidelines/Secrets-Management) - Miksi ja miten salaisuuksia hallitaan
+
 ## Oppimisjärjestys
 
 Suosittelemme opiskelua seuraavassa järjestyksessä:
@@ -40,10 +53,18 @@ Suosittelemme opiskelua seuraavassa järjestyksessä:
    - Aloita Layered Architecture:sta
    - Jatka Clean Architecture:en
    - Syventyminen: Hexagonal Architecture
+6. **Docker** - Opettele kontittamaan .NET-sovelluksia
+   - Aloita [Docker-perusteista](https://github.com/xamk-mire/Xamk-wiki/tree/main/Development-guidelines/Docker)
+   - Jatka [.NET-kontitukseen](Docker/DotNet-Docker.md)
+   - Syventyminen: [Docker Compose .NET-projekteissa](Docker/DotNet-Docker-Compose.md)
+7. **Salaisuuksien hallinta** - Opi hallitsemaan salaisuuksia turvallisesti
+   - Aloita [User Secrets:stä](Secrets-Management/User-Secrets.md) (lokaali kehitys)
+   - Jatka [Azure Environment Variables](Secrets-Management/Azure-Environment-Variables.md) (Azure-ympäristö)
+   - Syventyminen: [Azure Key Vault](Secrets-Management/Azure-Key-Vault.md) (tuotanto)
 
 ## Seuraavaksi
 
 Kun olet hallinnut edistyneet aiheet, voit syventää tietämystäsi:
-- [OOP-konsepteista](../02-OOP-Concepts/) - Olio-ohjelmoinnin syvempi ymmärrys
-- [Perusteista](../00-Basics/) - Palauttele peruskäsitteitä
+- [OOP-konsepteista](https://github.com/xamk-mire/Xamk-wiki/tree/main/C%23/fin/02-OOP-Concepts) - Olio-ohjelmoinnin syvempi ymmärrys
+- [Perusteista](https://github.com/xamk-mire/Xamk-wiki/tree/main/C%23/fin/00-Basics) - Palauttele peruskäsitteitä
 
