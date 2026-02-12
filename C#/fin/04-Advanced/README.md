@@ -40,6 +40,13 @@ Tervetuloa C#-ohjelmoinnin edistyneisiin aiheisiin! Tämä osio käsittelee kehi
   - [Azure Key Vault](Secrets-Management/Azure-Key-Vault.md) - Key Vault, RBAC ja Managed Identity
 - [Salaisuuksien hallinnan yleiset periaatteet](https://github.com/xamk-mire/Xamk-wiki/tree/main/Development-guidelines/Secrets-Management) - Miksi ja miten salaisuuksia hallitaan
 
+### Rinnakkaisuus ja asynkronisuus
+- [Rinnakkaisuus ja asynkronisuus](Concurrency/) - Moniajo, asynkroninen ohjelmointi ja synkronointi
+  - [Async/Await](Concurrency/Async-Await.md) - Asynkronisen ohjelmoinnin perusteet, Task, CancellationToken
+  - [Synkronointi](Concurrency/Synchronization.md) - lock, SemaphoreSlim, Mutex, Interlocked, deadlock
+  - [Concurrent Collections](Concurrency/Concurrent-Collections.md) - ConcurrentDictionary, Channel, BlockingCollection
+  - [Parallel-ohjelmointi](Concurrency/Parallel-Programming.md) - Parallel.ForEach, PLINQ, rinnakkaistaminen
+
 ## Oppimisjärjestys
 
 Suosittelemme opiskelua seuraavassa järjestyksessä:
@@ -61,6 +68,11 @@ Suosittelemme opiskelua seuraavassa järjestyksessä:
    - Aloita [User Secrets:stä](Secrets-Management/User-Secrets.md) (lokaali kehitys)
    - Jatka [Azure Environment Variables](Secrets-Management/Azure-Environment-Variables.md) (Azure-ympäristö)
    - Syventyminen: [Azure Key Vault](Secrets-Management/Azure-Key-Vault.md) (tuotanto)
+8. **Rinnakkaisuus ja asynkronisuus** - Opi asynkroninen ohjelmointi ja moniajo
+   - Aloita [Async/Await:sta](Concurrency/Async-Await.md) (asynkronisen ohjelmoinnin perusta)
+   - Jatka [Synkronointiin](Concurrency/Synchronization.md) (lock, SemaphoreSlim, deadlock)
+   - Jatka [Concurrent Collections](Concurrency/Concurrent-Collections.md) (ConcurrentDictionary, Channel)
+   - Syventyminen: [Parallel-ohjelmointi](Concurrency/Parallel-Programming.md) (Parallel.ForEach, PLINQ)
 
 ## Seuraavaksi
 
