@@ -8,6 +8,18 @@ Tervetuloa Azure-oppimateriaaliin! Tämä materiaali käsittelee Microsoftin Azu
 
 ## Sisältö
 
+### Infrastructure as Code (IaC)
+- [Infrastructure as Code](Infrastructure-as-Code.md) - Mikä on IaC, miksi sitä käytetään ja miten
+  - IaC-lähestymistavat (deklaratiivinen vs. imperatiivinen)
+  - IaC-työkalut Azuressa (Bicep, Terraform, ARM, Pulumi)
+  - Käytännön Bicep-esimerkit (Key Vault, App Service, SQL, kokonainen ympäristö)
+  - Moduulit, parametrit ja deployment
+- [Bicep - Azuren IaC-kieli](Bicep.md) - Bicepin syntaksi ja edistyneet ominaisuudet
+  - Kehitysympäristön pystytys ja VS Code -laajennus
+  - Resurssimäärittelyt, tyypit ja dekoraattorit
+  - Moduulit, funktiot ja User-Defined Types
+  - Yleiset kuviot (nimeäminen, tagit, ympäristökonfiguraatio, monitorointi)
+
 ### Turvallisuus ja salaisuudet
 - [Azure Key Vault](Key-Vault.md) - Salaisuuksien, avainten ja sertifikaattien turvallinen hallinta
   - Key Vaultin käsitteet (Secrets, Keys, Certificates)
@@ -26,8 +38,10 @@ Tervetuloa Azure-oppimateriaaliin! Tämä materiaali käsittelee Microsoftin Azu
 
 ## Oppimisjärjestys
 
-1. **Key Vault** - Ymmärrä miten salaisuuksia hallitaan Azuressa
-2. **Salaisuuksien hallinta .NET:ssä** - Opi integroimaan Key Vault .NET-sovellukseen
+1. **Infrastructure as Code** - Ymmärrä miten infrastruktuuria hallitaan koodina
+2. **Bicep** - Opi Azuren oma IaC-kieli ja sen syntaksi
+3. **Key Vault** - Ymmärrä miten salaisuuksia hallitaan Azuressa
+4. **Salaisuuksien hallinta .NET:ssä** - Opi integroimaan Key Vault .NET-sovellukseen
 
 ## Hyödyllisiä linkkejä
 
