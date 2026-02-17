@@ -40,6 +40,11 @@ Tervetuloa C#-ohjelmoinnin edistyneisiin aiheisiin! Tämä osio käsittelee kehi
   - [Azure Key Vault](Secrets-Management/Azure-Key-Vault.md) - Key Vault, RBAC ja Managed Identity
 - [Salaisuuksien hallinnan yleiset periaatteet](https://github.com/xamk-mire/Xamk-wiki/tree/main/Development-guidelines/Secrets-Management) - Miksi ja miten salaisuuksia hallitaan
 
+### Autentikointi
+- [Autentikointi ASP.NET Core -sovelluksissa](Authentication/) - JWT-autentikointi ja tokenien hallinta
+  - [JWT (JSON Web Token)](Authentication/JWT.md) - JWT:n teoria, rakenne, claims ja ASP.NET Core -toteutus
+  - [Refresh Tokens](Authentication/Refresh-Tokens.md) - Token Rotation, refresh-strategia ja toteutus
+
 ### Rinnakkaisuus ja asynkronisuus
 - [Rinnakkaisuus ja asynkronisuus](Concurrency/) - Moniajo, asynkroninen ohjelmointi ja synkronointi
   - [Async/Await](Concurrency/Async-Await.md) - Asynkronisen ohjelmoinnin perusteet, Task, CancellationToken
@@ -68,7 +73,10 @@ Suosittelemme opiskelua seuraavassa järjestyksessä:
    - Aloita [User Secrets:stä](Secrets-Management/User-Secrets.md) (lokaali kehitys)
    - Jatka [Azure Environment Variables](Secrets-Management/Azure-Environment-Variables.md) (Azure-ympäristö)
    - Syventyminen: [Azure Key Vault](Secrets-Management/Azure-Key-Vault.md) (tuotanto)
-8. **Rinnakkaisuus ja asynkronisuus** - Opi asynkroninen ohjelmointi ja moniajo
+8. **Autentikointi** - Opi JWT-autentikointi ja tokenien hallinta
+   - Aloita [JWT:stä](Authentication/JWT.md) (teoria ja perustoteutus)
+   - Jatka [Refresh Tokens](Authentication/Refresh-Tokens.md) (turvallinen tokenien uusiminen)
+9. **Rinnakkaisuus ja asynkronisuus** - Opi asynkroninen ohjelmointi ja moniajo
    - Aloita [Async/Await:sta](Concurrency/Async-Await.md) (asynkronisen ohjelmoinnin perusta)
    - Jatka [Synkronointiin](Concurrency/Synchronization.md) (lock, SemaphoreSlim, deadlock)
    - Jatka [Concurrent Collections](Concurrency/Concurrent-Collections.md) (ConcurrentDictionary, Channel)

@@ -48,6 +48,7 @@ Lisäesimerkit
 - [Suunnittelu periaatteet](04-Advanced/Design-Principles.md)
 - [Docker C#/.NET-kehityksessä](04-Advanced/Docker/) - .NET-sovellusten kontitus ja Docker Compose
 - [Salaisuuksien hallinta](04-Advanced/Secrets-Management/) - User Secrets, Azure Environment Variables, Azure Key Vault
+- [Autentikointi](04-Advanced/Authentication/) - JWT, Refresh Tokens, ASP.NET Core -autentikointi
 
 ### 99. [Yleiset ohjelmointimateriaalit](99-General/)
 Materiaalit, jotka eivät ole suoraan C#-kieleen liittyviä:
