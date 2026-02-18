@@ -223,6 +223,7 @@ Suosittelemme tutustumaan materiaaleihin tässä järjestyksessä:
 4. **[Domain-Driven Design](Domain-Driven-Design.md)** - Kompleksisen domain-logiikan hallinta
    - **[DDD Käytännön esimerkki](DDD-Example.md)** - Verkkokaupan tilausjärjestelmä DDD:llä
 5. **[Hexagonal Architecture](Hexagonal-Architecture.md)** - Portit ja adapterit, integraatiorikkaisiin sovelluksiin
+6. **[CQRS](CQRS.md)** - Luku- ja kirjoitusoperaatioiden erottaminen, CQS-periaate, tasot
 
 ## Seuraavaksi
 

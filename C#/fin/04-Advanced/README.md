@@ -19,6 +19,7 @@ Tervetuloa C#-ohjelmoinnin edistyneisiin aiheisiin! Tämä osio käsittelee kehi
 - [Suunnitteluperiaatteet](Design-Principles.md) - SOLID-periaatteet ja muut suunnitteluohjeet
 - [Dependency Injection](Dependency-Injection.md) - DI ja DIP, testattavuus, löysä kytkentä
 - [Suunnittelumallit](Design-Patterns.md) - Yleisimmät design patternit (Singleton, Factory, Builder, Observer, jne.)
+- [MediatR](Patterns/MediatR.md) - Mediator-malli, CQRS, Pipeline Behaviors, Notifications
 
 ### Ohjelmistoarkkitehtuuri
 - [Johdanto - Mikä on arkkitehtuuri?](Architecture/Johdanto.md) - **Aloita tästä!** Historia, perusteet ja käsitteet
@@ -26,6 +27,7 @@ Tervetuloa C#-ohjelmoinnin edistyneisiin aiheisiin! Tämä osio käsittelee kehi
 - [Layered Architecture](Architecture/Layered-Architecture.md) - Kerrosarkkitehtuuri, yksinkertainen ja yleinen
 - [Clean Architecture](Architecture/Clean-Architecture.md) - Domain-keskinen, riippuvuudet sisäänpäin
 - [Hexagonal Architecture](Architecture/Hexagonal-Architecture.md) - Portit ja adapterit -malli
+- [CQRS](Architecture/CQRS.md) - Command Query Responsibility Segregation, luku- ja kirjoitusoperaatioiden erottaminen
 
 ### Docker
 - [Docker C#/.NET-kehityksessä](Docker/) - Docker .NET-sovellusten kehityksessä ja käyttöönotossa
@@ -65,22 +67,26 @@ Suosittelemme opiskelua seuraavassa järjestyksessä:
    - Aloita Layered Architecture:sta
    - Jatka Clean Architecture:en
    - Syventyminen: Hexagonal Architecture
-6. **Docker** - Opettele kontittamaan .NET-sovelluksia
+6. **MediatR** - Opi Mediator-malli ja CQRS
+   - Aloita [Request/Handler-perusteista](Patterns/MediatR.md#request-ja-handler)
+   - Jatka [CQRS-malliin](Patterns/MediatR.md#cqrs-mediatrllä)
+   - Syventyminen: [Pipeline Behaviors](Patterns/MediatR.md#pipeline-behaviors)
+7. **Docker** - Opettele kontittamaan .NET-sovelluksia
    - Aloita [Docker-perusteista](https://github.com/xamk-mire/Xamk-wiki/tree/main/Development-guidelines/Docker)
    - Jatka [.NET-kontitukseen](Docker/DotNet-Docker.md)
    - Syventyminen: [Docker Compose .NET-projekteissa](Docker/DotNet-Docker-Compose.md)
-7. **Salaisuuksien hallinta** - Opi hallitsemaan salaisuuksia turvallisesti
+8. **Salaisuuksien hallinta** - Opi hallitsemaan salaisuuksia turvallisesti
    - Aloita [User Secrets:stä](Secrets-Management/User-Secrets.md) (lokaali kehitys)
    - Jatka [Azure Environment Variables](Secrets-Management/Azure-Environment-Variables.md) (Azure-ympäristö)
    - Syventyminen: [Azure Key Vault](Secrets-Management/Azure-Key-Vault.md) (tuotanto)
-8. **Autentikointi** - Opi JWT-autentikointi ja tokenien hallinta
+9. **Autentikointi** - Opi JWT-autentikointi ja tokenien hallinta
    - Aloita [JWT:stä](Authentication/JWT.md) (teoria ja perustoteutus)
    - Jatka [Refresh Tokens](Authentication/Refresh-Tokens.md) (turvallinen tokenien uusiminen)
-9. **Rinnakkaisuus ja asynkronisuus** - Opi asynkroninen ohjelmointi ja moniajo
-   - Aloita [Async/Await:sta](Concurrency/Async-Await.md) (asynkronisen ohjelmoinnin perusta)
-   - Jatka [Synkronointiin](Concurrency/Synchronization.md) (lock, SemaphoreSlim, deadlock)
-   - Jatka [Concurrent Collections](Concurrency/Concurrent-Collections.md) (ConcurrentDictionary, Channel)
-   - Syventyminen: [Parallel-ohjelmointi](Concurrency/Parallel-Programming.md) (Parallel.ForEach, PLINQ)
+10. **Rinnakkaisuus ja asynkronisuus** - Opi asynkroninen ohjelmointi ja moniajo
+    - Aloita [Async/Await:sta](Concurrency/Async-Await.md) (asynkronisen ohjelmoinnin perusta)
+    - Jatka [Synkronointiin](Concurrency/Synchronization.md) (lock, SemaphoreSlim, deadlock)
+    - Jatka [Concurrent Collections](Concurrency/Concurrent-Collections.md) (ConcurrentDictionary, Channel)
+    - Syventyminen: [Parallel-ohjelmointi](Concurrency/Parallel-Programming.md) (Parallel.ForEach, PLINQ)
 
 ## Seuraavaksi
 

@@ -369,6 +369,226 @@ ConcretePrototype original = new ConcretePrototype { Property = "Original" };
 ConcretePrototype clone = (ConcretePrototype)original.Clone();
 ```
 
+### Mediator Pattern
+
+Mediator-mallia käytetään, kun useat oliot kommunikoivat toistensa kanssa ja syntyy monimutkainen riippuvuusverkko. Mediator toimii **keskitetyn välittäjän** roolissa: sen sijaan, että oliot kutsuvat toisiaan suoraan, ne lähettävät viestejä Mediatorille, joka ohjaa viestin oikealle vastaanottajalle.
+
+**Gang of Four määritelmä:**
+> "Define an object that encapsulates how a set of objects interact. Mediator promotes loose coupling by keeping objects from referring to each other explicitly."
+
+**Ongelma ilman Mediatoria:**
+
+```
+❌ Suorat riippuvuudet (tight coupling):
+
+    ComponentA ←→ ComponentB
+        ↕           ↕
+    ComponentC ←→ ComponentD
+
+Jokainen komponentti tuntee muut → riippuvuudet kasvavat räjähdysmäisesti
+```
+
+**Ratkaisu Mediatorilla:**
+
+```
+✅ Keskitetty kommunikaatio (loose coupling):
+
+    ComponentA → Mediator ← ComponentB
+                   ↕
+    ComponentC → Mediator ← ComponentD
+
+Jokainen komponentti tuntee vain Mediatorin
+```
+
+**Esimerkki: Chat-huone**
+
+Chatissa käyttäjät eivät lähetä viestejä suoraan toisilleen, vaan **chat-huone** (Mediator) välittää viestit kaikille osallistujille:
+
+```csharp
+// Mediator-rajapinta
+public interface IChatRoom
+{
+    void SendMessage(string message, IUser sender);
+    void AddUser(IUser user);
+}
+
+// Käyttäjä-rajapinta
+public interface IUser
+{
+    string Name { get; }
+    void ReceiveMessage(string message, string senderName);
+    void SendMessage(string message);
+}
+
+// Konkreettinen Mediator
+public class ChatRoom : IChatRoom
+{
+    private readonly List<IUser> _users = new();
+
+    public void AddUser(IUser user)
+    {
+        _users.Add(user);
+        Console.WriteLine($"*** {user.Name} liittyi huoneeseen ***");
+    }
+
+    public void SendMessage(string message, IUser sender)
+    {
+        // Välittää viestin kaikille PAITSI lähettäjälle
+        foreach (var user in _users)
+        {
+            if (user != sender)
+            {
+                user.ReceiveMessage(message, sender.Name);
+            }
+        }
+    }
+}
+
+// Konkreettinen käyttäjä
+public class ChatUser : IUser
+{
+    private readonly IChatRoom _chatRoom;
+
+    public string Name { get; }
+
+    public ChatUser(string name, IChatRoom chatRoom)
+    {
+        Name = name;
+        _chatRoom = chatRoom;
+    }
+
+    public void SendMessage(string message)
+    {
+        Console.WriteLine($"{Name} lähettää: {message}");
+        _chatRoom.SendMessage(message, this);  // Lähettää Mediatorille, EI suoraan toisille
+    }
+
+    public void ReceiveMessage(string message, string senderName)
+    {
+        Console.WriteLine($"{Name} vastaanotti [{senderName}]: {message}");
+    }
+}
+
+// Käyttö
+IChatRoom chatRoom = new ChatRoom();
+
+var matti = new ChatUser("Matti", chatRoom);
+var liisa = new ChatUser("Liisa", chatRoom);
+var pekka = new ChatUser("Pekka", chatRoom);
+
+chatRoom.AddUser(matti);
+chatRoom.AddUser(liisa);
+chatRoom.AddUser(pekka);
+
+matti.SendMessage("Moi kaikille!");
+// Liisa vastaanotti [Matti]: Moi kaikille!
+// Pekka vastaanotti [Matti]: Moi kaikille!
+
+liisa.SendMessage("Moi Matti!");
+// Matti vastaanotti [Liisa]: Moi Matti!
+// Pekka vastaanotti [Liisa]: Moi Matti!
+```
+
+**Esimerkki: Lennonjohtotorni**
+
+Lentokoneet eivät kommunikoi suoraan toistensa kanssa, vaan lennonjohtotorni (Mediator) koordinoi kaiken:
+
+```csharp
+// Mediator
+public interface IControlTower
+{
+    void RequestLanding(Aircraft aircraft);
+    void RequestTakeoff(Aircraft aircraft);
+}
+
+// Colleague
+public abstract class Aircraft
+{
+    protected readonly IControlTower _tower;
+    public string FlightNumber { get; }
+
+    protected Aircraft(string flightNumber, IControlTower tower)
+    {
+        FlightNumber = flightNumber;
+        _tower = tower;
+    }
+
+    public abstract void Land();
+    public abstract void TakeOff();
+}
+
+// Konkreettinen Mediator
+public class ControlTower : IControlTower
+{
+    private bool _runwayFree = true;
+
+    public void RequestLanding(Aircraft aircraft)
+    {
+        if (_runwayFree)
+        {
+            _runwayFree = false;
+            Console.WriteLine($"Torni: {aircraft.FlightNumber}, kiitotie vapaa. Laskeutumislupa myönnetty.");
+            aircraft.Land();
+            _runwayFree = true;
+        }
+        else
+        {
+            Console.WriteLine($"Torni: {aircraft.FlightNumber}, kiitotie varattu. Odota vuoroasi.");
+        }
+    }
+
+    public void RequestTakeoff(Aircraft aircraft)
+    {
+        if (_runwayFree)
+        {
+            _runwayFree = false;
+            Console.WriteLine($"Torni: {aircraft.FlightNumber}, lentoonlähtölupa myönnetty.");
+            aircraft.TakeOff();
+            _runwayFree = true;
+        }
+        else
+        {
+            Console.WriteLine($"Torni: {aircraft.FlightNumber}, kiitotie varattu. Odota.");
+        }
+    }
+}
+
+// Konkreettinen lentokone
+public class CommercialFlight : Aircraft
+{
+    public CommercialFlight(string flightNumber, IControlTower tower) 
+        : base(flightNumber, tower) { }
+
+    public override void Land()
+    {
+        Console.WriteLine($"{FlightNumber}: Laskeutumassa...");
+    }
+
+    public override void TakeOff()
+    {
+        Console.WriteLine($"{FlightNumber}: Nousemassa...");
+    }
+
+    public void RequestLanding() => _tower.RequestLanding(this);
+    public void RequestTakeoff() => _tower.RequestTakeoff(this);
+}
+```
+
+**Milloin käyttää Mediator-mallia?**
+
+| Käytä kun | Älä käytä kun |
+|---|---|
+| ✅ Monta komponenttia kommunikoi keskenään | ❌ Vain 2 komponenttia kommunikoi |
+| ✅ Riippuvuudet muodostuvat monimutkaiseksi | ❌ Kommunikaatio on yksinkertaista |
+| ✅ Haluat löysän kytkennän (loose coupling) | ❌ Mediator paisuisi liian isoksi (God Object) |
+| ✅ Kommunikaatiologiikka muuttuu usein | ❌ Suorituskyky on kriittistä (ylimääräinen kerros) |
+
+**Mediator .NET-maailmassa:**
+
+.NET-ekosysteemissä Mediator-malli toteutetaan useimmiten **MediatR**-kirjastolla, joka on de facto standardi ASP.NET Core -sovelluksissa. MediatR laajentaa perusmallia mm. CQRS-, Notification- ja Pipeline Behavior -tuen avulla.
+
+> Katso myös: [MediatR](../Patterns/MediatR.md) - MediatR-kirjaston käyttö, CQRS, Pipeline Behaviors
+
 ### MVC Pattern (Model-View-Controller)
 
 Tämä on laajasti käytetty malli ohjelmiston suunnitteluun, jolla on käyttöliittymä. Se jakaa ohjelmalogiikan kolmeen toisiinsa yhteydessä olevaan elementtiin: malliin (data), näkymään (käyttöliittymä) ja ohjaimeen (syötteen käsittelyprosessit). Tätä mallia käytetään paljon web-sovellusten kehittämisessä.
