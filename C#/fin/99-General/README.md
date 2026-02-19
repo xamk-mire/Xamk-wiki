@@ -21,6 +21,7 @@ Tämä kansio sisältää materiaaleja, jotka eivät ole suoraan C#-kieleen liit
 - [draw.io](DrawIO.md) - Työkalu kaavioiden luomiseen
 
 ### Algoritmit
+- [Big O -notaatio](Big-O.md) - Aikavaativuus, tilavaativuus ja algoritmien tehokkuuden arviointi
 - [Lajittelualgoritmit](Sorting-Algorithms.md) - Eri lajittelualgoritmit ja niiden analyysi
 
 ### Muut

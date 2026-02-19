@@ -16,7 +16,8 @@ Tervetuloa C#-ohjelmoinnin edistyneisiin aiheisiin! Tämä osio käsittelee kehi
 - [Attribuutit - Esimerkit](Attributes-Examples.md) - Kattavat koodiesimerkit attribuuteista
 
 ### Suunnittelu
-- [Suunnitteluperiaatteet](Design-Principles.md) - SOLID-periaatteet ja muut suunnitteluohjeet
+- [Suunnitteluperiaatteet](Design-Principles.md) - Puhdas koodi, DRY, KISS, YAGNI, guard clauses, koodihajut, tarkistuslista
+- [SOLID-periaatteet](SOLID.md) - Kattava materiaali SOLID-periaatteista C#-esimerkeillä
 - [Dependency Injection](Dependency-Injection.md) - DI ja DIP, testattavuus, löysä kytkentä
 - [Suunnittelumallit](Design-Patterns.md) - Yleisimmät design patternit (Singleton, Factory, Builder, Observer, jne.)
 - [MediatR](Patterns/MediatR.md) - Mediator-malli, CQRS, Pipeline Behaviors, Notifications
