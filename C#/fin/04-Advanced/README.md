@@ -43,6 +43,11 @@ Tervetuloa C#-ohjelmoinnin edistyneisiin aiheisiin! Tämä osio käsittelee kehi
   - [Azure Key Vault](Secrets-Management/Azure-Key-Vault.md) - Key Vault, RBAC ja Managed Identity
 - [Salaisuuksien hallinnan yleiset periaatteet](https://github.com/xamk-mire/Xamk-wiki/tree/main/Development-guidelines/Secrets-Management) - Miksi ja miten salaisuuksia hallitaan
 
+### Web API
+- [Web API -kehitys ASP.NET Corella](WebAPI/) - Backend-kehityksen perusteet ja REST API
+  - [Backend ja API](WebAPI/Backend-and-API.md) - Mikä on backend, API, REST, HTTP-metodit ja statuskoodit
+  - [Controllers](WebAPI/Controllers.md) - ASP.NET Core -kontrollerit, reititys ja toimintametodit
+
 ### Autentikointi
 - [Autentikointi ASP.NET Core -sovelluksissa](Authentication/) - JWT-autentikointi ja tokenien hallinta
   - [JWT (JSON Web Token)](Authentication/JWT.md) - JWT:n teoria, rakenne, claims ja ASP.NET Core -toteutus
@@ -64,26 +69,30 @@ Suosittelemme opiskelua seuraavassa järjestyksessä:
    - Jatka TDD:hen
 3. **Attribuutit** - Opettele käyttämään ja luomaan attribuutteja
 4. **Suunnittelumallit** - Opettele yleisimmät mallit ja niiden käyttökohteet
-5. **Ohjelmistoarkkitehtuuri** - Ymmärrä eri arkkitehtuurimallit
+5. **Web API** - Opi backend-kehityksen perusteet ja REST API
+   - Aloita [Backend ja API:sta](WebAPI/Backend-and-API.md) (teoria)
+   - Jatka [Controllers](WebAPI/Controllers.md) (ASP.NET Core -kontrollerit)
+   - Tee [Backend Basics -harjoitus](https://github.com/xamk-mire/Xamk-wiki/tree/main/Assigments/Backend%20basics) (käytännön toteutus)
+6. **Ohjelmistoarkkitehtuuri** - Ymmärrä eri arkkitehtuurimallit
    - Aloita Layered Architecture:sta
    - Jatka Clean Architecture:en
    - Syventyminen: Hexagonal Architecture
-6. **MediatR** - Opi Mediator-malli ja CQRS
+7. **MediatR** - Opi Mediator-malli ja CQRS
    - Aloita [Request/Handler-perusteista](Patterns/MediatR.md#request-ja-handler)
    - Jatka [CQRS-malliin](Patterns/MediatR.md#cqrs-mediatrllä)
    - Syventyminen: [Pipeline Behaviors](Patterns/MediatR.md#pipeline-behaviors)
-7. **Docker** - Opettele kontittamaan .NET-sovelluksia
+8. **Docker** - Opettele kontittamaan .NET-sovelluksia
    - Aloita [Docker-perusteista](https://github.com/xamk-mire/Xamk-wiki/tree/main/Development-guidelines/Docker)
    - Jatka [.NET-kontitukseen](Docker/DotNet-Docker.md)
    - Syventyminen: [Docker Compose .NET-projekteissa](Docker/DotNet-Docker-Compose.md)
-8. **Salaisuuksien hallinta** - Opi hallitsemaan salaisuuksia turvallisesti
+9. **Salaisuuksien hallinta** - Opi hallitsemaan salaisuuksia turvallisesti
    - Aloita [User Secrets:stä](Secrets-Management/User-Secrets.md) (lokaali kehitys)
    - Jatka [Azure Environment Variables](Secrets-Management/Azure-Environment-Variables.md) (Azure-ympäristö)
    - Syventyminen: [Azure Key Vault](Secrets-Management/Azure-Key-Vault.md) (tuotanto)
-9. **Autentikointi** - Opi JWT-autentikointi ja tokenien hallinta
-   - Aloita [JWT:stä](Authentication/JWT.md) (teoria ja perustoteutus)
-   - Jatka [Refresh Tokens](Authentication/Refresh-Tokens.md) (turvallinen tokenien uusiminen)
-10. **Rinnakkaisuus ja asynkronisuus** - Opi asynkroninen ohjelmointi ja moniajo
+10. **Autentikointi** - Opi JWT-autentikointi ja tokenien hallinta
+    - Aloita [JWT:stä](Authentication/JWT.md) (teoria ja perustoteutus)
+    - Jatka [Refresh Tokens](Authentication/Refresh-Tokens.md) (turvallinen tokenien uusiminen)
+11. **Rinnakkaisuus ja asynkronisuus** - Opi asynkroninen ohjelmointi ja moniajo
     - Aloita [Async/Await:sta](Concurrency/Async-Await.md) (asynkronisen ohjelmoinnin perusta)
     - Jatka [Synkronointiin](Concurrency/Synchronization.md) (lock, SemaphoreSlim, deadlock)
     - Jatka [Concurrent Collections](Concurrency/Concurrent-Collections.md) (ConcurrentDictionary, Channel)

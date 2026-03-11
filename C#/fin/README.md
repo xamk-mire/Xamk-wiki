@@ -43,6 +43,7 @@ Tervetuloa C# olio-ohjelmoinnin oppimateriaaliin! Tämä materiaali käsittelee 
 Lisäesimerkit
 
 ### 4. [Edistyneet aiheet](04-Advanced/)
+- [Web API](04-Advanced/WebAPI/) - Backend-kehityksen perusteet, REST API ja ASP.NET Core -kontrollerit
 - [Yksikkötestaus](04-Advanced/UnitTesting/)
 - [Suunnittelumallit](04-Advanced/Design-Patterns.md)
 - [Suunnittelu periaatteet](04-Advanced/Design-Principles.md)
