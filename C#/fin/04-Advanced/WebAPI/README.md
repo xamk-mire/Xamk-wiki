@@ -6,13 +6,20 @@ Tervetuloa Web API -kehityksen materiaaleihin! Tämä osio käsittelee backendin
 
 ## Sisältö
 
-### Teoria
+### Teoria — Perusteet
 - [Backend ja API](Backend-and-API.md) - Mikä on backend, API, REST, HTTP-metodit ja statuskoodit
 - [HTTP-metodit ja statuskoodit — Referenssi](HTTP-Reference.md) - Kattava hakuteos kaikista HTTP-metodeista ja statuskoodeista esimerkkeineen
 - [Controllers](Controllers.md) - ASP.NET Core -kontrollerit, reititys, attribuutit ja toimintametodit
 
+### Teoria — Jatkokurssi
+- [Entity Framework Core](Entity-Framework.md) - ORM, DbContext, DbSet, migraatiot ja async-metodit
+- [Service-kerros ja Dependency Injection](Services-and-DI.md) - Miksi service, interface vs toteutus, DI:n elinkaaret
+
 ### Harjoitukset
-- [Backend Basics -tutoriaali](https://github.com/xamk-mire/Xamk-wiki/tree/main/Assigments/Backend%20basics) - Ohjattu harjoitus, jossa rakennetaan ensimmäinen Web API
+- [Vaihe 1: Backend Basics](https://github.com/xamk-mire/Xamk-wiki/tree/main/Assigments/Backend/Backend%20basics) - Ensimmäinen Web API controllereilla ja staattisella listalla
+- [Vaihe 2: Tietokanta](https://github.com/xamk-mire/Xamk-wiki/tree/main/Assigments/Backend/Database) - EF Core ja SQLite
+- [Vaihe 3: Service-kerros](https://github.com/xamk-mire/Xamk-wiki/tree/main/Assigments/Backend/Services) - Logiikka service-luokkaan
+- [Vaihe 4: Autentikointi](https://github.com/xamk-mire/Xamk-wiki/tree/main/Assigments/Backend/Authentication) - JWT ja käyttäjähallinto
 
 ---
 
@@ -20,7 +27,13 @@ Tervetuloa Web API -kehityksen materiaaleihin! Tämä osio käsittelee backendin
 
 1. **Backend ja API** - Ymmärrä mitä backend tarkoittaa, mikä on API ja miten REST toimii
 2. **Controllers** - Opi miten ASP.NET Core käsittelee HTTP-pyyntöjä kontrollerien avulla
-3. **Backend Basics -tutoriaali** - Rakenna ensimmäinen Web API käytännössä
+3. **Vaihe 1: Backend Basics** - Rakenna ensimmäinen Web API käytännössä
+4. **Entity Framework Core** - Korvaa staattinen lista oikealla tietokannalla
+5. **Vaihe 2: Tietokanta** - Käytä EF Corea harjoituksessa
+6. **Service-kerros ja DI** - Opi erottamaan logiikka controllerista
+7. **Vaihe 3: Service-kerros** - Refaktoroi rakenne paremmaksi
+8. **JWT** (Authentication-kansio) - Opi tokenipohjainen autentikointi
+9. **Vaihe 4: Autentikointi** - Lisää kirjautuminen ja suojatut endpointit
 
 ---
 
