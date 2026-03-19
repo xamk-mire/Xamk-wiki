@@ -92,6 +92,14 @@ public class EmailService
 
 ## Sisältö
 
+### Perusteet
+- [ASP.NET Core Configuration](Configuration.md) - Konfiguraatiojärjestelmä ja Options Pattern
+  - Konfiguraatiolähteet ja tärkeysjärjestys
+  - `appsettings.json` ja ympäristökohtaiset tiedostot
+  - `ASPNETCORE_ENVIRONMENT`
+  - `IConfiguration` vs. `IOptions<T>` vs. `IOptionsSnapshot<T>`
+  - Konfiguraation validointi käynnistyksessä
+
 ### Lokaali kehitys
 - [User Secrets](User-Secrets.md) - .NET User Secrets -työkalu lokaaliin kehitykseen
   - `dotnet user-secrets` -komennot
@@ -114,21 +122,21 @@ public class EmailService
 
 Suosittelemme opiskelua seuraavassa järjestyksessä:
 
-1. **User Secrets** - Aloita lokaalista kehityksestä, opettele hallitsemaan salaisuudet kehitysympäristössä
-2. **Azure Environment Variables** - Ymmärrä miten Azure App Service hallitsee konfiguraatiota
-3. **Azure Key Vault** - Opi tuotantotason salaisuuksien hallinta Managed Identityn ja RBAC:n avulla
+1. **Configuration** - Ymmärrä ASP.NET Coren konfiguraatiojärjestelmä ja Options Pattern
+2. **User Secrets** - Aloita lokaalista kehityksestä, opettele hallitsemaan salaisuudet kehitysympäristössä
+3. **Azure Environment Variables** - Ymmärrä miten Azure App Service hallitsee konfiguraatiota
+4. **Azure Key Vault** - Opi tuotantotason salaisuuksien hallinta Managed Identityn ja RBAC:n avulla
 
 ## Esitietovaatimukset
 
 - [Dependency Injection](../Dependency-Injection.md) - Ymmärrä DI ja `IOptions<T>` -rajapinta
-- [.NET ja Docker](../Docker/DotNet-Docker.md) - Hyödyllistä ymmärtää konttien ympäristömuuttujat
-
-## Yleiset periaatteet
-
-- [Salaisuuksien hallinnan yleiset periaatteet](../../../../Development-guidelines/Secrets-Management/) - Miksi ja miten salaisuuksia hallitaan
+- [Azure App Service](../../../../Cloud%20technologies/Azure/App-Service.md) - .NET-sovellusten isännöinti Azuressa
+- [Managed Identity](../../../../Cloud%20technologies/Azure/Managed-Identity.md) - Autentikointi ilman salasanoja Azuressa
 
 ## Hyödyllisiä linkkejä
 
 - [Microsoft: Configuration in ASP.NET Core](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/)
 - [Microsoft: Options pattern in ASP.NET Core](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options)
 - [Microsoft: Safe storage of app secrets](https://learn.microsoft.com/en-us/aspnet/core/security/app-secrets)
+- [Microsoft: Azure App Service documentation](https://learn.microsoft.com/en-us/azure/app-service/)
+- [Microsoft: Managed Identity overview](https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/overview)
