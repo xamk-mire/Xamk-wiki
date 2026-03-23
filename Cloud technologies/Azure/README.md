@@ -8,6 +8,15 @@ Tervetuloa Azure-oppimateriaaliin! Tämä materiaali käsittelee Microsoftin Azu
 
 ## Sisältö
 
+### Pilvipalvelukonseptit
+- [Pilvipalvelukonseptit (Cloud Concepts)](../Cloud-Concepts.md) - Pilvipalveluiden perusteet
+  - IaaS, PaaS, SaaS — palvelumallit ja vertailu
+  - Shared Responsibility Model — jaetun vastuun malli
+  - Public, Private, Hybrid Cloud — käyttöönottomallit
+  - High Availability, Scalability, Reliability — pilvipalvelun hyödyt
+  - CapEx vs. OpEx — kustannusmallit
+  - Vertical vs. Horizontal Scaling
+
 ### Sovellusten isännöinti
 - [Azure App Service](App-Service.md) - .NET-sovellusten isännöinti ja julkaisu
   - App Service Plan -tasot (F1, B1, S1...)
