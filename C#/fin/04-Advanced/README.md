@@ -48,6 +48,10 @@ Tervetuloa C#-ohjelmoinnin edistyneisiin aiheisiin! Tämä osio käsittelee kehi
   - [Backend ja API](WebAPI/Backend-and-API.md) - Mikä on backend, API, REST, HTTP-metodit ja statuskoodit
   - [Controllers](WebAPI/Controllers.md) - ASP.NET Core -kontrollerit, reititys ja toimintametodit
 
+### SignalR — Reaaliaikainen viestintä
+- [SignalR](SignalR/) - Reaaliaikainen kaksisuuntainen viestintä ASP.NET Coressa
+  - [SignalR - Teoria ja käyttö](SignalR/README.md) - WebSocket, Hub-luokat, Groups, Strongly Typed Hubs, IHubContext, Azure SignalR Service
+
 ### Autentikointi
 - [Autentikointi ASP.NET Core -sovelluksissa](Authentication/) - JWT-autentikointi ja tokenien hallinta
   - [JWT (JSON Web Token)](Authentication/JWT.md) - JWT:n teoria, rakenne, claims ja ASP.NET Core -toteutus

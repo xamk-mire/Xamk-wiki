@@ -14,6 +14,7 @@ Tervetuloa Web API -kehityksen materiaaleihin! Tämä osio käsittelee backendin
 ### Teoria — Jatkokurssi
 - [Entity Framework Core](Entity-Framework.md) - ORM, DbContext, DbSet, migraatiot ja async-metodit
 - [Service-kerros ja Dependency Injection](Services-and-DI.md) - Miksi service, interface vs toteutus, DI:n elinkaaret
+- [Health Checks](Health-Checks.md) - Sovelluksen terveystarkistukset tuotannossa (ASP.NET Core Health Checks middleware)
 
 ### Harjoitukset
 - [Vaihe 1: Backend Basics](https://github.com/xamk-mire/Xamk-wiki/tree/main/Assigments/Backend/Backend%20basics) - Ensimmäinen Web API controllereilla ja staattisella listalla
