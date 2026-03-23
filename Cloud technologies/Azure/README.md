@@ -8,6 +8,23 @@ Tervetuloa Azure-oppimateriaaliin! Tämä materiaali käsittelee Microsoftin Azu
 
 ## Sisältö
 
+### Sovellusten isännöinti
+- [Azure App Service](App-Service.md) - .NET-sovellusten isännöinti ja julkaisu
+  - App Service Plan -tasot (F1, B1, S1...)
+  - Web Appin luominen (Portal + CLI)
+  - .NET-sovelluksen julkaisu: ZIP-deploy, Visual Studio Publish, GitHub Actions
+  - Deployment Slots, lokit ja monitorointi
+
+### Serverless
+- [Azure Functions](Azure-Functions.md) - Serverless-sovellukset ja event-driven arkkitehtuuri
+  - Serverless-arkkitehtuuri ja sen hyödyt
+  - Triggerit (HTTP, Timer, Queue, Blob, Service Bus)
+  - Bindings (Input/Output)
+  - Azure Functions .NET:llä (Isolated Worker Model)
+  - Paikallinen kehitys ja julkaisu
+  - Durable Functions
+  - Azure Functions vs. App Service -vertailu
+
 ### Infrastructure as Code (IaC)
 - [Infrastructure as Code](Infrastructure-as-Code.md) - Mikä on IaC, miksi sitä käytetään ja miten
   - IaC-lähestymistavat (deklaratiivinen vs. imperatiivinen)
@@ -20,11 +37,16 @@ Tervetuloa Azure-oppimateriaaliin! Tämä materiaali käsittelee Microsoftin Azu
   - Moduulit, funktiot ja User-Defined Types
   - Yleiset kuviot (nimeäminen, tagit, ympäristökonfiguraatio, monitorointi)
 
-### Turvallisuus ja salaisuudet
+### Turvallisuus ja identiteetti
 - [Azure Key Vault](Key-Vault.md) - Salaisuuksien, avainten ja sertifikaattien turvallinen hallinta
   - Key Vaultin käsitteet (Secrets, Keys, Certificates)
   - RBAC-pääsynhallinta
   - Hinnoittelu ja verkkokonfiguraatio
+- [Managed Identity](Managed-Identity.md) - Autentikointi ilman salasanoja
+  - System-assigned vs. User-assigned Managed Identity
+  - RBAC-oikeuksien myöntäminen
+  - DefaultAzureCredential -autentikointiketju
+  - Paikallinen kehitys Azure CLI -kirjautumisella
 
 ## Teknologiakohtaiset materiaalit
 
@@ -38,10 +60,15 @@ Tervetuloa Azure-oppimateriaaliin! Tämä materiaali käsittelee Microsoftin Azu
 
 ## Oppimisjärjestys
 
+### Sovelluskehittäjille (.NET + Azure)
+1. **App Service** - Opi isännöimään .NET-sovellus Azuressa
+2. **Managed Identity** - Ymmärrä autentikointi ilman salasanoja
+3. **Key Vault** - Opi hallitsemaan salaisuuksia turvallisesti
+4. **Salaisuuksien hallinta .NET:ssä** - Integroi Key Vault .NET-sovellukseen
+
+### Infrastruktuuri ja DevOps
 1. **Infrastructure as Code** - Ymmärrä miten infrastruktuuria hallitaan koodina
 2. **Bicep** - Opi Azuren oma IaC-kieli ja sen syntaksi
-3. **Key Vault** - Ymmärrä miten salaisuuksia hallitaan Azuressa
-4. **Salaisuuksien hallinta .NET:ssä** - Opi integroimaan Key Vault .NET-sovellukseen
 
 ## Hyödyllisiä linkkejä
 
