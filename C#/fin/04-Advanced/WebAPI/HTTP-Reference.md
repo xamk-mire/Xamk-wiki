@@ -81,7 +81,7 @@ PUT /api/users/42           → Korvaa käyttäjä 42 tiedot
 ```
 
 Säännöt:
-- URL sisältää resurssín ID:n
+- URL sisältää resurssin ID:n
 - Body sisältää **kaikki** resurssin kentät, myös muuttumattomat
 - Jos resurssia ei löydy, voidaan palauttaa 404 tai luoda uusi (riippuu toteutuksesta)
 - Idempotent — saman pyynnön voi toistaa turvallisesti

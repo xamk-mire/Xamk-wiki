@@ -479,7 +479,7 @@ public class AuthController : ControllerBase
         return Ok(new LoginResponse
         {
             Token = token,
-            Expiration = DateTime.UtcNow.AddMinutes(15)
+            Expiration = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpirationMinutes)
         });
     }
 
@@ -566,7 +566,9 @@ Attribuutti voidaan asettaa:
 
 ### 7. Claims-tietojen lukeminen
 
-Kun JWT on validoitu, voit lukea claims-tiedot `HttpContext.User`-objektista:
+Kun JWT on validoitu, voit lukea claims-tiedot `HttpContext.User`-objektista.
+
+> **Huom:** TokenServicessa käytetty `JwtRegisteredClaimNames.Sub` mappautuu ASP.NET Coressa automaattisesti `ClaimTypes.NameIdentifier` -tyypiksi, joten claimia luetaan `FindFirst(ClaimTypes.NameIdentifier)` -kutsulla.
 
 ```csharp
 [ApiController]

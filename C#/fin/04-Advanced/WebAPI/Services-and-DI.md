@@ -375,25 +375,6 @@ Huomaa kuinka **controller on nyt täysin vapaa tietokantakoodista**. Se vain ku
 
 ---
 
-## Projektikansiorakenne
-
-Kun servicet lisätään, suositeltu kansiorakenne on:
-
-```
-ProductApi/
-├── Controllers/     ← HTTP-kerros (vastaanottaa ja palauttaa)
-├── Services/        ← Liiketoimintalogiikka
-│   ├── IProductService.cs
-│   └── ProductService.cs
-├── Data/            ← Tietokantayhteys
-│   └── AppDbContext.cs
-├── Models/          ← Entiteettit ja DTO:t
-│   └── Product.cs
-└── Program.cs       ← Konfigurointi ja rekisteröinti
-```
-
----
-
 ## Yhteenveto
 
 | Käsite | Selitys |

@@ -19,6 +19,8 @@
 
 **Result Pattern** on funktionaalisen ohjelmoinnin malli, jossa operaation tulos palautetaan eksplisiittisenä Result-oliona sen sijaan että heitetään exception. Pattern tekee virheenkäsittelystä näkyvän ja kontrolloidun.
 
+API-kehityksessä Result Pattern on erityisen hyödyllinen, koska se erottaa **odotettavat domainvirheet** (esim. "tuotetta ei löydy", "sähköposti on jo käytössä") odottamattomista poikkeuksista. Tämä tekee controllerista helpomman kirjoittaa, service-kerroksesta helpomman testata ja koko sovelluksen virrankäsittelystä selkeämpää.
+
 ---
 
 ## Ongelma: Exception-pohjainen virheenkäsittely
@@ -390,7 +392,7 @@ throw new OutOfMemoryException();                    // ← Catastrophic
 
 ### Vertailu
 
-| Kriteeeri | Result | Exception |
+| Kriteeri | Result | Exception |
 |-----------|--------|-----------|
 | **Signatointi** | Eksplisiittinen | Implisiittinen |
 | **Performance** | Nopea | Hidas |
@@ -559,11 +561,14 @@ public class BookingsController : ControllerBase
 **NuGet:** `FluentResults`
 
 ```csharp
-public Result<Order> CreateOrder()
+public Result<Order> CreateOrder(int customerId)
 {
+    var customer = _db.Customers.Find(customerId);
+    if (customer is null)
+        return Result.Fail("Customer not found");
+    
+    var order = new Order { CustomerId = customerId };
     return Result.Ok(order);
-    return Result.Fail("Customer not found");
-    return Result.Fail(new NotFoundError("Customer not found"));
 }
 
 // Chaining

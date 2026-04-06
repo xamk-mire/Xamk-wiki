@@ -162,7 +162,7 @@ await _context.SaveChangesAsync()
 ```
 1. Muutat C#-luokkaa (lisäät kentän, luokat uuden entiteetin...)
        ↓
-2. Luot migraation: dotnet ef migrations add NimiMigraaatiolle
+2. Luot migraation: dotnet ef migrations add NimiMigraatiolle
        ↓
 3. EF Core generoi migraatiotiedoston (C#-koodi SQL-muutoksista)
        ↓
@@ -242,7 +242,7 @@ Tietokantaoperaatiot ovat hitaita (verkon yli, levyltä), joten ne tehdään ain
 ### Sync vs. Async
 
 ```csharp
-// Synkroninen — HUONO (estää muut pyynnöt)
+// Synkroninen — HUONO (blokkaa säikeen ja vähentää palvelimen kapasiteettia)
 var products = _context.Products.ToList();
 
 // Asynkroninen — HYVÄ

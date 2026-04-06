@@ -127,17 +127,18 @@ var users = _context.Users
 **Tehokkaampi suurilla datamäärillä.**
 
 ```http
-GET /api/users?cursor=user_123&limit=20
+GET /api/users?cursor=123&limit=20
 ```
 
 ```csharp
-var lastId = cursor; // esim. "user_123"
 var users = _context.Users
-    .Where(u => u.Id.CompareTo(lastId) > 0)
+    .Where(u => u.Id > cursor)
     .OrderBy(u => u.Id)
     .Take(20)
     .ToList();
 ```
+
+> **Huom:** Cursor-kentän tyyppi riippuu pääavaimen tyypistä. Numeerisilla ID:illä käytetään `>` -vertailua, merkkijonopohjaisilla `CompareTo`:ta.
 
 **Edut:**
 - ✅ Parempi performance (ei skannaa skipattuuja rivejä)
@@ -265,15 +266,14 @@ FETCH FIRST 20 ROWS ONLY
 
 ```csharp
 public async Task<CursorPagedResult<UserDto>> GetUsersAsync(
-    string? cursor,
+    int? cursor,
     int limit = 20)
 {
     var query = _context.Users.OrderBy(u => u.Id);
     
-    // If cursor provided, start after it
-    if (!string.IsNullOrEmpty(cursor))
+    if (cursor.HasValue)
     {
-        query = query.Where(u => u.Id.CompareTo(cursor) > 0);
+        query = query.Where(u => u.Id > cursor.Value);
     }
     
     var users = await query

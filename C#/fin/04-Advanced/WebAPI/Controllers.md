@@ -100,6 +100,8 @@ app.MapControllers();
 app.Run();
 ```
 
+> **Huom:** `Program.cs` -pohja voi vaihdella .NET-version mukaan. Esimerkiksi vanhemmissa versioissa Swagger/OpenAPI rekisteröidään `AddSwaggerGen()`/`UseSwagger()`-kutsuilla.
+
 Tärkeimmät rivit:
 - `AddControllers()` — rekisteröi kaikki controller-luokat
 - `MapControllers()` — yhdistää controllerien reitit HTTP-pyyntöihin

@@ -33,7 +33,7 @@ Controller → IProductRepository.GetExpensiveAsync(100)
 Controller tuntee vain rajapinnan (loose coupling)
 ```
 
-Repository toimii **välittäjänä** (mediator) sovelluslogiikan ja tietokantateknologian välillä. Ajattele sitä "tietovarastona", jolta voit pyytää objekteja ilman tietoa siitä, miten ne on tallennettu.
+Repository toimii **abstraktiokerroksena** sovelluslogiikan ja tietokantateknologian välillä. Ajattele sitä "tietovarastona", jolta voit pyytää objekteja ilman tietoa siitä, miten ne on tallennettu.
 
 ---
 
@@ -426,7 +426,7 @@ _unitOfWork.Payments.Add(payment);
 await _unitOfWork.SaveChangesAsync();  // Molemmat tallentuvat tai kumpikaan ei
 ```
 
-> **Huomio:** EF Core:n `DbContext` toimii itsessään jo Unit of Work -mallina. Erillinen UoW-abstraktio on hyödyllinen lähinnä silloin, kun haluat erottaa SaveChanges-kutsun repositoryista.
+> **Huomio:** EF Core:n `DbContext` toimii itsessään jo Unit of Work -mallina. Erillinen UoW-abstraktio on hyödyllinen lähinnä silloin, kun haluat erottaa SaveChanges-kutsun repositoryista. Kun UoW otetaan käyttöön, yksittäiset repositoryt **eivät kutsu** `SaveChangesAsync()` itse — tallentaminen tapahtuu aina UoW:n kautta.
 
 ---
 

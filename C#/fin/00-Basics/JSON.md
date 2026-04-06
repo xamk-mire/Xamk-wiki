@@ -23,7 +23,7 @@ JSONin avulla data voidaan mallintaa selkeänä avain-arvo- tai listarakenteena.
   "osoite": {
     "katu": "Esimerkkikatu 1",
     "kaupunki": "Helsinki",
-    "postinumero": 00100
+    "postinumero": "00100"
   }
 }
 ```
@@ -163,7 +163,7 @@ public class Address
 {
     public string Katu { get; set; }
     public string Kaupunki { get; set; }
-    public int Postinumero { get; set; }
+    public string Postinumero { get; set; }
 }
 
 public class Person
@@ -189,7 +189,7 @@ class Program
             {
                 Katu = "Esimerkkikatu 1",
                 Kaupunki = "Helsinki",
-                Postinumero = 00100
+                Postinumero = "00100"
             }
         };
         
@@ -200,7 +200,11 @@ class Program
         
         // Deserialisointi
         Person deserializedPerson = JsonSerializer.Deserialize<Person>(json);
-        Console.WriteLine($"\nDeserialisoitu: {deserializedPerson.Etunimi} {deserializedPerson.Sukunimi}");
+        
+        if (deserializedPerson is not null)
+        {
+            Console.WriteLine($"\nDeserialisoitu: {deserializedPerson.Etunimi} {deserializedPerson.Sukunimi}");
+        }
     }
 }
 ```
