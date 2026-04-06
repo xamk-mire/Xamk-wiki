@@ -395,7 +395,7 @@ var app = builder.Build();
 
 | Rajoitus | Kuvaus |
 |---|---|
-| **Ei salausta** | `secrets.json` tallennetaan selkotekstinä levylle |
+| **Ei salausta** | `secrets.json` tallennetaan salaamattomana tekstinä levylle |
 | **Vain kehityskäyttöön** | Ei sovellu tuotantoon tai staging-ympäristöön |
 | **Ei keskitettyä hallintaa** | Jokainen kehittäjä hallitsee omia salaisuuksiaan |
 | **Ei versiointia** | Ei audit-lokia tai muutoshistoriaa |

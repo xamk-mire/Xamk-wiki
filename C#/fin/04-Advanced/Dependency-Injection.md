@@ -114,9 +114,9 @@ public class OrderService
         _paymentService = paymentService;
     }
     
-    public void ProcessOrder(Order order)
+    public bool ProcessOrder(Order order)
     {
-        _paymentService.ProcessPayment(order.CustomerId, order.TotalPrice);
+        return _paymentService.ProcessPayment(order.CustomerId, order.TotalPrice);
     }
 }
 ```
@@ -165,6 +165,7 @@ public void ProcessOrder_ValidOrder_ReturnsTrue()
 {
     // ❌ ONGELMA: Emme voi kontrolloida PaymentService:n käyttäytymistä!
     var service = new OrderService();
+    var order = new Order { CustomerId = 123, TotalPrice = 100m };
     
     // Tämä kutsu käyttää OIKEAA PaymentService:ä
     // - Hidas (oikea tietokantakutsu)
@@ -360,6 +361,7 @@ public void ProcessOrder_PaymentSucceeds_ReturnsTrue()
     
     // Injektoi mock
     var service = new OrderService(paymentMock.Object);
+    var order = new Order { CustomerId = 123, TotalPrice = 100m };
     
     // Act
     var result = service.ProcessOrder(order);
@@ -448,6 +450,7 @@ public class OrderService
 public void ProcessOrder_Test()
 {
     var service = new OrderService();
+    var order = new Order { CustomerId = 123, TotalPrice = 100m };
     
     // Ongelma: Käyttää oikeaa PaymentService:ä!
     // - Hidasta (oikea API-kutsu)

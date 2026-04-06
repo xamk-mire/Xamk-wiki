@@ -153,7 +153,7 @@ Jokainen pyyntö on itsenäinen — palvelin ei muista aiempia pyyntöjä. Kaikk
 
 **4. JSON-vastaukset**
 
-Data lähetetään ja vastaanotetaan **JSON-muodossa** (JavaScript Object Notation).
+Data lähetetään ja vastaanotetaan yleisimmin **JSON-muodossa** (JavaScript Object Notation).
 
 ---
 
@@ -355,7 +355,7 @@ Jokaisessa HTTP-pyynnössä on:
 
 - **Metodi + URL** — mitä tehdään ja mihin resurssiin
 - **Headerit** — metatietoa pyynnöstä (tietomuoto, autentikointi, jne.)
-- **Body** — lähetettävä data (vain POST ja PUT -pyynnöissä)
+- **Body** — lähetettävä data (POST, PUT ja PATCH -pyynnöissä)
 
 ### HTTP-vastaus (Response)
 

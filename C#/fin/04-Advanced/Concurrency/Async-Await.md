@@ -79,6 +79,8 @@ public async Task<string> GetDataAsync()
 | Säikeiden käyttö | 1 per pyyntö | Jaettu | **Tehokkaampi** |
 | Muistin käyttö | Korkea | Matala | **Merkittävä** |
 
+> **Huom:** Luvut ovat suuntaa-antavia ja riippuvat kuormasta, laitteistosta ja sovelluksen rakenteesta.
+
 ---
 
 ## async ja await perusteet
@@ -582,7 +584,7 @@ button.Click += async (sender, e) =>
 ### 2. .Result ja .Wait() — deadlock-riski
 
 ```csharp
-// ❌ DEADLOCK-RISKI (erityisesti ASP.NET ja WPF:ssä)
+// ❌ DEADLOCK-RISKI (erityisesti ASP.NET Framework ja WPF:ssä, joissa on SynchronizationContext)
 public string GetData()
 {
     // .Result blokkaa säikeen JA odottaa Taskin valmistumista
@@ -729,7 +731,7 @@ string hash = await Task.Run(() => ComputeExpensiveHash(data));
 ```csharp
 public async Task ProsessoiTiedostoAsync(string polku)
 {
-    // ✅ await using - asynkroninen disposeinti
+    // ✅ await using - asynkroninen disposointi
     await using FileStream stream = new FileStream(polku, FileMode.Open, FileAccess.Read,
         FileShare.Read, bufferSize: 4096, useAsync: true);
     await using StreamReader reader = new StreamReader(stream);
