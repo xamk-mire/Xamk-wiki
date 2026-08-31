@@ -1,5 +1,25 @@
 # Casting (Tyyppimuunnos)
 
+## Konsolin syöte on aina tekstiä
+
+`Console.ReadLine()` palauttaa `string?`. Teksti `"20"` ja luku `20` ovat C#:lle eri asioita — merkkijonolla ei voi kertoa hintaa. Tyypillinen muunnos:
+
+```csharp
+Console.Write("Anna ikäsi: ");
+int age = Convert.ToInt32(Console.ReadLine());
+```
+
+| Metodi | Käyttö |
+|--------|------------------|
+| `Convert.ToInt32(teksti)` | Kokonaisluku (ikä, lippumäärä, valikon numero) |
+| `Convert.ToDecimal(teksti)` | Rahasumma, jos käyttäjä syöttää hinnan |
+| `int.Parse` / `decimal.Parse` | Sama idea, hieman tiukempi null-käsittely |
+| `int.TryParse` | Ei kaada ohjelmaa — palauttaa `false`, jos teksti ei ole luku |
+
+Väärä teksti (`"abc"`) → `FormatException`. Liian iso luku (`9999999999`) → `OverflowException`. Lue virheilmoituksesta **tyyppi** ja **oman koodin rivi** — [poikkeusten käsittely](Exception-Handling.md#virheilmoituksen-lukeminen).
+
+`int` mahtuu `decimal`-laskuun automaattisesti (`unitPrice * ticketCount`). Toiseen suuntaan (`decimal` → `int`) tarvitaan tietoinen muunnos, koska desimaalit katoaisivat.
+
 ## Mikä on Casting?
 
 Casting on prosessi, jossa muuttuja muunnetaan yhdestä tyypistä toiseen C#:ssa. Sitä käytetään yleisesti eri tietotyyppien, kokoelmien ja oliohierarkioiden kanssa. Castingia on kaksi päätyyppiä:

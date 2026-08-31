@@ -1,5 +1,7 @@
 # C# Properties (Ominaisuudet)
 
+Luokat ja konstruktorit: [Luokat, oliot ja konstruktorit](../02-OOP-Concepts/Classes-and-Objects.md).
+
 ## Mikä on Property?
 
 C#:ssa property on luokan jäsen, joka tarjoaa joustavan mekanismin päästä käsiksi yksityisiin kenttiin (field). Property toimii ikään kuin yleisenä porttina luokan sisäisiin tietoihin, mahdollistaen arvojen asettamisen (setter) ja hakemisen (getter) määritellyllä tavalla. Propertyjen avulla voidaan suorittaa tietojen validointi, logiikan suorittaminen arvojen asettamisen tai hakemisen yhteydessä, ja ne auttavat varmistamaan, että luokan tila pysyy hallinnassa ja johdonmukaisena.

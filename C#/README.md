@@ -27,10 +27,10 @@ Coming soon...
 ## Oppimisjärjestys
 
 Suosittelemme opiskelua seuraavassa järjestyksessä:
-1. **Aloita perusteista**: [C# Perusteet](fin/00-Basics/) - Muuttujat → Ohjausrakenteet → Funktiot
-2. **Tutustu OOP:hen**: [OOP-konseptit](fin/02-OOP-Concepts/) - Kapselointi → Perintä → Polymorfismi
-3. **Syvenny perusteisiin**: Enum, DateTime, Properties, LINQ, JSON, jne.
-4. **Opettele edistyneitä aiheita**: Yksikkötestaus → Suunnittelu periaatteet → Suunnittelumallit
+1. **Aloita perusteista**: [C# Perusteet](fin/00-Basics/) — konsoli → muuttujat → ehdot → silmukat → metodit → kokoelmat
+2. **OOP:n alkeet**: [Luokat ja konstruktorit](fin/02-OOP-Concepts/Classes-and-Objects.md) → propertyt → kapselointi → perintä
+3. **Enum, poikkeukset, tiedostot ja JSON**
+4. **Syvennä**: LINQ, rajapinnat, [edistyneet aiheet](fin/04-Advanced/)
 
 ## Hyödyllisiä linkkejä
 

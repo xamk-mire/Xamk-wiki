@@ -223,6 +223,31 @@ var options = new JsonSerializerOptions
 string json = JsonSerializer.Serialize(person, options);
 ```
 
+## Tallennus tiedostoon
+
+JSON-merkkijono kannattaa kirjoittaa tiedostoon, jotta data säilyy ohjelman sulkemisen yli. Yhdistä [tiedostojen luku ja kirjoitus](File-IO.md):
+
+```csharp
+using System.IO;
+using System.Text.Json;
+
+List<decimal> sales = new List<decimal> { 19.35m, 12.00m };
+
+var options = new JsonSerializerOptions { WriteIndented = true };
+string json = JsonSerializer.Serialize(sales, options);
+File.WriteAllText("myynti.json", json);
+
+if (File.Exists("myynti.json"))
+{
+    string loaded = File.ReadAllText("myynti.json");
+    List<decimal>? restored = JsonSerializer.Deserialize<List<decimal>>(loaded);
+}
+```
+
+`WriteIndented = true` tekee tiedostosta ihmisen luettavan (rivinvaihdot ja sisennys). Ilman sitä JSON on yhdellä rivillä.
+
+Propertyjen nimet JSONissa noudattavat C#-nimiä (`Nimi`, `Ika`), ellei käytä `PropertyNamingPolicy`. Deserialisoinnissa nimien pitää täsmätä — kirjoitusvirhe tuottaa `null` tai nolla-arvon, ei välttämättä poikkeusta.
+
 ## Yhteenveto
 
 - **JSON** on kevyt ja luettava tiedonvälitysformaatti.
@@ -231,6 +256,7 @@ string json = JsonSerializer.Serialize(person, options);
 - **Serialisointi** muuntaa C#-olion JSONiksi.
 - **Deserialisointi** muuntaa JSON-merkkijonon C#-olioksi.
 - **JSON** on laajalti käytetty API:en ja sovellusten välisessä tiedonsiirrossa.
+- **Tiedosto + JSON**: `File.WriteAllText` / `File.ReadAllText` säilyttää datan ohjelman sulkemisen yli — katso [Tiedostojen luku ja kirjoitus](File-IO.md).
 
 ## Hyödyllisiä linkkejä
 

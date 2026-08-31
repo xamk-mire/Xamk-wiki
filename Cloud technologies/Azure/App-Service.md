@@ -21,11 +21,13 @@
 
 | Runtime | Versiot |
 |---------|---------|
-| .NET | 6, 7, 8 (LTS) |
-| Node.js | 18, 20 |
-| Python | 3.9, 3.10, 3.11, 3.12 |
-| Java | 8, 11, 17, 21 |
-| PHP | 8.0, 8.1, 8.2 |
+| .NET | 8 (LTS), 9, 10 (LTS) |
+| Node.js | 20, 22 |
+| Python | 3.11, 3.12, 3.13 |
+| Java | 11, 17, 21 |
+| PHP | 8.2, 8.3 |
+
+> Tarkista ajantasainen lista: `az webapp list-runtimes --os-type linux`
 
 ### App Servicen arkkitehtuuri
 
@@ -170,7 +172,11 @@ Visual Studio rakentaa projektin, julkaisee sen Azureen ja avaa selaimen automaa
 
 ### Tapa 3: GitHub Actions (CI/CD)
 
-Tuotantoon suositellaan automatisoitua putkea. Hae julkaisuprofiilin salaisuus:
+Tuotantoon suositellaan automatisoitua putkea.
+
+> **Suositus:** alla oleva publish profile -tapa on yksinkertaisin, mutta se on **pitkäikäinen salaisuus**. Parempi tapa on **OIDC / federated identity** (`azure/login@v2`), jolloin repoon ei tallenneta salasanoja lainkaan — katso [CI/CD-materiaalin OIDC-luku](../../Development-guidelines/CI-CD.md#azure-kirjautuminen-putkessa-oidc).
+
+Hae julkaisuprofiilin salaisuus:
 
 ```bash
 az webapp deployment list-publishing-profiles \

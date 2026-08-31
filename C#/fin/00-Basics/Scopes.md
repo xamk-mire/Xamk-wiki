@@ -2,6 +2,8 @@
 
 C#:ssa on useita erilaisia scopeja eli näkyvyysalueita, jotka määrittävät, missä muuttujia, metodeja ja muita jäseniä voidaan käyttää. Näkyvyysalueet ovat tärkeitä, koska ne auttavat hallitsemaan pääsyä koodin osiin ja parantavat koodin turvallisuutta ja ylläpidettävyyttä.
 
+Tyypillinen tilanne: `Main`-metodin sisällä esitelty `childPrice` ei näy `GetUnitPrice`-metodille. Jaettu tieto (hinnat) siirretään **luokan tasolle** (`const decimal ChildPrice`). Samoin `do-while`-ehdon muuttuja pitää esitellä silmukan **edellä**, ei rungon sisällä — muuten ehto ei näe sitä (`The name 'continueAnswer' does not exist`).
+
 ## Scope-tyypit
 
 ### 1. Lokaali scope

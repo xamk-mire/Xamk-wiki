@@ -633,6 +633,73 @@ output sqlServerFqdn string = sqlServer.properties.fullyQualifiedDomainName
 output databaseName string = sqlDatabase.name
 ```
 
+### Esimerkki 6: PostgreSQL Flexible Server
+
+```bicep
+// Tiedosto: modules/postgres.bicep
+// Kuvaus: Azure Database for PostgreSQL - Flexible Server + tietokanta + palomuuri
+
+param location string = resourceGroup().location
+param serverName string
+param databaseName string
+param environment string = 'dev'
+
+param administratorLogin string
+
+@secure()
+param administratorLoginPassword string
+
+// Flexible Server (Burstable B1ms — opiskelu/kehityskäyttöön)
+resource postgresServer 'Microsoft.DBforPostgreSQL/flexibleServers@2024-08-01' = {
+  name: serverName
+  location: location
+  sku: {
+    name: 'Standard_B1ms'
+    tier: 'Burstable'
+  }
+  properties: {
+    version: '16'
+    administratorLogin: administratorLogin
+    administratorLoginPassword: administratorLoginPassword
+    storage: {
+      storageSizeGB: 32
+    }
+    backup: {
+      backupRetentionDays: 7
+      geoRedundantBackup: 'Disabled'
+    }
+    highAvailability: {
+      mode: 'Disabled'    // HA tuplaisi hinnan — ei opiskeluprojekteihin
+    }
+  }
+  tags: {
+    Environment: environment
+    ManagedBy: 'Bicep'
+  }
+}
+
+// Sovelluksen tietokanta
+resource database 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2024-08-01' = {
+  parent: postgresServer
+  name: databaseName
+}
+
+// Palomuuri: salli Azure-palvelut (0.0.0.0 on erikoisarvo, ei "koko internet")
+resource allowAzureServices 'Microsoft.DBforPostgreSQL/flexibleServers/firewallRules@2024-08-01' = {
+  parent: postgresServer
+  name: 'AllowAzureServices'
+  properties: {
+    startIpAddress: '0.0.0.0'
+    endIpAddress: '0.0.0.0'
+  }
+}
+
+output serverFqdn string = postgresServer.properties.fullyQualifiedDomainName
+output databaseName string = database.name
+```
+
+> Lisätietoja palvelusta: [Azure Database for PostgreSQL](Azure-Database-PostgreSQL.md)
+
 ---
 
 ## Parametrit ja muuttujat

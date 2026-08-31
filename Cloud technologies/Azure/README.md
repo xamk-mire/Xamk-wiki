@@ -24,6 +24,19 @@ Tervetuloa Azure-oppimateriaaliin! Tämä materiaali käsittelee Microsoftin Azu
   - .NET-sovelluksen julkaisu: ZIP-deploy, Visual Studio Publish, GitHub Actions
   - Deployment Slots, lokit ja monitorointi
 
+### Tietokannat ja tallennus
+- [Azure Database for PostgreSQL](Azure-Database-PostgreSQL.md) - Hallittu PostgreSQL-tietokanta (Flexible Server)
+  - Miksi hallittu tietokanta — tila ulos sovellusprosessista
+  - Hintatasot (Burstable B1ms) ja kustannusten hallinta
+  - Palvelimen luonti CLI:llä, palomuurisäännöt
+  - Yhteysmerkkijonot ja niiden turvallinen sijoittaminen
+  - EF Core + Npgsql, stop/start-elinkaari
+- [Azure Blob Storage](Blob-Storage.md) - Object storage tiedostoille (kuvat, dokumentit)
+  - Miksi tiedostot eivät kuulu web-palvelimen levylle
+  - Tili → kontti → blobi, nimeämissäännöt ja redundanssi (LRS/ZRS/GRS)
+  - Pääsynhallinta: avaimet, SAS-linkit, Managed Identity
+  - .NET SDK (upload/download) ja elinkaarisäännöt
+
 ### Serverless
 - [Azure Functions](Azure-Functions.md) - Serverless-sovellukset ja event-driven arkkitehtuuri
   - Serverless-arkkitehtuuri ja sen hyödyt
@@ -38,13 +51,29 @@ Tervetuloa Azure-oppimateriaaliin! Tämä materiaali käsittelee Microsoftin Azu
 - [Infrastructure as Code](Infrastructure-as-Code.md) - Mikä on IaC, miksi sitä käytetään ja miten
   - IaC-lähestymistavat (deklaratiivinen vs. imperatiivinen)
   - IaC-työkalut Azuressa (Bicep, Terraform, ARM, Pulumi)
-  - Käytännön Bicep-esimerkit (Key Vault, App Service, SQL, kokonainen ympäristö)
+  - Käytännön Bicep-esimerkit (Key Vault, App Service, SQL, PostgreSQL, kokonainen ympäristö)
   - Moduulit, parametrit ja deployment
 - [Bicep - Azuren IaC-kieli](Bicep.md) - Bicepin syntaksi ja edistyneet ominaisuudet
   - Kehitysympäristön pystytys ja VS Code -laajennus
   - Resurssimäärittelyt, tyypit ja dekoraattorit
   - Moduulit, funktiot ja User-Defined Types
   - Yleiset kuviot (nimeäminen, tagit, ympäristökonfiguraatio, monitorointi)
+
+### Monitorointi ja observability
+- [Azure Monitor ja Application Insights](Monitoring-and-Application-Insights.md) - Sovelluksen näkyvyys: lokit, metriikat, hälytykset
+  - Observability-käsitteet: logs, metrics, traces
+  - Log Analytics Workspace ja Application Insights
+  - .NET-integraatio ja hyvät lokituskäytännöt (rakenteinen loki, ei PII:tä)
+  - KQL-kyselyt telemetriaan
+  - Hälytykset, Action Groupit ja availability-testit
+
+### Kustannusten hallinta
+- [Azure Cost Management](Cost-Management.md) - Kustannusten seuranta ja hallinta
+  - CapEx vs. OpEx ja laskun syntyminen (mittarit)
+  - Cost analysis, budjetit ja hälytykset
+  - Tagit kustannusten kohdistamisessa
+  - Rightsizing, piilokustannukset ja säästökeinot
+  - Automaattinen sammutus ja AI kustannusanalyysissä
 
 ### Turvallisuus ja identiteetti
 - [Azure Key Vault](Key-Vault.md) - Salaisuuksien, avainten ja sertifikaattien turvallinen hallinta
@@ -71,9 +100,10 @@ Tervetuloa Azure-oppimateriaaliin! Tämä materiaali käsittelee Microsoftin Azu
 
 ### Sovelluskehittäjille (.NET + Azure)
 1. **App Service** - Opi isännöimään .NET-sovellus Azuressa
-2. **Managed Identity** - Ymmärrä autentikointi ilman salasanoja
-3. **Key Vault** - Opi hallitsemaan salaisuuksia turvallisesti
-4. **Salaisuuksien hallinta .NET:ssä** - Integroi Key Vault .NET-sovellukseen
+2. **Azure Database for PostgreSQL** - Siirrä sovelluksen tila hallittuun tietokantaan
+3. **Managed Identity** - Ymmärrä autentikointi ilman salasanoja
+4. **Key Vault** - Opi hallitsemaan salaisuuksia turvallisesti
+5. **Salaisuuksien hallinta .NET:ssä** - Integroi Key Vault .NET-sovellukseen
 
 ### Infrastruktuuri ja DevOps
 1. **Infrastructure as Code** - Ymmärrä miten infrastruktuuria hallitaan koodina

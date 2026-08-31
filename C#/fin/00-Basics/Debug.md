@@ -6,6 +6,8 @@
 
 C#-ohjelmoinnissa, kuten monissa muissa ohjelmointikielissä, debuggausta tuetaan erilaisilla työkaluilla. Yksi yleisimmin käytetty kehitysympäristö C#-ohjelmointiin on **Visual Studio**, joka sisältää tehokkaat debuggausominaisuudet.
 
+Kuvakaappaukset ovat Microsoftin [Debugger feature tour](https://learn.microsoft.com/en-us/visualstudio/debugger/debugger-feature-tour)-sivulta (Visual Studio 2022).
+
 ## 1. Keskeytyspisteet (Breakpoints)
 
 Keskeytyspiste pysäyttää ohjelman suorituksen tietyssä kohdassa. Kun suoritat ohjelman debuggaustilassa, suoritus pysähtyy tälle riville, ja voit tarkastella muuttujien arvoja ja ohjelman tilaa.
@@ -18,6 +20,10 @@ Keskeytyspiste pysäyttää ohjelman suorituksen tietyssä kohdassa. Kun suorita
 4. **Oikealla hiiren näppäimellä**: Klikkaa riviä oikealla → Breakpoint
 
 **Muista**: Näitä breakpointteja voi olla niin monta, kuin tarvitset.
+
+![Breakpoint rivin vasemmassa laidassa](images/dbg-tour-set-a-breakpoint.png)
+
+*Punainen pallo rivinumeron vasemmalla puolella merkitsee aktiivista breakpointia. Klikkaa harmaata palkkia tai paina F9.*
 
 ### Breakpointin poistaminen
 
@@ -56,11 +62,19 @@ for (int i = 0; i < 100; i++)
 2. Valitse "Condition" tai "Conditions"
 3. Kirjoita ehto, esim. `i == 50`
 
+![Ehdollisen breakpointin asetukset](images/breakpoint-settings.png)
+
+*Breakpoint Settings: rastita **Conditions** ja kirjoita lauseke (esim. `i == 50`). Silmukka pysähtyy vasta kun ehto on tosi.*
+
 ### Breakpointin tunnistaminen
 
 - **Harmaalla reunalla**: Breakpoint voidaan asettaa
 - **Punainen pallo**: Breakpoint on aktiivinen
 - **Keltainen korostus**: Ohjelma on pysähtynyt tälle riville debug-tilassa
+
+![Keltainen nuoli näyttää pysähtyneen rivin](images/dbg-tour-f11.png)
+
+*Keltainen nuoli ja rivin korostus: suoritus on pysähtynyt tälle riville. Riviä ei ole vielä suoritettu — F10 suorittaa sen ja siirtyy eteenpäin.*
 
 ## 2. Käynnistä ohjelma debuggaustilassa
 
@@ -72,12 +86,17 @@ Valitse ylävalikosta "Debug" ja sitten "Start Debugging" tai paina **F5**. Ohje
 
 ## 3. Debug-ohjaus
 
+### F5 vai Ctrl+F5?
+
+| Näppäin | Mitä tekee |
+|---------|-----------|
+| **Ctrl+F5** | Ajaa ohjelman **ilman** debuggeria — konsoli jää auki lopuksi. Arjen ajotapa. |
+| **F5** | Ajaa **debuggerilla** — pysähtyy breakpointeihin. Kun etsit vikaa. |
+
 ### Tärkeimmät komennot
 
-| Lyöntitaulu | Toiminto | Kuvaus |
-|------------|----------|--------|
-| Lyöntitaulu | Toiminto | Kuvaus |
-|------------|----------|--------|
+| Näppäin | Toiminto | Kuvaus |
+|---------|----------|--------|
 | `F5` | Continue | Jatkaa suoritusta seuraavaan breakpointtiin |
 | `F10` | Step Over | Siirtyy seuraavalle riville (ei mene funktioon) |
 | `F11` | Step Into | Mene metodiin ja näe sen sisäinen toteutus |
@@ -91,6 +110,10 @@ Voit myös ajaa debug-tilassa haluttuun kohtaan (riviin) kahdella tavalla:
 
 1. **Vihreä nuoli**: Vie hiiri halutulle riville, ja klikkaa vihreää nuolta, joka ilmestyy rivin kohdalle
 2. **Oikea hiiren näppäin**: Klikkaa riviä oikealla → "Run To Cursor"
+
+![Run to Click -painike koodirivin vieressä](images/dbg-tour-run-to-click-2.png)
+
+*Vihreä nuoli rivin vasemmalla (ympyröity): **Run to Click**. Klikkaa sitä, niin suoritus etenee tuohon riviin asti ilman uutta breakpointia.*
 
 ### Step Over vs Step Into
 
@@ -126,12 +149,20 @@ string name = "Matti";
 // Vie hiiri age:n päälle → näet arvon 25
 ```
 
+![Data tip: muuttujan arvo hiiren alla](images/dbg-tour-data-tips.png)
+
+*Vie hiiri muuttujan päälle: data tip näyttää nykyisen arvon (`amount 5.77`). Nasta-ikonilla arvon voi kiinnittää editoriin.*
+
 ### Autos Window
 
 Näyttää automaattisesti relevantit muuttujat nykyisessä laajuudessa:
 
 - **Avaa**: `Ctrl+Alt+V, A`
 - Visual Studio valitsee automaattisesti tärkeimmät muuttujat (esim. x, y, operation)
+
+![Autos-ikkuna](images/dbg-tour-autos-window.png)
+
+*Autos-ikkuna näyttää nykyisen ja edellisen rivin muuttujat ilman että niitä lisätään käsin.*
 
 ### Watch Window
 
@@ -154,6 +185,10 @@ for (int i = 0; i < 10; i++)
 - **Poista muuttuja**: Klikkaa oikealla hiiren näppäimellä → "Delete Watch"
 - **Poista kaikki**: "Clear All"
 
+![Watch-ikkuna](images/dbg-tour-watch-window.png)
+
+*Watch 1: seuraat itse valitsemiasi muuttujia. Kirjoita nimi riville **Add item to watch**.*
+
 ### Immediate Window
 
 Suorita koodia debug-tilassa:
@@ -175,6 +210,10 @@ Näyttää kaikki paikalliset muuttujat:
 
 - **Avaa**: `Ctrl+Alt+V, L`
 - Näyttää automaattisesti kaikki muuttujat nykyisessä laajuudessa
+
+![Locals-ikkuna](images/dbg-tour-locals-window.png)
+
+*Locals listaa kaikki paikalliset muuttujat: nimi, arvo ja tyyppi. Alareunan välilehdiltä vaihdat Autos / Locals / Watch.*
 
 ## Call Stack
 
@@ -200,6 +239,20 @@ public void Method3()
 }
 // Call Stack näyttää: Method3 → Method2 → Method1
 ```
+
+![Call Stack -ikkuna](images/dbg-tour-call-stack.png)
+
+*Ylin rivi on missä olet nyt (keltainen nuoli). Alla on metodit, joista tultiin — tässä `Credit` kutsuttiin `Main`ista.*
+
+## Poikkeus debuggerissa
+
+Kun ohjelma kaatuu debuggauksen aikana, Visual Studio avaa **Exception Helper** -ikkunan suoraan virheen riville — sama tieto kuin konsolin virheilmoituksessa, mutta luettavammassa muodossa.
+
+![Exception Helper NullReferenceException](images/dbg-tour-exception-helper.png)
+
+*Keltainen nuoli osoittaa rivin. Ikkuna kertoo poikkeuksen tyypin (`NullReferenceException`) ja usein syyn (`str was null.`). Lue ensin tyyppi ja viesti — sitten korjaa.*
+
+Lisää poikkeuksista: [Poikkeusten käsittely](Exception-Handling.md).
 
 ## 5. Debug-valikko
 
@@ -264,5 +317,6 @@ Debuggaus on taito, joka paranee ajan myötä ja kokemuksen karttuessa. Aluksi s
 ### Hyödyllisiä linkkejä:
 
 - [Visual Studio Debugging](https://learn.microsoft.com/en-us/visualstudio/debugger/)
-- [Run unit tests with Test Explorer](https://learn.microsoft.com/en-us/visualstudio/test/run-unit-tests-with-test-explorer?view=vs-2022)
+- [Debugger feature tour](https://learn.microsoft.com/en-us/visualstudio/debugger/debugger-feature-tour) — kuvien lähde
+- [Using breakpoints](https://learn.microsoft.com/en-us/visualstudio/debugger/using-breakpoints)
 

@@ -2,12 +2,38 @@
 
 Visual Studio on tehokas IDE (Integrated Development Environment) C#-ohjelmointiin. Tässä on hyödyllisiä vinkkejä sen käyttöön.
 
+## Uuden konsoliprojektin luonti
+
+Uusi konsoliohjelma luodaan **Console App** -mallilla:
+
+1. **Create a new project** → hae **Console App** (kieli: C#, ei C++ eikä Visual Basic)
+2. Nimi esim. `MovieTickets`, framework uusin **.NET** (esim. .NET 8)
+3. Jätä **"Do not use top-level statements"** tyhjäksi — `Main` voidaan avata myöhemmin itse
+4. Aja **Ctrl+F5** (Start Without Debugging) — konsoli jää auki, jotta ehdit lukea tulosteen
+
+| Näppäin | Käyttö |
+|---------|--------|
+| **Ctrl+F5** | Normaali ajo — konsoli ei sulkeudu heti |
+| **F5** | Debuggeri — breakpointit, F10/F11. Katso [Debuggaus](Debug.md) |
+
+Error List (**View → Error List**) näyttää käännösvirheet ennen ajoa. Punainen alleviivaus editorissa on sama tieto.
+
+## Tekoälytäydennykset pois oppimisen ajaksi
+
+Visual Studio ehdottaa rivejä harmaana haamutekstinä (IntelliCode / Copilot). Oppimisen ajaksi nämä kannattaa kytkeä pois — kirjoita koodi itse.
+
+- **IntelliCode:** Tools → Options → IntelliCode → poista "Automatically generate code completions"
+- **Copilot:** Tools → Options → GitHub → Copilot — vain jos olet kirjautunut GitHubiin
+
+**IntelliSense** (lista joka aukeaa kohdassa `Console.`) saa jäädä päälle. Se näyttää nimet, ei kirjoita kokonaisia rivejä puolestasi.
+
 ## Miten ajaa projekteja
 
 Visual Studiossa olevia projekteja voi ajaa muutamalla eri tavalla:
 
 1. **Vihreä ajo-nappi**: Painamalla vihreää ajo-nappia, joka löytyy ylhäältä työkaluriviltä
-2. **F5**: Voit myös halutessasi painaa **F5**, joka ajaa saman asian kuin yllä olevan napin painaminen
+2. **Ctrl+F5**: Ajaa ilman debuggeria ja jättää konsolin auki (suositeltu arjen ajotapa)
+3. **F5**: Ajaa debuggerin kanssa — pysähtyy breakpointeihin
 
 ### Debug vs Release
 

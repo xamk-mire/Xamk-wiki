@@ -22,7 +22,7 @@ Tietokone lopulta aina ymmärtää mitä haluat saada kirjoitetulla koodilla aik
 
 ## C#-koodauskäytännöt
 
-Tällä kurssilla käytämme ohjelmointikielenä C#, joten käytämme näissä harjoituksissa Microsoftin luomia konventioita:
+C#-koodissa noudatetaan Microsoftin luomia konventioita:
 
 - [C# identifier names - rules and conventions | Microsoft Learn](https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/identifier-names)
 - [.NET documentation C# Coding Conventions | Microsoft Learn](https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions)

@@ -1,6 +1,74 @@
 # Funktiot ja Metodit (Functions and Methods)
 
-C#-kielessä funktiot ovat koodin palasia, jotka suorittavat tietyn toiminnon ja voidaan kutsua nimellä. Funktion avulla voidaan ryhmitellä koodia loogisiksi kokonaisuuksiksi, jotka tekevät yhden tietyn asian. Tämä helpottaa koodin ylläpitoa ja tekee siitä selkeämpää.
+Metodi on nimetty pala koodia: se kirjoitetaan **kerran** ja sitä kutsutaan **monesti**. Refaktoroinnissa ohjelman tuloste ei muutu, vain rakenne paranee.
+
+C#:ssa kaikki funktiot asuvat luokassa, joten puhutaan yleensä metodeista. Sana "funktio" tarkoittaa samaa asiaa yleisessä ohjelmoinnissa.
+
+## static ja Main
+
+Ennen olio-ohjelmointia metodit merkitään `static`-sanalla ja ne asuvat `Program`-luokassa. `Main` on käynnistyspiste — suoritus alkaa sieltä, kun painat Ctrl+F5.
+
+```csharp
+class Program
+{
+    static void Main(string[] args)
+    {
+        PrintHeader();
+        decimal price = GetUnitPrice(40);  // 12.00
+    }
+
+    static void PrintHeader()
+    {
+        Console.WriteLine("=== Elokuvateatteri Tähti ===");
+    }
+
+    static decimal GetUnitPrice(int age)
+    {
+        if (age < 12) return 7.50m;
+        if (age < 65) return 12.00m;
+        return 9.00m;
+    }
+}
+```
+
+| Osa | Selitys |
+|-----|---------|
+| `static` | Ennen olioita: kirjoita `static` jokaisen metodin eteen |
+| `void` | Metodi ei palauta arvoa — se vain tekee (tulostaa, kysyy) |
+| `decimal` / `int` / `string` | Paluuarvon tyyppi — kutsuja saa tuloksen `return`-lauseella |
+| `Main` | Ohjelman aloitus. Visual Studion "top-level statements" piilottaa tämän; rakenne voidaan avata myöhemmin |
+
+Metodien järjestyksellä tiedostossa ei ole väliä. Suoritus alkaa `Main`ista.
+
+## Määrittely vs kutsu
+
+| | Määrittely | Kutsu |
+|---|---|---|
+| **Koodi** | `static void PrintHeader() { ... }` | `PrintHeader();` |
+| **Mitä tekee** | Kertoo *mitä* metodi tekee — ei suorita mitään | Suorittaa metodin juuri tässä kohdassa |
+| **Montako kertaa** | Kirjoitetaan kerran | Voidaan kutsua vaikka sata kertaa |
+
+## Parametri vs argumentti
+
+**Parametri** on metodin oma muuttuja. **Argumentti** on arvo, joka kopioidaan parametriin kutsussa — **järjestyksessä**, ei nimen perusteella.
+
+```csharp
+static decimal GetDiscount(string? code, decimal subtotal) { ... }
+
+decimal discount = GetDiscount(discountCode, subtotal);
+// argumentti discountCode → parametri code
+// argumentti subtotal     → parametri subtotal
+```
+
+Jos vaihdat argumenttien paikkaa, C# ei varoita nimistä — väärä arvo menee väärään parametriin. Tämä on klassinen ikuisen silmukan syy: `ReadInt(prompt, 8, 1)` kun tarkoitus oli `min=1, max=8`.
+
+`return` palauttaa arvon kutsujalle **ja lopettaa metodin**. Jokaisesta polusta pitää löytyä `return`, jos tyyppi ei ole `void` — muuten syntyy käännösvirhe *"not all code paths return a value"*.
+
+| | Käännösvirhe | Ajonaikainen virhe (poikkeus) |
+|---|---|---|
+| **Milloin** | Ennen ajoa — ohjelma ei käänny | Kesken ajon — ohjelma kaatuu |
+| **Missä** | Error List, punainen alleviivaus | Konsolin virheilmoitus |
+| **Esimerkki** | Puuttuva `return` tai `;` | `FormatException` syötteestä `"abc"` |
 
 ## Funktion osat
 
@@ -35,8 +103,6 @@ public void TulostaTervehdys()
 ```
 
 ## Mitä ovat metodit?
-
-Metodi on nimetty koodilohko, joka suorittaa tietyn tehtävän. Metodit auttavat:
 
 Metodi on nimetty koodilohko, joka suorittaa tietyn tehtävän. Metodit auttavat:
 - **Koodin uudelleenkäytössä**: Sama koodi voidaan käyttää useita kertoja
@@ -274,6 +340,30 @@ double result2 = calc.Add(5.5, 3.2); // 8.7
 int result3 = calc.Add(1, 2, 3);     // 6
 ```
 
+Kuormitus toimii myös `static`-metodeilla. C# valitsee version **argumenttien määrän ja tyyppien** perusteella:
+
+```csharp
+static int ReadInt(string prompt)
+{
+    Console.Write(prompt);
+    return Convert.ToInt32(Console.ReadLine());
+}
+
+static int ReadInt(string prompt, int min, int max)
+{
+    int value = ReadInt(prompt);   // kutsuu yksinkertaista versiota
+    while (value < min || value > max)
+    {
+        Console.WriteLine($"Anna luku väliltä {min}–{max}.");
+        value = ReadInt(prompt);
+    }
+    return value;
+}
+
+int age = ReadInt("Anna ikäsi: ", 0, 130);           // 3 argumenttia → tarkistava
+int raw = ReadInt("Anna mikä tahansa luku: ");       // 1 argumentti → yksinkertainen
+```
+
 ## Rekursio
 
 Metodi voi kutsua itseään:
@@ -290,6 +380,10 @@ public int Factorial(int n)
 // Käyttö
 int result = Factorial(5);  // 5 * 4 * 3 * 2 * 1 = 120
 ```
+
+## Lisämateriaali
+
+Lambda, `ref`/`out`, tuplet ja extension-metodit ovat edistyneempiä aiheita. Alla ne ovat referenssinä.
 
 ## Lambda-lausekkeet (Lambda Expressions)
 
@@ -462,5 +556,5 @@ Funktiot ovat yleisempiä ja voivat olla osa mitä tahansa ohjelmointiparadigmaa
 - Metodin ylikuormitus mahdollistaa useita versioita
 - Lambda-lausekkeet ovat lyhyitä tapoja määritellä metodeja
 
-Seuraavaksi: [Ohjausrakenteet](Control-Structures.md)
+Seuraavaksi: [Näkyvyysalueet](Scopes.md) · [Staattiset luokat ja metodit](Static-Classes-and-Methods.md) · [Ohjausrakenteet](Control-Structures.md)
 

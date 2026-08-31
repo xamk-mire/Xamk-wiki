@@ -11,6 +11,38 @@ Poikkeus on erityinen olio, joka heitetään kun virhetilanne tapahtuu. Jos poik
 
 Poikkeuskäsittely on ohjelmointikäsite, jota käytetään odottamattomien virhetilanteiden käsittelyyn ohjelman suorituksen aikana. Kun ohjelmaa suoritetaan ja siinä tapahtuu virhe, se saattaa aiheuttaa ohjelman kaatumisen tai toimimattomuuden. Poikkeuskäsittelyn tarkoitus on antaa ohjelmalle mahdollisuus käsitellä näitä virheitä hallitusti ilman, että ohjelma kaatuu.
 
+## Virheilmoituksen lukeminen
+
+Kaatuminen ei riko konetta, Visual Studiota eikä koodia. Ohjelma vain lopettaa ja kertoo miksi. Opettele lukemaan ilmoitus ensin — `try-catch` tulee mukaan myöhemmin.
+
+```
+Unhandled exception. System.FormatException: The input string 'abc' was not in a correct format.
+   at System.Convert.ToInt32(String value)
+   at Program.<Main>$(String[] args) in C:\...\MovieTickets\Program.cs:line 10
+```
+
+| Osa | Esimerkissä | Mitä kertoo |
+|-----|-------------|-------------|
+| **Tyyppi** | `System.FormatException` | Vian laatu: "muoto on väärä" |
+| **Viesti** | `The input string 'abc' was not in a correct format.` | Mikä syöte epäonnistui |
+| **Rivi** | `Program.cs:line 10` | **Oman koodisi** rivi |
+
+Keskimmäiset `System.Number...`-rivit ovat .NET:n sisäisiä — hyppää niihin, etsi **oman tiedoston** nimi. Sama pino näkyy debuggerin Call Stack -ikkunassa.
+
+**Aloittelijan yleisimmät poikkeukset:**
+
+| Poikkeus | Tyypillinen syy |
+|----------|-----------------|
+| `FormatException` | `"abc"` annettiin `Convert.ToInt32`-metodille |
+| `OverflowException` | Luku ei mahdu `int`-tyyppiin (max n. 2,1 miljardia) |
+| `IndexOutOfRangeException` | Taulukosta haettiin indeksiä, jota ei ole (`movies[4]` neljän alkion taulukossa) |
+| `KeyNotFoundException` | Dictionarysta haettiin avainta, jota ei ole — käytä `ContainsKey` |
+| `FileNotFoundException` | `File.ReadAllText` tiedostolle, jota ei ole |
+| `DivideByZeroException` | Kokonaisluku jaettiin nollalla |
+| `NullReferenceException` | Metodikutsu `null`-viittaukselle (esim. `text.Length` kun `text` on `null`) |
+
+Kaatuminen estetään usein **tarkistamalla syöte silmukalla** ennen kuin edetään. `try-catch` on toinen tapa käsitellä virhe hallitusti.
+
 ## Keskeiset käsitteet
 
 1. **Poikkeukset**: Nämä ovat ohjelman suorituksen aikana tapahtuvia virheitä. Esimerkiksi, jaettuna nollalla, tiedoston avaaminen, jota ei ole olemassa, tai yritys muuttaa merkkijonoa numeroksi, kun se ei ole mahdollista.

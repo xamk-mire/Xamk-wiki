@@ -43,26 +43,22 @@ Console.WriteLine(sana.Length); // Tulostaa: 11
 
 Merkkijonoja vertaillaan, jotta voidaan tarkistaa ovatko kaksi tekstiä samat – esimerkiksi käyttäjän syöttämä salasana, hakusana, tiedostonimi tai tietokannan avain täsmää tallennettuun arvoon.
 
-**Miksi `Equals(..., StringComparison.OrdinalIgnoreCase)` on parempi kuin `ToLower()`?**
-
-- **Ei turhia allokaatioita**: `ToLower()`/`ToUpper()` luo uuden merkkijonon (string on immutable). `Equals(...)` vertaa suoraan → vähemmän muistia ja yleensä parempi suorituskyky.
-- **Kulttuuriturvallinen**: `ToLower()` käyttää oletuksena nykyistä kulttuuria, mikä voi rikkoa vertailun tietyillä kielillä (esim. turkin I/İ). `OrdinalIgnoreCase` on kielestä riippumaton ja ennustettava.
-- **Selkeä tarkoitus**: `Equals(..., StringComparison.OrdinalIgnoreCase)` kertoo heti, että kyse on kirjainkoon huomiotta jättävästä vertailusta.
-- **Vähemmän virheitä**: `a.ToLower() == b.ToLower()` vaatii muunnoksen molemmille ja voi unohtua helposti; lisäksi kulttuuri vaikuttaa tulokseen.
-
-**Vältä tätä (turhat muunnokset ja kulttuuririskit):**
+**Kirjainkoko.** `"LEFFA10"` ja `"leffa10"` ovat eri merkkijonoja. Yksi tapa tehdä vertailu kirjainkoosta riippumattomaksi:
 
 ```csharp
-if (a.ToLower() == b.ToLower()) { // ... }
+if (code.ToUpper() == "LEFFA10")
+{
+    // alennus
+}
 ```
 
-**Suosi tätä (nopea, kulttuurista riippumaton, selkeä):**
+`ToUpper()` / `ToLower()` luo uuden merkkijonon (string on *immutable*). Ammattikoodissa kirjainkoosta riippumaton vertailu tehdään usein näin:
 
 ```csharp
-if (a.Equals(b, StringComparison.OrdinalIgnoreCase)) { // ... }
+if (a.Equals(b, StringComparison.OrdinalIgnoreCase)) { /* ... */ }
 ```
 
-*Vinkki*: Jos tarkoitus on verrata käyttäjälle näkyviä, lokalisoituja tekstejä kulttuurin sääntöjen mukaan, käytä tarvittaessa `StringComparison.CurrentCultureIgnoreCase`. Tunnisteille, koodeille, avaimille yms. käytä `OrdinalIgnoreCase`.
+`OrdinalIgnoreCase` ei riipu käyttöjärjestelmän kielestä (esim. turkin I/İ). Tunnisteille ja koodeille se on turvallisempi kuin `ToLower()`. Alussa `.ToUpper()` riittää.
 
 #### Merkkijonon muokkaaminen
 
@@ -143,6 +139,8 @@ Selitys:
 - Jos epäonnistuu (esim. `"kissa"`), ohjelma **ei kaadu**, vaan menee `else`-haaraan.
 
 Tätä kannattaa käyttää aina, kun syöte tulee käyttäjältä, koska käyttäjä voi kirjoittaa mitä tahansa.
+
+Aluksi syöte muunnetaan usein `Convert.ToInt32(Console.ReadLine())` -kutsulla. Se on yksinkertaisempi, mutta kaatuu väärästä tekstistä (`FormatException`). `TryParse` estää kaatumisen. Molemmat ovat oikein — tiedä ero.
 
 **3: string → double (desimaaliluku)**
 
@@ -287,6 +285,8 @@ Console.WriteLine($"Summa: {summa}, Erotus: {erotus}, Tulo: {tulo}, Jako: {jako}
 
 **3. Tarkkuus ja virheet**: Koska `double` on liukulukutyyppi, se ei aina voi tallentaa desimaalilukuja täydellisen tarkasti. Tämä voi johtaa pieniin pyöristysvirheisiin, erityisesti kun käsitellään hyvin pieniä tai hyvin suuria lukuja.
 
+**Älä käytä `double`-tyyppiä rahalle.** `0.1 + 0.2` ei ole tietokoneessa täsmälleen `0.3`. Lipun hinnassa, kuitissa ja päivän myynnissä käytetään aina `decimal`-tyyppiä — katso seuraava osio.
+
 **4. Muunnokset**: Joskus saatat haluta muuntaa `double`-arvon esimerkiksi `int`-arvoksi. Tämä onnistuu käyttämällä tyyppimuunnosta, mutta huomaa, että tällöin desimaaliosa katkaistaan pois.
 
 ```csharp
@@ -302,11 +302,54 @@ double oletus;
 Console.WriteLine(default(double)); // 0.0
 ```
 
-**6. Käyttö ohjelmoinnissa**: `double`-tyyppiä käytetään yleisesti silloin, kun tarvitaan tarkkoja murtolukuja, kuten tieteellisissä laskelmissa, talouslaskelmissa tai muissa sovelluksissa, joissa luvuilla on desimaaliarvoja.
+**6. Käyttö ohjelmoinnissa**: `double` sopii mittauksiin, lämpötiloihin, koordinaatteihin ja tieteellisiin laskuihin. **Rahalaskut kuuluvat `decimal`-tyypille**, ei `double`:lle.
 
 #### Yhteenveto
 
-`double` on monipuolinen tietotyyppi, jota käytetään tallentamaan desimaalilukuja suurella tarkkuudella. Se soveltuu erinomaisesti tilanteisiin, joissa tarvitset enemmän tarkkuutta kuin mitä `int` tai `float` pystyvät tarjoamaan.
+`double` on liukuluku desimaaleille, kun pieni pyöristysvirhe ei haittaa. Rahaan, hintoihin ja kuitteihin käytä `decimal`.
+
+---
+
+### decimal — raha
+
+[Virallinen dokumentaatio](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/floating-point-numeric-types)
+
+`decimal` on desimaaliluku, joka on suunniteltu **tarkkaan** laskentaan. Rahat (`hinta`, `välisumma`, `alennus`, `myynti`) kannattaa pitää `decimal`-tyyppinä.
+
+```csharp
+decimal childPrice = 7.50m;
+decimal adultPrice = 12.00m;
+decimal subtotal = adultPrice * 2;   // 24.00
+```
+
+| Asia | Selitys |
+|------|---------|
+| `m`-pääte | Ilman `m`:ää luku `7.50` on `double`. C# ei sijoita `double`-arvoa `decimal`-muuttujaan automaattisesti |
+| Piste koodissa | Kirjoita `7.50m`, vaikka konsoli näyttäisi `7,50` |
+| Tulostus | `{price:F2}` antaa kaksi desimaalia: `12,00` |
+
+```csharp
+decimal total = 21.6m;
+Console.WriteLine($"Maksettavaa: {total:F2} €");
+// Maksettavaa: 21,60 €
+```
+
+**Miksi ei `double`?** Liukuluku tallentaa luvun kaksikantaisena approksimaationa. Sentit voivat "valua":
+
+```csharp
+double a = 0.1;
+double b = 0.2;
+Console.WriteLine(a + b);          // 0.30000000000000004
+Console.WriteLine(0.1m + 0.2m);    // 0.3
+```
+
+Yhdessä laskussa virhe on mitätön; sadassa kuitissa se kertyy. Siksi nyrkkisääntö: **raha = `decimal`**.
+
+Vakiohinnat kannattaa merkitä `const`-sanalla, kun arvo ei muutu ohjelman aikana:
+
+```csharp
+const decimal ChildPrice = 7.50m;
+```
 
 ---
 
@@ -656,6 +699,7 @@ public class Example
 - Käytä `var`-avainsanaa kun tyyppi on ilmeinen
 - Vakiot (`const`) eivät voi muuttua
 - `string` on immutable - muutokset luovat uuden merkkijonon
-- Käytä `TryParse`-metodeja käyttäjän syötteen käsittelyssä
+- Rahalaskut: aina `decimal` ja `m`-pääte, tulostus `{summa:F2}`
+- Syöte: `Convert.ToInt32` on yksinkertainen; `TryParse` ei kaada ohjelmaa väärästä tekstistä
 
-Seuraavaksi: [Ohjausrakenteet](Control-Structures.md)
+Seuraavaksi: [Konsolin syöte ja tulostus](Console-IO.md) · [Operaattorit](Operators.md) · [Ohjausrakenteet](Control-Structures.md)

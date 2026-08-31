@@ -14,9 +14,16 @@ Tervetuloa olio-ohjelmoinnin (OOP) syvälliseen tutustumiseen! Tämä osio käsi
 
 ## Sisältö
 
-### Aloita tästä:
+### Aloita näistä:
+0. **[Luokat, oliot ja konstruktorit](Classes-and-Objects.md)**  
+   `class`, `new`, konstruktori, olio listassa — ennen pilareita
+1. **[Mitä on OOP?](What-is-OOP.md)** — miksi oliot
+2. **[Properties](../00-Basics/Properties.md)** · **[Kapselointi](Encapsulation.md)**
+3. **[Perintä](Inheritance.md)** — "is-a", `virtual` / `override` alkeet
+
+### Kaikki tekniikat:
 0. **[OOP-tekniikat - Yleiskuvaus](OOP-Techniques-Overview.md)**  
-   Nopea katsaus kaikkiin tekniikoihin - aloita tästä saadaksesi kokonaiskuvan!
+   Nopea katsaus kaikkiin tekniikoihin
 
 ### OOP:n neljä pilaria:
 

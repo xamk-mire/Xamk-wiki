@@ -40,6 +40,25 @@ Hyvin yksinkertaisissa tai suorituskykykriittisissä tilanteissa enumin käyttö
 
 Hajautetuissa sovelluksissa enum-arvojen muuttaminen voi rikkoa yhteensopivuuden. Ole varovainen serialisoidessasi enumeja.
 
+Pizzan koko tai lipun ikäluokka on tyypillinen enum: arvoja on vähän, ne tunnetaan etukäteen, eikä `"iso"`-merkkijonoon tule kirjoitusvirheitä.
+
+```csharp
+enum Size
+{
+    Normal,
+    Large,
+    Family
+}
+
+Size size = Size.Large;
+if (size == Size.Large)
+{
+    price += 3.00m;
+}
+```
+
+`switch (size)` on usein selkeämpi kuin merkkijonojen `if`-ketju. Enumin arvoa ei voi olla "neljäs koko", ellei sitä lisätä tyyppiin — siinä on tyyppiturvallisuuden hyöty.
+
 ## Koodiesimerkit
 
 ### Perus enum-määrittely

@@ -1,6 +1,33 @@
 # Tietorakenteet (Data Structures)
 
-Tietorakenteet ovat tapoja organisoida ja tallentaa dataa. C# tarjoaa monia valmiita tietorakenteita.
+Tietorakenteet ovat tapoja organisoida ja tallentaa dataa. Aloita kolmesta: **taulukko**, **List** ja **Dictionary**. Muut rakenteet (HashSet, Queue, Stack) ovat lisätietoa.
+
+## Milloin mitäkin?
+
+| Kokoelma | Koko | Käyttö | Esimerkki |
+|----------|------|--------|---------------------|
+| **Taulukko** `string[]` | Kiinteä — päätetään luodessa | Tunnettu, muuttumaton joukko | Päivän elokuvat |
+| **List** `List<decimal>` | Kasvaa `Add`-kutsuilla | Kertyvä data, jonka määrää ei tiedetä | Päivän ostokset |
+| **Dictionary** `Dictionary<string, decimal>` | Kasvaa | Avain → arvo, haku avaimella | Alennuskoodi → prosentti |
+
+Yksi muuttuja, monta arvoa, käsittely silmukalla. Neljä elokuvaa neljässä muuttujassa (`movie1` … `movie4`) ei skaalaudu.
+
+## Indeksi alkaa nollasta
+
+Jokaisella alkiolla on **indeksi** — järjestysnumero, joka alkaa **nollasta**. Neljän elokuvan taulukossa viimeinen indeksi on `3`.
+
+```
+movies[0]  →  "Avaruusseikkailu 3D"
+movies[3]  →  "Animaatio: Metsän väki"
+movies.Length  →  4
+```
+
+`movies[4]` heittää `IndexOutOfRangeException`-poikkeuksen — paikkaa ei ole. Valikossa käyttäjä näkee numerot 1–4; koodissa valinta muutetaan indeksiksi: `movies[choice - 1]`.
+
+| | Taulukko | List |
+|--|----------|------|
+| Alkioiden määrä | `Length` | `Count` |
+| Indeksointi | `items[i]` | `items[i]` |
 
 ## Taulukot (Arrays)
 
@@ -101,16 +128,40 @@ Dictionary<string, string> countries = new Dictionary<string, string>
 // Käyttö
 Console.WriteLine(ages["Matti"]);  // 25
 
-// Tarkista onko avain olemassa
+// Tarkista onko avain olemassa — ilman tätä tuntematon avain kaataa ohjelman (KeyNotFoundException)
 if (ages.ContainsKey("Matti"))
 {
     Console.WriteLine(ages["Matti"]);
+}
+
+// Sama TryGetValue-metodilla (palauttaa false, jos avainta ei ole)
+if (ages.TryGetValue("Matti", out int age))
+{
+    Console.WriteLine(age);
 }
 
 // Iteroi läpi
 foreach (var pair in ages)
 {
     Console.WriteLine($"{pair.Key}: {pair.Value}");
+}
+```
+
+### Alennuskoodit Dictionaryssa
+
+If-ketju jokaiseen koodiin ei skaalaudu. Dictionaryssa uusi koodi on yksi rivi:
+
+```csharp
+Dictionary<string, decimal> discounts = new Dictionary<string, decimal>
+{
+    { "LEFFA10", 0.10m },
+    { "KESA20", 0.20m }
+};
+
+if (code != null && discounts.ContainsKey(code.ToUpper()))
+{
+    decimal percent = discounts[code.ToUpper()];
+    decimal discount = subtotal * percent;
 }
 ```
 
@@ -189,14 +240,11 @@ string next = stack.Peek();  // "Toinen"
 
 ## Yhteenveto
 
-- **Taulukot**: Kiinteän kokoinen kokoelma
-- **Listat**: Dynaaminen kokoelma
-- **Sanakirjat**: Avain-arvo-pareja
-- **Joukot**: Uniikit elementit
-- **Jonot**: FIFO-rakenne
-- **Pinot**: LIFO-rakenne
+- **Taulukot**: Kiinteä koko, `Length`, indeksi alkaa nollasta
+- **Listat**: Kasvaa `Add`-kutsuilla, `Count`
+- **Sanakirjat**: Avain → arvo; tarkista `ContainsKey` ennen hakua
+- **foreach** kun indeksiä ei tarvita, **for** kun tarvitaan numero tai `items[i]`
+- HashSet, Queue ja Stack ovat lisätietoa — aloita taulukosta, Listasta ja Dictionarysta
 
-Valitse oikea tietorakenne tarpeen mukaan!
-
-Seuraavaksi: [Thread.Sleep](Thread-Sleep.md)
+Seuraavaksi: [Ohjausrakenteet](Control-Structures.md) · [Funktiot ja metodit](Functions-and-Methods.md)
 
