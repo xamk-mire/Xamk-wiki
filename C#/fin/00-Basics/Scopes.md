@@ -1,136 +1,129 @@
 # Näkyvyysalueet (Scopes)
 
-C#:ssa on useita erilaisia scopeja eli näkyvyysalueita, jotka määrittävät, missä muuttujia, metodeja ja muita jäseniä voidaan käyttää. Näkyvyysalueet ovat tärkeitä, koska ne auttavat hallitsemaan pääsyä koodin osiin ja parantavat koodin turvallisuutta ja ylläpidettävyyttä.
+**Näkyvyysalue** kertoo, missä muuttujan nimeä saa käyttää. Muuttuja ei ole olemassa "koko ohjelmassa". Se elää siinä lohkossa, jossa se esiteltiin.
 
-Tyypillinen tilanne: `Main`-metodin sisällä esitelty `childPrice` ei näy `GetUnitPrice`-metodille. Jaettu tieto (hinnat) siirretään **luokan tasolle** (`const decimal ChildPrice`). Samoin `do-while`-ehdon muuttuja pitää esitellä silmukan **edellä**, ei rungon sisällä — muuten ehto ei näe sitä (`The name 'continueAnswer' does not exist`).
+Arjen esimerkki: tiskillä oleva lappu. Kassatyöntekijä näkee sen. Toisessa huoneessa oleva henkilö ei näe. `Main`-metodi on yksi huone. `GetUnitPrice` on toinen.
 
-## Scope-tyypit
+Tyypillinen tilanne: `Main`issä esitelty `childPrice` ei näy `GetUnitPrice`-metodille. Jaettu tieto (hinnat) siirretään **luokan tasolle** (`const decimal ChildPrice`).
 
-### 1. Lokaali scope
+**Microsoft:** [Scope of variables](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/variables#941-variable-scopes) — speksi on raskas; tämä sivu riittää alkuun.
 
-Lokaali scope rajoittuu yhteen metodiin tai lohkoon (esim. `if`-lausetta tai silmukkaa käytettäessä). Lokaalit muuttujat ovat käytettävissä vain siinä metodissa tai lohkossa, jossa ne on määritelty. Ne eivät ole käytettävissä metodin tai lohkon ulkopuolella.
+## Kartta
 
-```csharp
-public void ExampleMethod()
-{
-    int localVariable = 10;  // Lokaali muuttuja
-    
-    if (true)
-    {
-        int blockVariable = 20;  // Lohkon sisäinen muuttuja
-        Console.WriteLine(localVariable);  // OK: pääsy lokaaliin muuttujaan
-        Console.WriteLine(blockVariable);   // OK: pääsy lohkon muuttujaan
-    }
-    
-    // Console.WriteLine(blockVariable);  // VIRHE: blockVariable ei ole näkyvissä
-}
+| Missä esittelit | Missä näkyy | Esimerkki |
+|-----------------|-------------|-----------|
+| Metodin sisällä | Vain siinä metodissa | `int age` `Main`issa |
+| `if` / `for` / `do`-lohkon sisällä | Vain sen lohkon sisällä | `int price` `if`-suluissa |
+| Luokan tasolla (`const` / kenttä) | Kaikissa luokan metodeissa | `const decimal ChildPrice` |
+| `do`-lohkon sisällä | **Ei** näy `while`-ehdossa | `continueAnswer` pitää esitellä ennen `do` |
 
-// Console.WriteLine(localVariable);  // VIRHE: localVariable ei ole näkyvissä
-```
+`public` ja `private` ovat eri asia. Ne kertovat, kuka **luokan ulkopuolella** saa koskea jäseneen. Katso [käyttöoikeudet](Access-Modifiers.md).
 
-### 2. Luokan jäsenen scope
-
-Tämä scope koskee muuttujia ja metodeja, jotka on määritelty luokan tasolla. Näitä jäseniä voidaan kutsua minkä tahansa luokan instanssin (eli olion) kautta tai staattisesti, jos jäsen on määritelty staattiseksi. Pääsy näihin jäseniin riippuu niiden määrittelyistä käyttöoikeuksista (kuten `public`, `private` jne.).
+## Metodi on oma huone
 
 ```csharp
-public class MyClass
+class Program
 {
-    private int privateField = 10;      // Näkyy vain luokan sisällä
-    public int publicField = 20;        // Näkyy kaikkialle
-    internal int internalField = 30;   // Näkyy saman assemblyn sisällä
-    
-    public void PublicMethod()
+    static void Main(string[] args)
     {
-        Console.WriteLine(privateField);  // OK: pääsy private-kenttään
-        Console.WriteLine(publicField);   // OK: pääsy public-kenttään
+        int age = 20;
+        decimal price = GetUnitPrice(age);   // OK: age annetaan argumenttina
+        // GetUnitPrice ei näe Mainin age-muuttujaa nimeltä
     }
-    
-    private void PrivateMethod()
+
+    static decimal GetUnitPrice(int age)     // tämä age on ERI muuttuja
     {
-        Console.WriteLine(privateField);  // OK: pääsy private-kenttään
-    }
-}
-
-// Käyttö
-MyClass obj = new MyClass();
-// Console.WriteLine(obj.privateField);  // VIRHE: private ei näy ulkopuolella
-Console.WriteLine(obj.publicField);      // OK: public näkyy
-obj.PublicMethod();                      // OK: public metodi näkyy
-// obj.PrivateMethod();                  // VIRHE: private metodi ei näy
-```
-
-### 3. Namespace scope
-
-Namespacet eli nimiavaruudet tarjoavat tavan ryhmitellä luokkia ja muita tietotyyppejä. Namespace-scope sallii jäsenten käytön saman nimiavaruuden sisällä ilman, että niitä täytyy erikseen tuoda esiin. Jäsenten käyttö eri nimiavaruuksista vaatii `using`-direktiivin tai täysin kelpaavan nimen.
-
-```csharp
-namespace MyNamespace
-{
-    public class ClassA
-    {
-        public void MethodA() { }
-    }
-    
-    public class ClassB
-    {
-        public void MethodB()
-        {
-            ClassA a = new ClassA();  // OK: samassa namespace:ssä
-            a.MethodA();
-        }
-    }
-}
-
-namespace AnotherNamespace
-{
-    using MyNamespace;  // Tuodaan MyNamespace käyttöön
-    
-    public class ClassC
-    {
-        public void MethodC()
-        {
-            ClassA a = new ClassA();  // OK: using-direktiivin ansiosta
-            // TAI täydellä nimellä:
-            MyNamespace.ClassA a2 = new MyNamespace.ClassA();
-        }
+        if (age < 12) return 7.50m;
+        if (age < 65) return 12.00m;
+        return 9.00m;
     }
 }
 ```
 
-### 4. Assembly scope
+`Main`in `age` ja parametrin `age` voivat käyttää samaa nimeä. Ne ovat silti kaksi säilöä. Arvo **kopioituu** kutsuessa. Katso [parametri vs argumentti](Functions-and-Methods.md#parametri-vs-argumentti).
 
-Assembly (kokoonpano/projekti) on yksi tai useampi tiedosto, joka muodostaa sovelluksen tai kirjaston .NET:ssä. Assembly-scope määrittää, mitkä luokat, metodit ja muut jäsenet ovat näkyvissä muille kokoonpanoille. Tämä näkyvyys määritellään `internal`-avainsanalla, joka sallii jäsenten käytön vain saman kokoonpanon sisällä.
+Tämä ei käänny:
 
 ```csharp
-// Projektissa A
-public class PublicClass
+static void Main(string[] args)
 {
-    public void PublicMethod() { }
-    internal void InternalMethod() { }  // Näkyy vain samassa projektissa
+    decimal childPrice = 7.50m;
+    decimal price = GetUnitPrice(8);
 }
 
-internal class InternalClass  // Näkyy vain samassa projektissa
+static decimal GetUnitPrice(int age)
 {
-    public void Method() { }
+    // return childPrice;   // virhe: The name 'childPrice' does not exist
+    return 7.50m;
 }
-
-// Projektissa B (viittaa projektiin A)
-// PublicClass ja PublicMethod ovat näkyvissä
-// InternalMethod ja InternalClass eivät ole näkyvissä
 ```
 
-## Scopejen vertailu
+C# ei etsi muuttujaa naapurimetodista. Jos hinta tarvitaan useassa metodissa, nosta se luokan tasolle.
 
-| Scope-tyyppi | Näkyvyysalue | Esimerkki |
-|--------------|--------------|-----------|
-| **Lokaali** | Metodi tai lohko | `int x = 10;` metodin sisällä |
-| **Luokan jäsen** | Luokan sisällä (riippuen access modifierista) | `private int field;` |
-| **Namespace** | Saman namespace:n sisällä | Luokat samassa `namespace`-lohkossa |
-| **Assembly** | Saman projektin/assemblyn sisällä | `internal`-avainsana |
+## Luokan taso — jaettu tieto
+
+```csharp
+class Program
+{
+    const decimal ChildPrice = 7.50m;
+    const decimal AdultPrice = 12.00m;
+    const decimal SeniorPrice = 9.00m;
+
+    static decimal GetUnitPrice(int age)
+    {
+        if (age < 12) return ChildPrice;
+        if (age < 65) return AdultPrice;
+        return SeniorPrice;
+    }
+}
+```
+
+`const` luokan tasolla näkyy kaikille metodeille. Hinta on yhdessä paikassa. Nimi on PascalCase — [koodauskäytännöt](Coding-Conventions.md).
+
+## Lohko — aaltosulkeiden sisällä
+
+`if`, `for`, `while` ja `do` luovat oman lohkon. Lohkossa esitelty muuttuja kuolee, kun lohko päättyy.
+
+```csharp
+static void Example()
+{
+    int age = 20;   // näkyy koko metodissa
+
+    if (age >= 18)
+    {
+        decimal price = 12.00m;
+        Console.WriteLine(price);   // OK
+    }
+
+    // Console.WriteLine(price);    // virhe: price ei ole näkyvissä
+}
+```
+
+Siksi `do-while`-ehdon muuttuja esitellään **ennen** silmukkaa:
+
+```csharp
+string? continueAnswer;   // täällä
+do
+{
+    Console.Write("Uusi asiakas (k/e): ");
+    continueAnswer = Console.ReadLine();
+}
+while (continueAnswer == "k");
+```
+
+Jos `string? continueAnswer` on `do`-lohkon sisällä, `while` ei näe sitä. Virhe: *The name 'continueAnswer' does not exist*. Sama idea [ohjausrakenteissa](Control-Structures.md#do-while--tee-ensin-kysy-sitten).
+
+## Namespace ja projekti — myöhemmin
+
+Luokat voidaan ryhmitellä `namespace`-lohkoon. Toisen projektin luokat eivät näy ilman viittausta. `internal` rajoittaa näkyvyyden samaan projektiin.
+
+Alussa yksi `Program`-luokka riittää. Älä opettele assembly-rajoja ennen kuin sinulla on useita projekteja.
 
 ## Yhteenveto
 
-Näiden scopejen väliset erot liittyvät pääasiassa siihen, missä ja miten muuttujia ja metodeja voidaan käyttää. Lokaali scope on rajoittunein, kun taas namespace- ja assembly-scope tarjoavat laajempia näkyvyysalueita. Luokan jäsenen scope puolestaan sallii muuttujien ja metodien käytön luokan instansseissa, riippuen määritellyistä käyttöoikeuksista.
+- Muuttuja näkyy siinä lohkossa, jossa se syntyi — ei naapurimetodissa.
+- Jaettu arvo (hinnat): `const` luokan tasolle.
+- `do-while`-ehdon muuttuja esitellään ennen `do`-sanaa.
+- `public` / `private` on käyttöoikeus, ei sama asia kuin scope.
 
-Scopejen oikea ymmärtäminen on tärkeää turvallisen ja ylläpidettävän koodin kirjoittamiseen, koska ne auttavat varmistamaan, että koodin osat ovat saatavilla vain siellä, missä niitä tarvitaan.
-
+Seuraavaksi: [Funktiot ja metodit](Functions-and-Methods.md) · [Staattiset luokat ja metodit](Static-Classes-and-Methods.md) · [Käyttöoikeudet](Access-Modifiers.md)

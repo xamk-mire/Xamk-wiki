@@ -1,6 +1,17 @@
 # Operaattorit
 
-Operaattori on merkki, joka tekee laskun, vertailun tai sijoituksen. Ikäluokan päättely, syötteen tarkistus ja kertymämuuttujat rakentuvat näistä.
+**Operaattori** on merkki, joka tekee laskun, vertailun tai sijoituksen. Ikäluokan päättely, syötteen tarkistus ja kertymämuuttujat rakentuvat näistä.
+
+Lue ehto ääneen: `age < 12` on *"onko ikä alle 12?"*. Tulos on `true` tai `false`. Sitä käytetään [ohjausrakenteissa](Control-Structures.md).
+
+## Kartta
+
+| Laji | Merkit | Käyttö |
+|------|--------|--------|
+| Lasku | `+ - * / %` | Hinta, määrä, jakojäännös |
+| Vertailu | `== != < > <= >=` | `if` ja silmukan ehto |
+| Logiikka | `&&` `\|\|` `!` | Yhdistä ehdot |
+| Sijoitus | `=` `+=` `++` | Arvo, kertymä, laskuri |
 
 ## Aritmeettiset operaattorit
 

@@ -1,256 +1,141 @@
 # Koodauskäytännöt (Coding Conventions)
 
-Kenelle kirjoitamme koodia? Nopeasti tähän saattaisi vastata, että kirjoitamme koodia tietokoneelle, jotta se osaa tehdä asiat joita me sille käsketään tekemään. Tämä on toki totta, mutta tästä jää erittäin tärkeä aspekti kokonaan puuttumaan, eli ihminen. Koodia aina lukee siis kaksi tahoa, ihminen ja tietokone.
+Koodia lukee kaksi tahoa: **tietokone** ja **ihminen**. Tietokone hyväksyy monenlaisen ulkoasun, jos syntaksi on oikein. Ihmisen on vaikea lukea koodia, jossa nimet ovat `a`, `b` ja `x2` ja sisennys hyppii.
 
-Tietokone lopulta aina ymmärtää mitä haluat saada kirjoitetulla koodilla aikaiseksi, mutta koodi ei välttämättä avaudu toiselle ihmiselle (erillainen muotoilu, nimeäminen jne.). Tätä varten ohjelmistoalalla ollaan kehitetty eri ohjelmointikonventioita, jotka yhtenäistää kehittäjien koodaustyyli samanlaiseksi.
+**Koodauskäytäntö** on yhteinen tapa kirjoittaa: nimet, sisennys, aaltosulkeet. C#:ssa noudatetaan Microsoftin tapaa. Kurssilla sama tapa, jotta opettaja ja opiskelija lukevat samaa kieltä.
 
-## Mitä on koodauskäytäntö?
+Kirjoita ensin ohjelma toimimaan. Siisti nimet ja sisennys ennen palautusta. Visual Studio auttaa: **Ctrl+K**, sitten **Ctrl+D** muotoilee tiedoston.
 
-"Coding convention" tai koodauskäytäntö/konventio tarkoittaa joukkoa sääntöjä tai ohjeita, jotka määrittelevät koodin ulkoasun ja rakenteen. Se voi kattaa monia asioita, kuten:
+**Microsoft:** [Nimet](https://learn.microsoft.com/fi-fi/dotnet/csharp/fundamentals/coding-style/identifier-names) · [Käytännöt](https://learn.microsoft.com/fi-fi/dotnet/csharp/fundamentals/coding-style/coding-conventions)
 
-1. **Muotoilu**: Esimerkiksi kuinka monta välilyöntiä tai sarkainta (tab) pitäisi käyttää sisennyksessä, kuinka aukot ja rivinvaihdot sijoitetaan tai kuinka kommentteja tulisi käyttää.
-2. **Nimeäminen**: Miten muuttujia, funktioita, luokkia jne. tulisi nimetä. Esimerkiksi, voitaisiin päättää, että muuttujien nimet kirjoitetaan pienellä alkukirjaimella ja funktioiden nimet isolla alkukirjaimella.
-3. **Komenttien käyttö**: Milloin ja miten lisätä kommentteja koodiin niin, että muut kehittäjät ymmärtävät, mitä koodi tekee.
-4. **Ohjelmointikäytännöt**: Kuinka tietyt ohjelmointiongelmat tulisi ratkaista, esim. miten virheidenkäsittelyä pitäisi käyttää.
+## Kartta
 
-## Miksi konventioita käytetään?
+| Käytäntö | Alussa riittää |
+|----------|----------------|
+| camelCase | Paikalliset muuttujat: `ticketCount`, `unitPrice` |
+| PascalCase | Metodit ja luokat: `GetUnitPrice`, `Program` |
+| 4 välilyöntiä | Sisennä lohkon sisältö |
+| Aaltosulkeet omalla rivillä | C#-tyyli |
+| Kuvaava nimi | `age` ei `a`, `isStudent` ei `flag` |
 
-1. **Luettavuus**: Kun kaikki kehittäjät noudattavat samoja sääntöjä, koodista tulee yhtenäisempää ja helpommin ymmärrettävää. Tämä tekee koodin tarkistamisesta, korjaamisesta ja laajentamisesta helpompaa.
-2. **Ylläpidettävyys**: Kun koodi on johdonmukainen ja helppo ymmärtää, sen ylläpitäminen ja päivittäminen tulevaisuudessa on helpompaa.
-3. **Virheiden välttäminen**: Jotkut käytännöt voivat auttaa välttämään yleisiä virheitä.
-4. **Tiimityö**: Kun useampi kehittäjä työskentelee samassa projektissa, yhtenäiset käytännöt tekevät yhteistyöstä sujuvampaa.
+## Kaksi kirjoitustapaa
 
-## C#-koodauskäytännöt
+**camelCase** alkaa pienellä. Seuraavat sanat isolla: `ticketCount`.
 
-C#-koodissa noudatetaan Microsoftin luomia konventioita:
+**PascalCase** alkaa isolla: `GetUnitPrice`.
 
-- [C# identifier names - rules and conventions | Microsoft Learn](https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/identifier-names)
-- [.NET documentation C# Coding Conventions | Microsoft Learn](https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions)
-
-Näistä teille tärkeämpi näin aluksi on sisäistää **identifier names - rules and conventions**. Voitte esimerkiksi kirjoittaa koodin ensin puhtaaksi ihan omalla tavalla ja sen jälkeen katsoa tuolta, että olette kirjoittaneet koodin tyylillisesti oikein.
-
-## Nimeäminen (Naming Conventions)
-
-### Luokat (Classes)
-
-Käytä **PascalCase**-kirjoitustapaa:
+| Mikä | Tapa | Esimerkki |
+|------|------|-----------|
+| Muuttuja metodin sisällä | camelCase | `int ticketCount = 2;` |
+| Parametri | camelCase | `GetUnitPrice(int age)` |
+| Metodi | PascalCase | `PrintHeader()` |
+| Luokka | PascalCase | `class Program` |
+| Vakio (`const`) | PascalCase | `const decimal ChildPrice = 7.50m;` |
 
 ```csharp
-// ✅ HYVÄ
-public class BankAccount { }
-public class UserService { }
-public class DataProcessor { }
-
-// ❌ HUONO
-public class bankAccount { }
-public class user_service { }
-public class DataProcessorClass { }
-```
-
-### Muuttujat ja metodit
-
-- **Public** jäsenet: PascalCase
-- **Private** jäsenet: camelCase
-
-```csharp
-public class Person
+class Program
 {
-    // Public property - PascalCase
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
-    
-    // Private field - camelCase
-    private int age;
-    
-    // Public method - PascalCase
-    public void DisplayInfo()
+    const decimal AdultPrice = 12.00m;
+
+    static void Main(string[] args)
     {
-        // Local variable - camelCase
-        string fullName = $"{FirstName} {LastName}";
-        Console.WriteLine(fullName);
+        int ticketCount = 2;
+        decimal total = AdultPrice * ticketCount;
+        PrintTotal(total);
+    }
+
+    static void PrintTotal(decimal total)
+    {
+        Console.WriteLine($"Maksettavaa: {total:F2} €");
     }
 }
 ```
 
-### Vakiot (Constants)
+Nimi on kirjainkokoherkkä: `age` ja `Age` ovat eri nimet. C# ei sekoita niitä.
 
-Käytä **PascalCase**-kirjoitustapaa:
+## Säännöt nimelle
+
+1. Alkaa kirjaimella tai alaviivalla `_`.
+2. Saa sisältää kirjaimia, numeroita ja alaviivoja.
+3. Ei saa olla varattu sana (`int`, `class`, `void`).
+4. Ei saa sisältää välilyöntiä eikä viivaa.
 
 ```csharp
-// ✅ HYVÄ
-public const int MaxRetryAttempts = 3;
-public const double Pi = 3.14159;
-public const string AppName = "MyApp";
+int age = 25;              // hyvä
+string firstName = "Matti";
+int _count = 0;            // sallittu, harvoin tarpeen alussa
 
-// ❌ HUONO
-public const int max_retry_attempts = 3;
-public const double PI = 3.14159;
+// int 2age = 25;          // ei voi alkaa numerolla
+// string first-name = ""; // viiva ei käy
+// int class = 5;          // varattu sana
 ```
 
-## Muotoilu (Formatting)
-
-### Sisennykset
-
-Käytä **4 välilyöntiä** sisennykseen (ei tab-merkkejä):
+## Nimen pitää kertoa tarkoitus
 
 ```csharp
-// ✅ HYVÄ
-public void Method()
+int userAge = 25;
+string customerName = "Matti";
+bool isStudent = true;
+
+// int a = 25;
+// string n = "Matti";
+// bool flag = true;
+```
+
+Totuusarvoille luonteva alku on `is`, `has` tai `can`: `isAdult`, `hasDiscount`.
+
+Metodin nimi on **verbi**: `PrintHeader`, `GetUnitPrice`, `ReadInt`. Pelkkä `Price` ei kerro, tulostetaanko vai palautetaanko arvo.
+
+Lyhenteitä kannattaa välttää, paitsi tuttuja (`id`, `i` silmukan laskurina). `custNm` on huonompi kuin `customerName`.
+
+## Muotoilu
+
+Sisennykseen **4 välilyöntiä**, ei kaksi. Visual Studion oletus on tämä.
+
+Aaltosulkeet `{` ja `}` omalle rivilleen:
+
+```csharp
+static decimal GetUnitPrice(int age)
 {
-    if (condition)
+    if (age < 12)
     {
-        DoSomething();
+        return 7.50m;
     }
-}
 
-// ❌ HUONO (väärä sisennyksen määrä)
-public void Method()
-{
-  if (condition)
-  {
-    DoSomething();
-  }
+    return 12.00m;
 }
 ```
 
-### Aaltosulkeet (Braces)
+Älä kirjoita `{` metodin nimen perään samalle riville. Se on toisen kielen tyyli.
 
-Aaltosulkeet omalla rivillään:
+Jätä tyhjä rivi metodien väliin. Älä jätä kymmentä tyhjää riviä.
 
-```csharp
-// ✅ HYVÄ
-public void Method()
-{
-    // Koodi
-}
-
-// ❌ HUONO
-public void Method() {
-    // Koodi
-}
-```
-
-### Rivinvaihdot
-
-Lisää tyhjä rivi metodien, luokkien ja muiden suurten rakenteiden väliin:
-
-```csharp
-// ✅ HYVÄ
-public class Person
-{
-    public string Name { get; set; }
-    
-    public void DisplayInfo()
-    {
-        Console.WriteLine(Name);
-    }
-    
-    public void UpdateName(string newName)
-    {
-        Name = newName;
-    }
-}
-```
+Jos sisennys on sekaisin, älä korjaa käsin rivi riviltä. Valitse tiedosto ja paina **Ctrl+K**, **Ctrl+D**.
 
 ## Kommentit
 
-### Yksiriviset kommentit
+Kommentti selittää **miksi**, ei sitä mitä koodi jo sanoo.
 
 ```csharp
-// Tämä on yksirivinen kommentti
-int age = 25;
-```
-
-### Moniriviset kommentit
-
-```csharp
-/*
- * Tämä on monirivinen kommentti
- * joka voi kattaa useita rivejä
- */
-```
-
-### XML-dokumentointi
-
-```csharp
-/// <summary>
-/// Laskee kahden luvun summan.
-/// </summary>
-/// <param name="a">Ensimmäinen luku</param>
-/// <param name="b">Toinen luku</param>
-/// <returns>Lukujen summa</returns>
-public int Add(int a, int b)
+// Ikä 65+ käyttää seniorin hintaa — raja on sama kuin lippusäännöissä
+if (age >= 65)
 {
-    return a + b;
+    price = 9.00m;
 }
+
+// Huono: toistaa koodin
+// if age is greater than or equal to 65
 ```
 
-## Yleisiä käytäntöjä
+`//` on yhden rivin kommentti. `/* ... */` peittää useita rivejä. Älä jätä vanhaa koodia kommentteihin "varmuuden vuoksi" — sen hoitaa Git.
 
-### 1. Selkeät muuttujan nimet
-
-```csharp
-// ✅ HYVÄ - selkeä ja kuvaava
-int userAge = 25;
-string customerName = "Matti";
-bool isActive = true;
-
-// ❌ HUONO - epäselvä
-int a = 25;
-string n = "Matti";
-bool flag = true;
-```
-
-### 2. Vältä lyhenteitä
-
-```csharp
-// ✅ HYVÄ
-string customerName = "Matti";
-int numberOfItems = 10;
-
-// ❌ HUONO
-string custName = "Matti";
-int numItems = 10;
-```
-
-### 3. Totuusarvojen nimeäminen
-
-```csharp
-// ✅ HYVÄ - alkaa "is", "has", "can" jne.
-bool isActive = true;
-bool hasPermission = false;
-bool canEdit = true;
-
-// ❌ HUONO
-bool active = true;
-bool permission = false;
-```
-
-### 4. Metodien nimeäminen
-
-```csharp
-// ✅ HYVÄ - verbi + substantiivi
-public void CalculateTotal() { }
-public string GetUserName() { return ""; }
-public void SaveData() { }
-
-// ❌ HUONO
-public void Total() { }
-public string UserName() { return ""; }
-```
+XML-kommentit (`/// <summary>`) kuuluvat julkisiin kirjastoihin. Alussa tavallinen `//` riittää.
 
 ## Yhteenveto
 
-- **Nimeäminen**: PascalCase luokille ja public jäsenille, camelCase private jäsenille ja paikallisille muuttujille
-- **Muotoilu**: 4 välilyöntiä sisennykseen, aaltosulkeet omalla rivillään
-- **Kommentit**: Selkeät ja hyödylliset kommentit, XML-dokumentointi julkisille metodeille
-- **Selkeys**: Selkeät ja kuvaavat nimet, vältä lyhenteitä
+- Koodia luetaan. Nimeä niin, että rivi kertoo tarkoituksen.
+- Muuttujat camelCase, metodit ja luokat PascalCase.
+- Neljä välilyöntiä, aaltosulkeet omalla rivillä, **Ctrl+K Ctrl+D**.
+- Kommentoi syy, älä itsestäänselvyyttä.
 
-Noudattamalla näitä käytäntöjä koodistasi tulee selkeämpää, ylläpidettävämpää ja helpommin ymmärrettävää sekä ihmisille että tietokoneille.
-
-## Hyödyllisiä linkkejä
-
-- [C# identifier names - rules and conventions | Microsoft Learn](https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/identifier-names)
-- [.NET documentation C# Coding Conventions | Microsoft Learn](https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions)
-
-Seuraavaksi: [Visual Studio -vinkit](Visual-Studio-Tips.md)
+Seuraavaksi: [Visual Studio -vinkit](Visual-Studio-Tips.md) · [Muuttujat](Variables.md) · [Funktiot ja metodit](Functions-and-Methods.md)

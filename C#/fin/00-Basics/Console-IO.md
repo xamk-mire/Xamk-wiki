@@ -2,7 +2,9 @@
 
 Konsolisovellus keskustelee käyttäjän kanssa tekstillä: se **tulostaa** viestejä ja **lukee** vastauksia. C#:ssa tähän käytetään `Console`-luokkaa.
 
-**Microsoftin dokumentaatio:** [Console class](https://learn.microsoft.com/en-us/dotnet/api/system.console)
+Arjen esimerkki: kassan näyttö ja näppäimistö. Ohjelma kirjoittaa kysymyksen. Ihminen vastaa. Vastaus on aina tekstiä, kunnes muutat sen luvuksi.
+
+**Microsoft:** [Console class](https://learn.microsoft.com/fi-fi/dotnet/api/system.console)
 
 ## Kolme metodia, jotka riittävät pitkälle
 

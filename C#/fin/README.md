@@ -9,7 +9,7 @@ Sisällysluettelo: [00-Basics/README](00-Basics/README.md).
 
 - [Visual Studio -vinkit](00-Basics/Visual-Studio-Tips.md)
 - [Konsolin syöte ja tulostus](00-Basics/Console-IO.md)
-- [Muuttujat](00-Basics/Variables.md) — sisältää `decimal` (raha)
+- [Muuttujat](00-Basics/Variables.md) — `int`, `decimal` (raha), `string`, `bool`
 - [Operaattorit](00-Basics/Operators.md)
 - [Tyyppimuunnokset](00-Basics/Casting.md)
 - [Ohjausrakenteet](00-Basics/Control-Structures.md)
@@ -23,8 +23,8 @@ Sisällysluettelo: [00-Basics/README](00-Basics/README.md).
 - [Poikkeusten käsittely](00-Basics/Exception-Handling.md)
 - [Tiedostojen luku ja kirjoitus](00-Basics/File-IO.md)
 - [JSON](00-Basics/JSON.md)
-- [Properties](00-Basics/Properties.md)
-- [Access Modifiers](00-Basics/Access-Modifiers.md)
+- [Propertyt](00-Basics/Properties.md)
+- [Käyttöoikeudet](00-Basics/Access-Modifiers.md)
 - [DateTime](00-Basics/DateTime.md) · [Satunnaisluvut](00-Basics/Random.md) · [Rekursio](00-Basics/Recursion.md)
 
 ### 2. [OOP-konseptit](02-OOP-Concepts/)

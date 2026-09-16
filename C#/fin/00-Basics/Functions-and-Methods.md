@@ -1,12 +1,29 @@
-# Funktiot ja Metodit (Functions and Methods)
+# Funktiot ja metodit (Functions and Methods)
 
-Metodi on nimetty pala koodia: se kirjoitetaan **kerran** ja sitä kutsutaan **monesti**. Refaktoroinnissa ohjelman tuloste ei muutu, vain rakenne paranee.
+**Metodi** on nimetty pala koodia. Se kirjoitetaan **kerran** ja sitä kutsutaan **monesti**.
 
-C#:ssa kaikki funktiot asuvat luokassa, joten puhutaan yleensä metodeista. Sana "funktio" tarkoittaa samaa asiaa yleisessä ohjelmoinnissa.
+Ilman metodia sama `if`-ketju kopioituu jokaiseen paikkaan, jossa hintaa tarvitaan. Kun sääntö muuttuu, joudut korjaamaan kaikki kopiot. Metodissa korjaus on yhdessä paikassa.
+
+C#:ssa funktiot asuvat luokassa, joten puhutaan yleensä **metodeista**. Sana "funktio" tarkoittaa samaa asiaa yleisessä ohjelmoinnissa.
+
+**Microsoft:** [Methods](https://learn.microsoft.com/fi-fi/dotnet/csharp/programming-guide/classes-and-structs/methods)
+
+## Kartta
+
+| Termi | Yksi lause |
+|-------|------------|
+| Määrittely | Kertoo, mitä metodi tekee — ei aja mitään yksin |
+| Kutsu | Ajaa metodin juuri tässä kohdassa |
+| `void` | Metodi ei palauta arvoa — se vain tekee (tulostaa, kysyy) |
+| Paluutyyppi | `int`, `decimal`, `string`… kutsuja saa tuloksen `return`-lauseella |
+| Parametri | Metodin oma muuttuja, vastaanottaa arvon |
+| Argumentti | Arvo, joka annetaan kutsussa |
+| `static` | Ennen olioita: kirjoita `static` jokaisen metodin eteen |
+| `Main` | Ohjelman aloitus — suoritus alkaa täältä |
 
 ## static ja Main
 
-Ennen olio-ohjelmointia metodit merkitään `static`-sanalla ja ne asuvat `Program`-luokassa. `Main` on käynnistyspiste — suoritus alkaa sieltä, kun painat Ctrl+F5.
+Ennen olio-ohjelmointia metodit merkitään `static`-sanalla ja ne asuvat `Program`-luokassa. `Main` on käynnistyspiste. Suoritus alkaa sieltä, kun painat Ctrl+F5.
 
 ```csharp
 class Program
@@ -15,6 +32,7 @@ class Program
     {
         PrintHeader();
         decimal price = GetUnitPrice(40);  // 12.00
+        Console.WriteLine(price);
     }
 
     static void PrintHeader()
@@ -33,36 +51,87 @@ class Program
 
 | Osa | Selitys |
 |-----|---------|
-| `static` | Ennen olioita: kirjoita `static` jokaisen metodin eteen |
-| `void` | Metodi ei palauta arvoa — se vain tekee (tulostaa, kysyy) |
-| `decimal` / `int` / `string` | Paluuarvon tyyppi — kutsuja saa tuloksen `return`-lauseella |
-| `Main` | Ohjelman aloitus. Visual Studion "top-level statements" piilottaa tämän; rakenne voidaan avata myöhemmin |
+| `static` | Kuuluu luokalle. Alussa kirjoita `static` jokaisen metodin eteen. Ilman sitä kutsu `Main`ista ei käänny. |
+| `void` | Ei palauta arvoa |
+| `decimal` | Palauttaa hinnan `return`-lauseella |
+| `Main` | Visual Studion "top-level statements" voi piilottaa tämän. Rakenne avataan myöhemmin. |
 
-Metodien järjestyksellä tiedostossa ei ole väliä. Suoritus alkaa `Main`ista.
+Metodien järjestyksellä tiedostossa ei ole väliä. Suoritus alkaa `Main`ista. `GetUnitPrice` ei ala itsestään, vaikka se on tiedostossa ylempänä tai alempana.
 
 ## Määrittely vs kutsu
 
 | | Määrittely | Kutsu |
 |---|---|---|
 | **Koodi** | `static void PrintHeader() { ... }` | `PrintHeader();` |
-| **Mitä tekee** | Kertoo *mitä* metodi tekee — ei suorita mitään | Suorittaa metodin juuri tässä kohdassa |
+| **Mitä tekee** | Kertoo *mitä* metodi tekee | Suorittaa metodin juuri tässä kohdassa |
 | **Montako kertaa** | Kirjoitetaan kerran | Voidaan kutsua vaikka sata kertaa |
+
+Kutsu tarvitsee sulkeet `()`. Ilman niitä C# ei aja metodia.
+
+Kun `Main` kutsuu `GetUnitPrice(40)`:
+
+1. Suoritus hyppää metodiin.
+2. Parametri `age` saa arvon `40`.
+3. `if`-ketju valitsee `12.00m`.
+4. `return` lähettää hinnan takaisin.
+5. `Main` jatkaa: `price` on `12.00m`.
 
 ## Parametri vs argumentti
 
-**Parametri** on metodin oma muuttuja. **Argumentti** on arvo, joka kopioidaan parametriin kutsussa — **järjestyksessä**, ei nimen perusteella.
+**Parametri** on metodin oma muuttuja. **Argumentti** on arvo, joka kopioidaan parametriin kutsussa.
+
+Järjestys ratkaisee, ei nimi.
 
 ```csharp
-static decimal GetDiscount(string? code, decimal subtotal) { ... }
+static decimal GetDiscount(string? code, decimal subtotal)
+{
+    // ...
+}
 
 decimal discount = GetDiscount(discountCode, subtotal);
 // argumentti discountCode → parametri code
 // argumentti subtotal     → parametri subtotal
 ```
 
-Jos vaihdat argumenttien paikkaa, C# ei varoita nimistä — väärä arvo menee väärään parametriin. Tämä on klassinen ikuisen silmukan syy: `ReadInt(prompt, 8, 1)` kun tarkoitus oli `min=1, max=8`.
+Jos vaihdat argumenttien paikkaa, C# ei varoita nimistä. Väärä arvo menee väärään parametriin. Klassinen ikuisen silmukan syy: `ReadInt(prompt, 8, 1)` kun tarkoitus oli `min=1, max=8`.
 
-`return` palauttaa arvon kutsujalle **ja lopettaa metodin**. Jokaisesta polusta pitää löytyä `return`, jos tyyppi ei ole `void` — muuten syntyy käännösvirhe *"not all code paths return a value"*.
+Parametriin kopioituu **arvo**. Metodin sisällä `age++` ei muuta `Main`in muuttujaa. Alussa tämä riittää. `ref` ja `out` ovat myöhempää asiaa.
+
+## return — anna tulos ja lopeta
+
+`return` palauttaa arvon kutsujalle **ja lopettaa metodin**. Riville `return`in jälkeen ei mennä.
+
+```csharp
+static decimal GetUnitPrice(int age)
+{
+    if (age < 12)
+    {
+        return 7.50m;
+    }
+
+    if (age < 65)
+    {
+        return 12.00m;
+    }
+
+    return 9.00m;
+}
+```
+
+Jos tyyppi ei ole `void`, **jokaisesta** polusta pitää löytyä `return`. Muuten käännösvirhe: *not all code paths return a value*.
+
+`void`-metodissa `return;` saa olla ilman arvoa. Se vain poistuu metodista.
+
+Tallenna paluuarvo muuttujaan, jos tarvitset sitä myöhemmin:
+
+```csharp
+decimal price = GetUnitPrice(age);
+decimal lineTotal = price * ticketCount;
+```
+
+Tai käytä suoraan: `Console.WriteLine(GetUnitPrice(40));`
+
+## Käännösvirhe vai kaatuminen?
 
 | | Käännösvirhe | Ajonaikainen virhe (poikkeus) |
 |---|---|---|
@@ -70,277 +139,9 @@ Jos vaihdat argumenttien paikkaa, C# ei varoita nimistä — väärä arvo menee
 | **Missä** | Error List, punainen alleviivaus | Konsolin virheilmoitus |
 | **Esimerkki** | Puuttuva `return` tai `;` | `FormatException` syötteestä `"abc"` |
 
-## Funktion osat
+## Kuormitus — sama nimi, eri parametrit
 
-Funktio koostuu seuraavista osista:
-
-1. **Paluuarvotyyppi**: Tyyppi, jota funktio palauttaa. Jos funktio ei palauta arvoa, käytetään `void`-tyyppiä.
-2. **Funktio nimi**: Nimi, jolla funktiota kutsutaan.
-3. **Parametrit**: Arvot tai muuttujat, jotka annetaan funktion sisälle. Parametrit määritellään suluissa.
-
-### Esimerkki
-
-```csharp
-public int Summa(int a, int b)
-{
-    return a + b;
-}
-```
-
-Tässä esimerkissä `Summa` on funktio, joka ottaa kaksi kokonaislukuparametria (`int a` ja `int b`) ja palauttaa niiden summan. Paluuarvotyyppi on `int`.
-
-## Void
-
-`void` on avainsana useimmissa ohjelmointikielissä, mukaan lukien C#. Se tarkoittaa, että funktio ei palauta arvoa.
-
-Kun näet funktion tai metodin määritelmän, jossa paluuarvo on `void`, se tarkoittaa, että kyseinen funktio suorittaa toiminnon mutta ei palauta mitään arvoa kutsujalleen.
-
-```csharp
-public void TulostaTervehdys()
-{
-    Console.WriteLine("Hei maailma!");
-}
-```
-
-## Mitä ovat metodit?
-
-Metodi on nimetty koodilohko, joka suorittaa tietyn tehtävän. Metodit auttavat:
-- **Koodin uudelleenkäytössä**: Sama koodi voidaan käyttää useita kertoja
-- **Modulaarisuudessa**: Koodi jaetaan pieniin, hallittaviin osiin
-- **Luettavuudessa**: Metodit tekevät koodista selkeämpää
-
-## Metodin määrittely
-
-### Perussyntaksi
-
-```csharp
-[access-modifier] [return-type] MethodName([parameters])
-{
-    // Metodin runko
-    return value; // Jos palauttaa arvon
-}
-```
-
-### Esimerkkejä
-
-```csharp
-// Metodi ilman parametreja ja palautusarvoa
-public void Greet()
-{
-    Console.WriteLine("Hei maailma!");
-}
-
-// Metodi parametreilla
-public void Greet(string name)
-{
-    Console.WriteLine($"Hei {name}!");
-}
-
-// Metodi palautusarvolla
-public int Add(int a, int b)
-{
-    return a + b;
-}
-
-// Metodi useilla parametreilla
-public string CreateFullName(string firstName, string lastName)
-{
-    return $"{firstName} {lastName}";
-}
-```
-
-## Metodin kutsuminen
-
-```csharp
-// Kutsu metodia ilman palautusarvoa
-Greet();
-
-// Kutsu metodia parametreilla
-Greet("Matti");
-
-// Kutsu metodia ja tallenna palautusarvo
-int sum = Add(5, 3);
-Console.WriteLine(sum);  // 8
-
-// Kutsu metodia suoraan ilman tallennusta
-Console.WriteLine(Add(10, 20));  // 30
-```
-
-## Parametrit
-
-### Arvoparametrit (Value Parameters)
-
-Parametri kopioidaan metodin kutsuessa:
-
-```csharp
-public void Increment(int number)
-{
-    number++;  // Muuttaa vain kopiota
-    Console.WriteLine($"Metodissa: {number}");
-}
-
-int x = 5;
-Increment(x);
-Console.WriteLine($"Kutsujan jälkeen: {x}");  // x on edelleen 5
-```
-
-### Viittausparametrit (Reference Parameters)
-
-`ref`-avainsana antaa metodin muuttaa alkuperäistä muuttujaa:
-
-```csharp
-public void Increment(ref int number)
-{
-    number++;  // Muuttaa alkuperäistä muuttujaa
-}
-
-int x = 5;
-Increment(ref x);
-Console.WriteLine(x);  // x on nyt 6
-```
-
-### Output-parametrit
-
-`out`-avainsana pakottaa metodin asettamaan arvon:
-
-```csharp
-public bool TryDivide(int dividend, int divisor, out int result)
-{
-    if (divisor == 0)
-    {
-        result = 0;
-        return false;
-    }
-    
-    result = dividend / divisor;
-    return true;
-}
-
-// Käyttö
-if (TryDivide(10, 2, out int result))
-{
-    Console.WriteLine($"Tulos: {result}");  // 5
-}
-```
-
-### Valinnaiset parametrit (Optional Parameters)
-
-Parametrille voidaan antaa oletusarvo:
-
-```csharp
-public void Greet(string name, string greeting = "Hei")
-{
-    Console.WriteLine($"{greeting} {name}!");
-}
-
-Greet("Matti");              // "Hei Matti!"
-Greet("Matti", "Moro");      // "Moro Matti!"
-```
-
-### Nimetty parametrit (Named Parameters)
-
-Parametrit voidaan nimetä kutsuessa:
-
-```csharp
-public void CreateUser(string firstName, string lastName, int age = 0)
-{
-    Console.WriteLine($"{firstName} {lastName}, {age} vuotta");
-}
-
-// Käyttö
-CreateUser("Matti", "Meikäläinen", 25);
-CreateUser(firstName: "Matti", lastName: "Meikäläinen", age: 25);
-CreateUser(lastName: "Meikäläinen", firstName: "Matti");  // Järjestys ei merkitse
-```
-
-## Palautusarvot
-
-### Void-metodit
-
-Metodit, jotka eivät palauta arvoa:
-
-```csharp
-public void DisplayMessage(string message)
-{
-    Console.WriteLine(message);
-}
-```
-
-### Palautusarvon tyyppi
-
-```csharp
-// Palauttaa int
-public int GetAge()
-{
-    return 25;
-}
-
-// Palauttaa string
-public string GetName()
-{
-    return "Matti";
-}
-
-// Palauttaa bool
-public bool IsAdult(int age)
-{
-    return age >= 18;
-}
-
-// Palauttaa objektin
-public Person CreatePerson(string name, int age)
-{
-    return new Person { Name = name, Age = age };
-}
-```
-
-### Useita palautusarvoja (Tuples)
-
-```csharp
-public (int sum, int product) Calculate(int a, int b)
-{
-    return (a + b, a * b);
-}
-
-// Käyttö
-var result = Calculate(5, 3);
-Console.WriteLine($"Summa: {result.sum}, Tulo: {result.product}");
-
-// Tai hajotetaan suoraan
-(int sum, int product) = Calculate(5, 3);
-```
-
-## Metodin ylikuormitus (Method Overloading)
-
-Sama metodi voidaan määritellä useilla eri parametreilla:
-
-```csharp
-public class Calculator
-{
-    public int Add(int a, int b)
-    {
-        return a + b;
-    }
-    
-    public double Add(double a, double b)
-    {
-        return a + b;
-    }
-    
-    public int Add(int a, int b, int c)
-    {
-        return a + b + c;
-    }
-}
-
-// Käyttö
-Calculator calc = new Calculator();
-int result1 = calc.Add(5, 3);        // 8
-double result2 = calc.Add(5.5, 3.2); // 8.7
-int result3 = calc.Add(1, 2, 3);     // 6
-```
-
-Kuormitus toimii myös `static`-metodeilla. C# valitsee version **argumenttien määrän ja tyyppien** perusteella:
+Sama metodinimi voi esiintyä useasti, jos parametrit eroavat määrältä tai tyypiltä. C# valitsee version **argumenttien** perusteella.
 
 ```csharp
 static int ReadInt(string prompt)
@@ -360,201 +161,44 @@ static int ReadInt(string prompt, int min, int max)
     return value;
 }
 
-int age = ReadInt("Anna ikäsi: ", 0, 130);           // 3 argumenttia → tarkistava
-int raw = ReadInt("Anna mikä tahansa luku: ");       // 1 argumentti → yksinkertainen
+int age = ReadInt("Anna ikäsi: ", 0, 130);        // 3 argumenttia → tarkistava
+int raw = ReadInt("Anna mikä tahansa luku: ");    // 1 argumentti → yksinkertainen
 ```
 
-## Rekursio
+Nimi `ReadInt` toistuu, mutta tehtävä on sama idea: lue luku. Toinen versio lisää rajat.
 
-Metodi voi kutsua itseään:
+## Yleisiä virheitä
 
-```csharp
-public int Factorial(int n)
-{
-    if (n <= 1)
-        return 1;
-    
-    return n * Factorial(n - 1);
-}
+**1. Unohdit `static`**
 
-// Käyttö
-int result = Factorial(5);  // 5 * 4 * 3 * 2 * 1 = 120
-```
+`Main` on `static`. Se voi kutsua suoraan vain `static`-metodeja. Ilman `static`-sanaa tulee käännösvirhe.
 
-## Lisämateriaali
+**2. Unohdit sulkeet kutsussa**
 
-Lambda, `ref`/`out`, tuplet ja extension-metodit ovat edistyneempiä aiheita. Alla ne ovat referenssinä.
+`PrintHeader;` ei aja metodia. Oikein: `PrintHeader();`
 
-## Lambda-lausekkeet (Lambda Expressions)
+**3. Paluuarvo hukataan**
 
-Lyhyt tapa määritellä metodit:
+`GetUnitPrice(40);` laskee hinnan ja heittää sen pois. Tallenna: `decimal price = GetUnitPrice(40);`
 
-```csharp
-// Perinteinen metodi
-public int Add(int a, int b)
-{
-    return a + b;
-}
+**4. Argumentit väärässä järjestyksessä**
 
-// Lambda-lauseke
-Func<int, int, int> add = (a, b) => a + b;
+Nimet eivät suojaa. Tarkista määrittelyn sulkeet.
 
-// Käyttö
-int result = add(5, 3);  // 8
+## Valinnaiset nimet ja oletusarvot — myöhemmin
 
-// Lambda-lauseke ilman parametreja
-Action greet = () => Console.WriteLine("Hei!");
+Parametrille voi antaa oletuksen (`string greeting = "Hei"`) tai nimetä argumentin kutsussa (`min: 1, max: 8`). Alussa kirjoita argumentit järjestyksessä.
 
-// Lambda-lauseke yhdellä parametrilla
-Func<int, int> square = x => x * x;
-```
+`ref`, `out`, tuplet, lambda ja extension-metodit kuuluvat myöhempään. Rekursio (metodi kutsuu itseään): [Rekursio](Recursion.md).
 
-## Extension-metodit
-
-Metodit, jotka voidaan lisätä olemassa oleviin luokkiin:
-
-```csharp
-public static class StringExtensions
-{
-    public static bool IsValidEmail(this string email)
-    {
-        return email.Contains("@") && email.Contains(".");
-    }
-    
-    public static string Reverse(this string text)
-    {
-        char[] chars = text.ToCharArray();
-        Array.Reverse(chars);
-        return new string(chars);
-    }
-}
-
-// Käyttö
-string email = "test@example.com";
-bool isValid = email.IsValidEmail();  // Extension-metodi
-string reversed = email.Reverse();
-```
-
-## Funktio vs. Metodi
-
-Funktion ja metodin ero liittyy niiden käyttökontekstiin ja yhteyteen olio-ohjelmoinnin kanssa. Molemmat ovat lohkoja koodia, jotka suorittavat tietyn tehtävän, mutta ne eroavat toisistaan siinä, missä ja miten niitä käytetään.
-
-### 1. Yhteys olioon tai luokkaan
-
-- **Funktio**: Funktio on yleinen ohjelmoinnin käsite, joka ei välttämättä ole sidottu mihinkään luokkaan tai olioon. Se on itsenäinen koodilohko, joka suorittaa tietyn tehtävän ja voi palauttaa arvon. Funktiot voivat olla käytössä esimerkiksi ohjelmissa, jotka eivät noudata olio-ohjelmoinnin periaatteita (kuten C tai Python-projektit, joissa käytetään vain funktioita).
-
-- **Metodi**: Metodi on funktio, joka on määritelty luokan sisällä ja liittyy tiettyyn olioon. Metodit ovat aina osa luokkaa, ja niitä kutsutaan yleensä olion kautta. Metodi käyttää ja muokkaa yleensä sen olion tilaa, johon se liittyy.
-
-### 2. Syntaksi ja käyttö
-
-- **Funktio**: Funktiot määritellään ja kutsutaan suoraan, ilman että ne liittyvät mihinkään olioon tai luokkaan. Esimerkiksi C# voidaan kirjoittaa `static`-funktio luokan ulkopuolella (C# tosin kaikki funktiot ovat osana jotain luokkaa, mutta ne voivat olla `static`, jolloin ne eivät ole sidottuja mihinkään olioon).
-
-```csharp
-public static class MathHelper
-{
-    // Staattinen funktio - ei tarvitse olion instanssia
-    public static int Add(int a, int b)
-    {
-        return a + b;
-    }
-}
-
-// Käyttö
-int sum = MathHelper.Add(5, 3);
-```
-
-- **Metodi**: Metodit määritellään luokan sisällä ja niitä kutsutaan yleensä olion kautta. Metodit voivat käyttää ja muokata olion tilaa (eli olion kenttiä ja ominaisuuksia).
-
-```csharp
-public class Calculator
-{
-    private int result = 0;
-    
-    // Metodi - käyttää olion tilaa
-    public void Add(int number)
-    {
-        result += number;
-    }
-    
-    public int GetResult()
-    {
-        return result;
-    }
-}
-
-// Käyttö
-Calculator calc = new Calculator();
-calc.Add(5);
-calc.Add(3);
-int total = calc.GetResult(); // 8
-```
-
-### 3. Olio-ohjelmoinnin merkitys
-
-- **Funktio**: Funktiot voivat esiintyä missä tahansa ohjelmoinnin paradigmassa, ei vain olio-ohjelmoinnissa. Esimerkiksi funktionaalisessa ohjelmoinnissa funktiot ovat keskeisiä.
-
-- **Metodi**: Metodit ovat olio-ohjelmoinnin keskeinen osa. Ne kuvaavat, mitä toimintoja luokan oliot voivat suorittaa, ja ne voivat käsitellä olion sisäistä tilaa.
-
-### 4. Esimerkki
-
-- **Funktio**: C#-ohjelmassa `static`-avainsanalla määritelty funktio voi olla osa luokkaa, mutta sitä kutsutaan ilman olion instanssia.
-
-```csharp
-public static class StringHelper
-{
-    public static string Reverse(string text)
-    {
-        char[] chars = text.ToCharArray();
-        Array.Reverse(chars);
-        return new string(chars);
-    }
-}
-
-// Käyttö - ei tarvitse luoda oliota
-string reversed = StringHelper.Reverse("Hei");
-```
-
-- **Metodi**: C#-ohjelmassa metodi liittyy aina olioon, ellei se ole `static`.
-
-```csharp
-public class Person
-{
-    private string name;
-    
-    // Metodi - käyttää olion tilaa
-    public void SetName(string name)
-    {
-        this.name = name;
-    }
-    
-    public string GetName()
-    {
-        return name;
-    }
-}
-
-// Käyttö - tarvitsee olion instanssin
-Person person = new Person();
-person.SetName("Matti");
-string name = person.GetName();
-```
-
-### Yhteenveto
-
-- **Funktio** on itsenäinen koodilohko, joka suorittaa tehtävän, mutta ei ole sidottu mihinkään olioon tai luokkaan.
-- **Metodi** on funktio, joka on sidottu tiettyyn luokkaan ja liittyy sen olioihin. Se käyttää ja muokkaa yleensä olion tilaa.
-
-Funktiot ovat yleisempiä ja voivat olla osa mitä tahansa ohjelmointiparadigmaa, kun taas metodit ovat erityisesti osa olio-ohjelmointia ja liittyvät läheisesti olioihin ja luokkiin.
+`static` tarkemmin: [Staattiset luokat ja metodit](Static-Classes-and-Methods.md). Näkyvyys: [Näkyvyysalueet](Scopes.md).
 
 ## Yhteenveto
 
-- Funktiot ovat koodin palasia, jotka suorittavat tietyn toiminnon
-- Metodit ovat funktioita, jotka liittyvät luokkiin ja olioihin
-- `void` tarkoittaa, että funktio ei palauta arvoa
-- Parametrit välittävät dataa funktioihin/metodeihin
-- Palautusarvot palauttavat tuloksen
-- Metodin ylikuormitus mahdollistaa useita versioita
-- Lambda-lausekkeet ovat lyhyitä tapoja määritellä metodeja
+- Metodi kirjoitetaan kerran, kutsutaan monesti. Tuloste ei muutu, rakenne paranee.
+- `void` tekee. Muu tyyppi palauttaa arvon `return`-lauseella.
+- Parametri vastaanottaa, argumentti annetaan — järjestyksessä.
+- Alussa `static` jokaiseen metodiin. Suoritus alkaa `Main`ista.
+- Kuormitus: sama nimi, eri parametrit.
 
 Seuraavaksi: [Näkyvyysalueet](Scopes.md) · [Staattiset luokat ja metodit](Static-Classes-and-Methods.md) · [Ohjausrakenteet](Control-Structures.md)
-

@@ -1,16 +1,22 @@
 # Tietorakenteet (Data Structures)
 
-Tietorakenteet ovat tapoja organisoida ja tallentaa dataa. Aloita kolmesta: **taulukko**, **List** ja **Dictionary**. Muut rakenteet (HashSet, Queue, Stack) ovat lisätietoa.
+**Tietorakenne** on tapa pitää monta arvoa yhdessä paikassa. Yksi muuttuja, monta arvoa, käsittely silmukalla.
 
-## Milloin mitäkin?
+Neljä elokuvaa neljässä muuttujassa (`movie1` … `movie4`) ei skaalaudu. Viides elokuva vaatii uuden muuttujan ja uuden rivin joka paikkaan. Taulukossa lisäät yhden nimen.
+
+Aloita kolmesta: **taulukko**, **List** ja **Dictionary**. HashSet, jono ja pino ovat lisätietoa.
+
+**Microsoft:** [Collections](https://learn.microsoft.com/fi-fi/dotnet/csharp/language-reference/builtin-types/collections)
+
+## Kartta
 
 | Kokoelma | Koko | Käyttö | Esimerkki |
-|----------|------|--------|---------------------|
-| **Taulukko** `string[]` | Kiinteä — päätetään luodessa | Tunnettu, muuttumaton joukko | Päivän elokuvat |
-| **List** `List<decimal>` | Kasvaa `Add`-kutsuilla | Kertyvä data, jonka määrää ei tiedetä | Päivän ostokset |
-| **Dictionary** `Dictionary<string, decimal>` | Kasvaa | Avain → arvo, haku avaimella | Alennuskoodi → prosentti |
+|----------|------|--------|-----------|
+| Taulukko `string[]` | Kiinteä — päätetään luodessa | Tunnettu, muuttumaton joukko | Päivän elokuvat |
+| `List<decimal>` | Kasvaa `Add`-kutsuilla | Kertyvä data, jonka määrää ei tiedetä | Päivän ostokset |
+| `Dictionary<string, decimal>` | Kasvaa | Avain → arvo | Alennuskoodi → prosentti |
 
-Yksi muuttuja, monta arvoa, käsittely silmukalla. Neljä elokuvaa neljässä muuttujassa (`movie1` … `movie4`) ei skaalaudu.
+Silmukat: [Ohjausrakenteet](Control-Structures.md).
 
 ## Indeksi alkaa nollasta
 
@@ -22,134 +28,74 @@ movies[3]  →  "Animaatio: Metsän väki"
 movies.Length  →  4
 ```
 
-`movies[4]` heittää `IndexOutOfRangeException`-poikkeuksen — paikkaa ei ole. Valikossa käyttäjä näkee numerot 1–4; koodissa valinta muutetaan indeksiksi: `movies[choice - 1]`.
+`movies[4]` heittää `IndexOutOfRangeException`-poikkeuksen — paikkaa ei ole.
+
+Valikossa käyttäjä näkee numerot 1–4. Koodissa valinta muutetaan indeksiksi: `movies[choice - 1]`. Jos käyttäjä kirjoittaa `1`, haetaan `movies[0]`.
 
 | | Taulukko | List |
 |--|----------|------|
 | Alkioiden määrä | `Length` | `Count` |
-| Indeksointi | `items[i]` | `items[i]` |
+| Indeksi | `items[i]` | `items[i]` |
 
-## Taulukot (Arrays)
+## Taulukko — koko päätetään heti
 
-Taulukko on kiinteän kokoinen kokoelma samantyyppisiä elementtejä.
-
-### Yksiulotteinen taulukko
+Taulukkoon mahtuu vain saman tyyppisiä arvoja. Kokoa ei voi kasvattaa myöhemmin.
 
 ```csharp
-// Määrittele ja alusta
-int[] numbers = new int[5];
-numbers[0] = 1;
-numbers[1] = 2;
-numbers[2] = 3;
-numbers[3] = 4;
-numbers[4] = 5;
+string[] movies =
+{
+    "Avaruusseikkailu 3D",
+    "Komedia: Kahvia ja kaaosta",
+    "Draama: Hiljainen joki",
+    "Animaatio: Metsän väki"
+};
 
-// Tai lyhyemmin
-int[] numbers2 = { 1, 2, 3, 4, 5 };
+Console.WriteLine(movies[0]);        // ensimmäinen
+Console.WriteLine(movies.Length);    // 4
 
-// Käyttö
-Console.WriteLine(numbers[0]);  // 1
-Console.WriteLine(numbers.Length);  // 5
+for (int i = 0; i < movies.Length; i++)
+{
+    Console.WriteLine($"{i + 1}. {movies[i]}");   // 1. Avaruusseikkailu 3D
+}
 ```
 
-### Moniulotteinen taulukko
+`i + 1` on ihmisen numero. `movies[i]` on koneen paikka.
+
+Tyhjä taulukko tietylle koolle: `int[] numbers = new int[5];` — viisi paikkaa, arvot nollia kunnes asetat ne.
+
+Kaksiulotteinen taulukko (`int[,]`) on ruudukko. Alussa yksi rivi riittää. Sisäkkäiset silmukat: [ohjausrakenteet](Control-Structures.md#sisäkkäiset-silmukat).
+
+## List — koko kasvaa
+
+Listaan lisatetään alkioita ohjelman aikana. Päivän ostosten määrää ei tiedetä aamulla.
 
 ```csharp
-// 2D-taulukko (matriisi)
-int[,] matrix = new int[3, 3];
+List<decimal> sales = new List<decimal>();
 
-// Alusta arvot
-matrix[0, 0] = 1;
-matrix[0, 1] = 2;
-matrix[0, 2] = 3;
-matrix[1, 0] = 4;
-matrix[1, 1] = 5;
-matrix[1, 2] = 6;
-matrix[2, 0] = 7;
-matrix[2, 1] = 8;
-matrix[2, 2] = 9;
+sales.Add(12.00m);
+sales.Add(7.50m);
+sales.Add(19.35m);
 
-// Tai lyhyemmin
-int[,] matrix2 = { { 1, 2, 3 }, { 4, 5, 6 }, { 7, 8, 9 } };
+Console.WriteLine(sales[0]);     // 12.00
+Console.WriteLine(sales.Count);  // 3
 ```
 
-## Listat (Lists)
-
-Lista on dynaaminen kokoelma, joka voi kasvaa ja pienentyä.
+`List<decimal>` luetaan: "lista desimaalilukuja". Hakasulkeiden väliin tulee alkion tyyppi.
 
 ```csharp
-using System.Collections.Generic;
-
-// Luodaan lista
-List<int> numbers = new List<int>();
-
-// Lisää elementtejä
-numbers.Add(1);
-numbers.Add(2);
-numbers.Add(3);
-
-// Tai alusta heti
 List<string> names = new List<string> { "Matti", "Liisa", "Pekka" };
 
-// Käyttö
-Console.WriteLine(names[0]);  // "Matti"
-Console.WriteLine(names.Count);  // 3
-
-// Poista elementti
 names.Remove("Liisa");
-
-// Tarkista onko elementti listassa
 bool exists = names.Contains("Matti");
 ```
 
-## Sanakirjat (Dictionaries)
+Tarvitset `using System.Collections.Generic;` tiedoston alkuun, jos Visual Studio ei lisää sitä itse. **Ctrl+.** ehdottaa korjausta.
 
-Sanakirja tallentaa avain-arvo-pareja.
+`foreach` kun et tarvitse numeroa. `for` kun tarvitset indeksin tai järjestysnumeron.
 
-```csharp
-using System.Collections.Generic;
+## Dictionary — avain avaa arvon
 
-// Luodaan sanakirja
-Dictionary<string, int> ages = new Dictionary<string, int>();
-
-// Lisää arvoja
-ages["Matti"] = 25;
-ages["Liisa"] = 30;
-ages["Pekka"] = 28;
-
-// Tai alusta heti
-Dictionary<string, string> countries = new Dictionary<string, string>
-{
-    { "FI", "Suomi" },
-    { "SE", "Ruotsi" },
-    { "NO", "Norja" }
-};
-
-// Käyttö
-Console.WriteLine(ages["Matti"]);  // 25
-
-// Tarkista onko avain olemassa — ilman tätä tuntematon avain kaataa ohjelman (KeyNotFoundException)
-if (ages.ContainsKey("Matti"))
-{
-    Console.WriteLine(ages["Matti"]);
-}
-
-// Sama TryGetValue-metodilla (palauttaa false, jos avainta ei ole)
-if (ages.TryGetValue("Matti", out int age))
-{
-    Console.WriteLine(age);
-}
-
-// Iteroi läpi
-foreach (var pair in ages)
-{
-    Console.WriteLine($"{pair.Key}: {pair.Value}");
-}
-```
-
-### Alennuskoodit Dictionaryssa
-
-If-ketju jokaiseen koodiin ei skaalaudu. Dictionaryssa uusi koodi on yksi rivi:
+Sanakirja etsii **avaimella**, ei järjestyksellä. Alennuskoodi `LEFFA10` avaa prosentin `0.10`. If-ketju jokaiseen koodiin ei skaalaudu. Uusi koodi on yksi rivi.
 
 ```csharp
 Dictionary<string, decimal> discounts = new Dictionary<string, decimal>
@@ -158,93 +104,70 @@ Dictionary<string, decimal> discounts = new Dictionary<string, decimal>
     { "KESA20", 0.20m }
 };
 
-if (code != null && discounts.ContainsKey(code.ToUpper()))
+string code = "leffa10";
+string key = code.ToUpper();
+
+if (discounts.ContainsKey(key))
 {
-    decimal percent = discounts[code.ToUpper()];
+    decimal percent = discounts[key];
     decimal discount = subtotal * percent;
 }
 ```
 
-## Joukot (Sets)
-
-Joukko tallentaa uniikkeja elementtejä.
+Ilman `ContainsKey`-tarkistusta tuntematon avain kaataa ohjelman (`KeyNotFoundException`). Sama turvallisesti: `TryGetValue`.
 
 ```csharp
-using System.Collections.Generic;
-
-// HashSet - nopea etsintä
-HashSet<int> numbers = new HashSet<int> { 1, 2, 3, 4, 5 };
-
-// Lisää elementti (jos ei jo ole)
-numbers.Add(6);
-
-// Tarkista onko elementti joukossa
-bool exists = numbers.Contains(3);
-
-// Poista elementti
-numbers.Remove(3);
+if (discounts.TryGetValue(key, out decimal percent))
+{
+    Console.WriteLine(percent);
+}
 ```
 
-## Jono (Queue)
-
-Jono on FIFO (First In, First Out) -rakenne.
+Kaikki parit silmukassa:
 
 ```csharp
-using System.Collections.Generic;
-
-Queue<string> queue = new Queue<string>();
-
-// Lisää jonoon
-queue.Enqueue("Ensimmäinen");
-queue.Enqueue("Toinen");
-queue.Enqueue("Kolmas");
-
-// Poista jonosta (ensimmäinen)
-string first = queue.Dequeue();  // "Ensimmäinen"
-
-// Katso seuraavaa ilman poistamista
-string next = queue.Peek();  // "Toinen"
+foreach (var pair in discounts)
+{
+    Console.WriteLine($"{pair.Key}: {pair.Value}");
+}
 ```
 
-## Pino (Stack)
+`Key` on avain, `Value` on arvo. Avaimen pitää olla uniikki. Samaa koodia ei voi lisätä kahdesti.
 
-Pino on LIFO (Last In, First Out) -rakenne.
+## Yleisiä virheitä
 
-```csharp
-using System.Collections.Generic;
+**1. Indeksi 4 neljän alkion kokoelmassa**
 
-Stack<string> stack = new Stack<string>();
+Pituus 4, lailliset indeksit 0–3.
 
-// Lisää pinoon
-stack.Push("Ensimmäinen");
-stack.Push("Toinen");
-stack.Push("Kolmas");
+**2. `Length` ja `Count` sekaisin**
 
-// Poista pinosta (viimeisin)
-string last = stack.Pop();  // "Kolmas"
+Taulukolla `Length`. Listalla ja Dictionarylla `Count`.
 
-// Katso seuraavaa ilman poistamista
-string next = stack.Peek();  // "Toinen"
-```
+**3. Valikon numero suoraan indeksiksi**
 
-## Vertailu
+Käyttäjän `1` ei ole `movies[1]` (toinen elokuva). Vähennä yksi.
 
-| Tietorakenne | Käyttö | Etsintä | Lisäys | Poisto |
-|-------------|--------|---------|--------|--------|
-| Array | Kiinteä koko | O(1) | - | - |
-| List | Dynaaminen lista | O(n) | O(1) | O(n) |
-| Dictionary | Avain-arvo-pari | O(1) | O(1) | O(1) |
-| HashSet | Uniikit elementit | O(1) | O(1) | O(1) |
-| Queue | FIFO-jono | - | O(1) | O(1) |
-| Stack | LIFO-pino | - | O(1) | O(1) |
+**4. Dictionary ilman tarkistusta**
+
+`discounts["TUNTEMATON"]` kaatuu. Tarkista avain ensin.
+
+## HashSet, jono ja pino — myöhemmin
+
+| Rakenne | Idea | Milloin |
+|---------|------|---------|
+| `HashSet<T>` | Jokainen arvo vain kerran | "Onko tämä jo lisätty?" |
+| `Queue<T>` | Ensimmäinen sisään, ensimmäinen ulos | Jonotus |
+| `Stack<T>` | Viimeinen sisään, ensimmäinen ulos | Peruutuspino |
+
+Aloita taulukosta, Listasta ja Dictionarysta. Big O -ajat ovat [omalla sivullaan](../99-General/Big-O.md) — älä opettele niitä ennen kuin kokoelma on tuttu.
 
 ## Yhteenveto
 
-- **Taulukot**: Kiinteä koko, `Length`, indeksi alkaa nollasta
-- **Listat**: Kasvaa `Add`-kutsuilla, `Count`
-- **Sanakirjat**: Avain → arvo; tarkista `ContainsKey` ennen hakua
-- **foreach** kun indeksiä ei tarvita, **for** kun tarvitaan numero tai `items[i]`
-- HashSet, Queue ja Stack ovat lisätietoa — aloita taulukosta, Listasta ja Dictionarysta
+- Yksi muuttuja, monta arvoa. Indeksi alkaa nollasta.
+- Taulukko: kiinteä koko, `Length`.
+- List: `Add`, `Count`, koko kasvaa.
+- Dictionary: avain → arvo, tarkista `ContainsKey`.
+- `foreach` ilman numeroa, `for` kun tarvitset indeksin.
 
-Seuraavaksi: [Ohjausrakenteet](Control-Structures.md) · [Funktiot ja metodit](Functions-and-Methods.md)
-
+Seuraavaksi: [Ohjausrakenteet](Control-Structures.md) · [Funktiot ja metodit](Functions-and-Methods.md) · [JSON](JSON.md)

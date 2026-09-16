@@ -1,10 +1,32 @@
-# Yleistä tietoa muuttujista (Variables)
+# Muuttujat (Variables)
 
-Muuttujat ovat perusrakennuspalikoita ohjelmoinnissa. Ne tallentavat dataa, jota voidaan käyttää ja muuttaa ohjelman suorituksen aikana.
+**Muuttuja** on nimetty säilö. Annat sille nimen ja tyypin. Ohjelma laittaa säilöön arvon, lukee sen myöhemmin ja voi vaihtaa arvon.
 
-## Mitä ovat muuttujat?
+Arjen esimerkki: lipun hintalappu. Lappuun kirjoitetaan `12.00`. Nimi voisi olla `unitPrice`. Tyyppi kertoo, että kyse on rahasta (`decimal`), ei tekstistä.
 
-Muuttuja on nimetty säilö, joka tallentaa arvon. Muuttujan arvoa voidaan lukea ja muuttaa ohjelman suorituksen aikana.
+```csharp
+int age = 20;
+decimal unitPrice = 12.00m;
+string category = "Aikuinen";
+```
+
+Lue rivi vasemmalta: tyyppi, nimi, arvo. `int age = 20` tarkoittaa: "luo kokonaislukusäilö nimeltä age ja laita siihen 20".
+
+**Microsoft:** [Built-in types](https://learn.microsoft.com/fi-fi/dotnet/csharp/language-reference/builtin-types/built-in-types)
+
+## Kartta
+
+| Tyyppi | Mitä säilyttää | Esimerkki kurssilla |
+|--------|----------------|---------------------|
+| `int` | Kokonaisluku | Ikä, lippumäärä |
+| `decimal` | Rahasumma, tarkka desimaali | Hinta, välisumma — aina `m`-pääte |
+| `string` | Teksti | Nimi, alennuskoodi, syöte |
+| `bool` | Kyllä tai ei | `isStudent`, ehdon tulos |
+| `const` | Arvo, joka ei muutu | `ChildPrice = 7.50m` |
+| `var` | Tyyppi päätellään oikealta | `var age = 20` → silti `int` |
+| `null` | "Ei mitään" | Tyhjä viittaus, ei luku nolla |
+
+Syöte konsolista on aina `string`, kunnes muunnat sen — [tyyppimuunnokset](Casting.md). Laskumerkit: [operaattorit](Operators.md).
 
 ## Muuttujatyypit C#-kielessä
 

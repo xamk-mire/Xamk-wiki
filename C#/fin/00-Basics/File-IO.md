@@ -1,18 +1,26 @@
 # Tiedostojen luku ja kirjoitus
 
-Konsolista luettu data katoaa, kun ohjelma suljetaan. Tiedosto tallentaa datan koneelle: seuraavana päivänä ohjelma voi lukea menun tai eilisen myynnin. Tiedoston voi yhdistää [JSONiin](JSON.md) — ensin opitaan itse tiedosto.
+Konsolista luettu data katoaa, kun ohjelma suljetaan. **Tiedosto** tallentaa tekstin koneelle. Seuraavana päivänä ohjelma voi lukea menun tai eilisen myynnin.
 
-**Microsoftin dokumentaatio:** [File class](https://learn.microsoft.com/en-us/dotnet/api/system.io.file)
+Arjen esimerkki: kassan päiväkirja. Ilman vihkoa summa on vain muistissa. Vihko jää tiskille yöksi.
 
-## File-luokan perusmetodit
+Tiedoston voi yhdistää [JSONiin](JSON.md). Ensin opitaan itse tiedosto.
 
-`System.IO.File` tarjoaa valmiit metodit kokonaisen tiedoston käsittelyyn. Nämä kolme riittävät alkuun:
+**Microsoft:** [File class](https://learn.microsoft.com/fi-fi/dotnet/api/system.io.file)
+
+## Kartta
 
 | Metodi | Mitä tekee |
 |--------|------------|
-| `File.WriteAllText(polku, sisältö)` | Kirjoittaa merkkijonon tiedostoon (ylikirjoittaa vanhan) |
+| `File.WriteAllText(polku, sisältö)` | Kirjoittaa merkkijonon (ylikirjoittaa vanhan) |
 | `File.ReadAllText(polku)` | Lukee koko tiedoston merkkijonoksi |
-| `File.Exists(polku)` | Palauttaa `true`, jos tiedosto on olemassa |
+| `File.Exists(polku)` | `true`, jos tiedosto on olemassa |
+| `File.AppendAllText` | Lisää tekstiä loppuun |
+| `File.ReadAllLines` | Lukee rivit taulukoksi |
+
+## Kolme metodia riittää alkuun
+
+`System.IO.File` käsittelee koko tiedoston kerralla. Kirjoita, lue, tarkista.
 
 ```csharp
 using System.IO;

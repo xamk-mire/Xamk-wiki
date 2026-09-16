@@ -1,68 +1,47 @@
-# C# Properties (Ominaisuudet)
+# Propertyt (ominaisuudet)
 
-Luokat ja konstruktorit: [Luokat, oliot ja konstruktorit](../02-OOP-Concepts/Classes-and-Objects.md).
+**Property** on luokan julkinen ovi yksityiseen tietoon. Ulkoa kirjoitat `ticket.Age = 20` kuin kenttään. Sisällä luokka päättää, mitä asetukselle tapahtuu.
 
-## Mikä on Property?
+Ilman propertyä joko paljastat kentän kaikille (`public int age`) tai kirjoitat `GetAge` / `SetAge`-metodit. Property on C#:n lyhyt tapa samaan asiaan.
 
-C#:ssa property on luokan jäsen, joka tarjoaa joustavan mekanismin päästä käsiksi yksityisiin kenttiin (field). Property toimii ikään kuin yleisenä porttina luokan sisäisiin tietoihin, mahdollistaen arvojen asettamisen (setter) ja hakemisen (getter) määritellyllä tavalla. Propertyjen avulla voidaan suorittaa tietojen validointi, logiikan suorittaminen arvojen asettamisen tai hakemisen yhteydessä, ja ne auttavat varmistamaan, että luokan tila pysyy hallinnassa ja johdonmukaisena.
+Luokat ensin: [Luokat, oliot ja konstruktorit](../02-OOP-Concepts/Classes-and-Objects.md). Kapselointi: [Kapselointi](../02-OOP-Concepts/Encapsulation.md).
 
-## Miksi Propertyjä käytetään?
+**Microsoft:** [Properties](https://learn.microsoft.com/fi-fi/dotnet/csharp/programming-guide/classes-and-structs/properties)
 
-### 1. Kapselointi
+## Kartta
 
-Suojataan luokan sisäinen tila ja varmistetaan, että vain sallitut toiminnot voivat muuttaa sitä.
+| Kirjoitus | Merkitys |
+|-----------|----------|
+| `{ get; set; }` | Autoproperty — C# luo piilokentän |
+| `get` | Arvon luku |
+| `set` | Arvon asetus. Uusi arvo on `value` |
+| `{ get; private set; }` | Ulkoa voi lukea, vain luokka voi muuttaa |
+| Vain `get` | Laskettu tai lukittu arvo, ei asetusta |
 
-### 2. Validointi
-
-Kun asetat arvon propertyn kautta, voit varmistaa, että arvo täyttää tietyt ehdot ennen sen tallentamista.
-
-### 3. Helppous ja luettavuus
-
-Propertyjen avulla voit käsitellä luokan sisäisiä arvoja kuin julkisia kenttiä, mutta samalla hallita tarkasti, miten niitä käytetään.
-
-## Koodiesimerkit
-
-### Perusproperty
+## Autoproperty — aloita tästä
 
 ```csharp
-public class Person
+public class Ticket
 {
-    private string name;
-
-    // Property getterillä ja setterillä
-    public string Name
-    {
-        get { return name; }
-        set { name = value; }
-    }
-}
-
-// Käyttö
-Person person = new Person();
-person.Name = "Matti";  // setter kutsutaan
-string name = person.Name;  // getter kutsutaan
-```
-
-### Auto-implemented property
-
-```csharp
-public class Person
-{
-    // Auto-implemented property (C# luo automaattisesti taustakentän)
-    public string Name { get; set; }
     public int Age { get; set; }
+    public decimal Price { get; set; }
 }
 
-// Käyttö
-Person person = new Person();
-person.Name = "Matti";
-person.Age = 25;
+Ticket ticket = new Ticket();
+ticket.Age = 20;                 // set
+Console.WriteLine(ticket.Age);   // get
 ```
 
-### Property validoinnilla
+Nimi on PascalCase. Tämä riittää, kun arvoa ei tarvitse tarkistaa.
+
+Älä tee kentästä julkista (`public int age;`), jos voit käyttää propertyä. Tavan näkee muualla C#-koodissa, ja myöhemmin voit lisätä tarkistuksen rikkomatta kutsuja.
+
+## Getter ja setter itse kirjoitettuna
+
+Kun asetus pitää tarkistaa, kirjoita runko auki. Piilokenttä on `private` ja camelCase.
 
 ```csharp
-public class Employee
+public class Ticket
 {
     private int age;
 
@@ -71,67 +50,19 @@ public class Employee
         get { return age; }
         set
         {
-            if (value < 0)
+            if (value < 0 || value > 130)
             {
-                throw new ArgumentException("Ikä ei voi olla negatiivinen");
+                throw new ArgumentException("Ikä ei kelpaa.");
             }
             age = value;
         }
     }
 }
-
-// Käyttö
-Employee employee = new Employee();
-employee.Age = 30;  // OK
-// employee.Age = -5;  // Heittää poikkeuksen
 ```
 
-### Read-only property
+`value` on avainsana setterissä. Se on se arvo, jonka kutsuja kirjoitti yhtäläisyysmerkin oikealle.
 
-```csharp
-public class Circle
-{
-    private double radius;
-
-    public Circle(double radius)
-    {
-        this.radius = radius;
-    }
-
-    // Read-only property (vain getter)
-    public double Area
-    {
-        get { return Math.PI * radius * radius; }
-    }
-}
-
-// Käyttö
-Circle circle = new Circle(5);
-double area = circle.Area;  // Lasketaan automaattisesti
-// circle.Area = 10;  // Virhe: ei setteriä
-```
-
-### Write-only property
-
-```csharp
-public class Logger
-{
-    private string logFile;
-
-    // Write-only property (vain setter)
-    public string LogFile
-    {
-        set { logFile = value; }
-    }
-
-    public void WriteLog(string message)
-    {
-        // Käyttää logFile-kenttää
-    }
-}
-```
-
-### Property ilman taustakenttää (laskettu arvo)
+Laskettu arvo ei tarvitse kenttää:
 
 ```csharp
 public class Rectangle
@@ -139,149 +70,56 @@ public class Rectangle
     public double Width { get; set; }
     public double Height { get; set; }
 
-    // Property, joka lasketaan muista propertyistä
     public double Area
     {
         get { return Width * Height; }
     }
-
-    public double Perimeter
-    {
-        get { return 2 * (Width + Height); }
-    }
 }
-
-// Käyttö
-Rectangle rect = new Rectangle { Width = 5, Height = 3 };
-Console.WriteLine($"Pinta-ala: {rect.Area}");        // 15
-Console.WriteLine($"Piiri: {rect.Perimeter}");      // 16
 ```
 
-### Property init-only (C# 9.0+)
+`Area` vain luetaan. `rect.Area = 10` ei käänny.
 
-```csharp
-public class Person
-{
-    // Init-only property (voidaan asettaa vain objektin luonnin yhteydessä)
-    public string Name { get; init; }
-    public int Age { get; init; }
-}
+## private set — ulkoa ei saa muuttaa
 
-// Käyttö
-Person person = new Person { Name = "Matti", Age = 25 };
-// person.Name = "Liisa";  // Virhe: ei voi muuttaa init-only propertyä
-```
-
-### Property private setterillä
+Saldoa ei aseteta suoraan. Talletus ja nosto muuttavat sitä metodeilla.
 
 ```csharp
 public class BankAccount
 {
-    private decimal balance;
-
-    public decimal Balance
-    {
-        get { return balance; }
-        private set { balance = value; }  // Vain luokan sisällä muutettavissa
-    }
+    public decimal Balance { get; private set; }
 
     public void Deposit(decimal amount)
     {
         if (amount > 0)
         {
-            Balance += amount;  // OK: käytetään luokan sisällä
+            Balance += amount;
         }
-    }
-
-    public bool Withdraw(decimal amount)
-    {
-        if (amount > 0 && Balance >= amount)
-        {
-            Balance -= amount;  // OK: käytetään luokan sisällä
-            return true;
-        }
-        return false;
     }
 }
 
-// Käyttö
 BankAccount account = new BankAccount();
 account.Deposit(100);
-Console.WriteLine($"Saldo: {account.Balance}");  // 100
-// account.Balance = 200;  // Virhe: Balance on private set
+Console.WriteLine(account.Balance);   // 100
+// account.Balance = 1_000_000;       // ei käänny
 ```
 
-### Property default-arvolla
+## Oletusarvo
 
 ```csharp
 public class Settings
 {
-    // Property default-arvolla
     public string Theme { get; set; } = "Light";
     public int MaxItems { get; set; } = 10;
-    public bool NotificationsEnabled { get; set; } = true;
 }
-
-// Käyttö
-Settings settings = new Settings();
-Console.WriteLine(settings.Theme);  // "Light" (oletusarvo)
 ```
 
-## Reaalimaailman esimerkki
-
-```csharp
-public class Employee
-{
-    private int age;
-    private string email;
-
-    public string Name { get; set; }
-
-    public int Age
-    {
-        get { return age; }
-        set
-        {
-            if (value < 0)
-            {
-                throw new ArgumentException("Ikä ei voi olla negatiivinen");
-            }
-            if (value > 150)
-            {
-                throw new ArgumentException("Ikä ei voi olla yli 150");
-            }
-            age = value;
-        }
-    }
-
-    public string Email
-    {
-        get { return email; }
-        set
-        {
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                throw new ArgumentException("Sähköposti ei voi olla tyhjä");
-            }
-            if (!value.Contains("@"))
-            {
-                throw new ArgumentException("Sähköpostin täytyy sisältää @-merkki");
-            }
-            email = value;
-        }
-    }
-}
-
-// Käyttö
-Employee employee = new Employee
-{
-    Name = "Matti Meikäläinen",
-    Age = 30,
-    Email = "matti@example.com"
-};
-```
+`init` (asetus vain luonnissa) ja write-only-propertyt ovat myöhempää. Alussa `{ get; set; }` ja tarvittaessa tarkistus setterissä riittävät.
 
 ## Yhteenveto
 
-Propertyjen käyttö C#-ohjelmoinnissa on erittäin hyödyllistä, koska se lisää koodin turvallisuutta, luettavuutta ja ylläpidettävyyttä, samalla kun se tarjoaa kehittäjille mahdollisuuden hallita tarkasti, miten luokan tilaa muokataan ja käytetään. Propertyt mahdollistavat kapseloinnin, validoinnin ja joustavan datan käsittelyn ilman, että tarvitsee paljastaa luokan sisäisiä toteutusyksityiskohtia.
+- Property on ovi kenttään: `get` lukee, `set` asettaa.
+- Autoproperty `{ get; set; }` on oletus.
+- Tarkistus kirjoitetaan setteriin. Uusi arvo on `value`.
+- `private set` estää muutoksen luokan ulkopuolelta.
 
+Seuraavaksi: [Luokat ja oliot](../02-OOP-Concepts/Classes-and-Objects.md) · [Kapselointi](../02-OOP-Concepts/Encapsulation.md) · [Käyttöoikeudet](Access-Modifiers.md)

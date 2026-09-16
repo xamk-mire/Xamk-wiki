@@ -1,40 +1,49 @@
 ---
-description: Tehtävien kaksi tyyliä — viikkotehtävä (teoria → ohjattu → soveltava) ja välitehtävä (kuvaus alusta asti)
+description: Tehtävien kolme tyyliä — ohjattu, soveltava (piilotetut vinkit) ja itsenäinen välitehtävä. Käytä kun kirjoitat tai muokkaat Assigments/-materiaalia.
 globs: Assigments/**
 alwaysApply: false
 ---
 
 # Tehtävätyylit
 
-Kun luot tai muokkaat tehtävää `Assigments/`-puussa, lue ensin juuren ohje ja valitse **yksi** tyyppi. Älä sekoita rakenteita.
-
-- Viikkotehtävä (enemmistö): [Assigments/viikkotehtava.md](Assigments/viikkotehtava.md)
-- Välitehtävä / lopputyö: [Assigments/valitehtava.md](Assigments/valitehtava.md)
-- Hakemisto: [Assigments/README.md](Assigments/README.md)
+Kun luot tai muokkaat tehtävää `Assigments/`-puussa, lue juuren ohje ja valitse **yksi** tyyli **per tiedosto**. Älä sekoita rakenteita samaan dokumenttiin.
 
 Kieli: suomi. Nämä ohjeet ovat agentille ja opettajalle.
 
-## Checklist — viikkotehtävä
+| Tyyli | Milloin | Malli | Ohje |
+|--------|---------|-------|------|
+| **Ohjattu** | Uusi taito, kädestä pitäen | [01-Pankkiautomaatti.md](Assigments/Perusteet/02-Elokuvaliput/01-Pankkiautomaatti.md) | [viikkotehtava.md](Assigments/viikkotehtava.md) → Ohjattu |
+| **Soveltava** | Sama viikko, uusi aihe; yritä itse, vinkki piilossa | [02-Elokuvaliput.md](Assigments/Perusteet/02-Elokuvaliput/02-Elokuvaliput.md) | [viikkotehtava.md](Assigments/viikkotehtava.md) → Soveltava |
+| **Itsenäinen** | Arvioitava työ; taidot jo opetettu | [06-Valipalautus1](Assigments/Perusteet/06-Valipalautus1/README.md) | [valitehtava.md](Assigments/valitehtava.md) |
 
-1. Johdanto (mitä, miksi, palautus)
-2. Teoria *tehtävässä* + wikilinkit Lisämateriaaliin (ei pelkkiä linkkejä)
-3. Mitä tarvitset / Mitä rakennamme + esimerkkiajo
-4. Ohjattu osio: Miksi tämä vaihe?, askeleet, koodi mukana, Checkpoint
-5. Itsenäinen osio ilman vastauksia, helppo → vaikea
-6. Teoriakysymykset, yhteenveto, palautus
-7. Mallit `examples/`-kansioon, ei opiskelijan zipiin
+Viikkokansio voi sisältää **ohjatun ja soveltavan** peräkkäin (kuten viikko 2). Itsenäinen tehtävä on aina oma dokumenttinsa.
 
-## Checklist — välitehtävä
+## Yhteiset säännöt (ohjattu + soveltava)
 
-1. Ero viikkotehtävään heti alussa (ei ohjattua, kasvokkain)
-2. Asiakas/ongelma + esimerkkiajo, ei walkthroughia
-3. Vaatimukset checklistinä, ryhmitelty aiempiin viikkoihin
-4. Lisäominaisuudet arvosanaan 4–5
-5. Demo + julkinen kysymyspankki + live-muutos
-6. Rubriikki
+- Puhuttele opiskelijaa. Lyhyet kappaleet. Määritä termi ensimmäisellä käyttökerralla.
+- **Visual Studio Community** = C#-IDE. **VS Code / Cursor** = `.md`-lukutila. Älä sekoita.
+- Teoria: lyhyt **kartta** alussa (termi → yksi lause → missä avataan). Pitkä **kertaus** vasta työn jälkeen, ennen teoriakysymyksiä.
+- Osioita `<details>` / `<summary>Yksi rivi</summary>`. **Ei** `##`-otsikkoa `<summary>`-tagissa (kolmio katoaa).
+- Jokaisessa vaiheessa **Miksi tämä osio/vaihe?** ja **Checkpoint** (tyypillinen väärinymmärrys, ei tietovisa).
+- Kuvat **vain** tämän viikon `images/`-kansiossa. Ei `../toinen-viikko/images/`.
+- Mallit `examples/`-kansioon (koodi + `teoriakysymykset.md`). Ei mallivastausta `README.md`:hen. Moodle-zipistä `examples/` pois.
+- Kehota kirjoittamaan käsin. Älä dumpaa koko ohjelmaa tehtävätekstiin.
+
+## Ohjattu — muista
+
+Koodi ja esimerkit **näkyvissä**. Yksi uusi asia per osio. Ohjelma ajettavissa jokaisen osion jälkeen.
+
+## Soveltava — muista
+
+Näkyviin: mitä toteutetaan, käsitteet, odotettu tuloste. **Piiloon** (`Jos jumissa — avaa …`): C#-snipetit, esimerkkipseudo, mallivuokaavio. Opiskelija yrittää ensin. Älä kopioi ohjatun ohjelmaa uudeksi aiheeksi.
+
+## Itsenäinen — muista
+
+Asiakas/ongelma + esimerkkiajo + vaatimukset. Ei vaiheita, ei koodia, ei piilotettuja snipettejä. Ei uutta taitoa.
 
 ## Älä
 
-- Älä opeta uutta taitoa välitehtävässä
-- Älä kirjoita viikkotehtävää pelkkänä tilauksena
-- Älä laita mallivastausta `README.md`:hen
+- Älä kirjoita ohjattua tai soveltavaa pelkkänä tilauksena (se on itsenäinen).
+- Älä lisää itsenäiseen “vähän ohjausta” tai mallikoodia.
+- Älä opeta uutta käsitettä vasta soveltavassa tai itsenäisessä — uusi taito tulee ohjatussa.
+- Älä laita mallivastausta viikon `README.md`:hen.
