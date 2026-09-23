@@ -14,6 +14,7 @@ Kirjoita ensin ohjelma toimimaan. Siisti nimet ja sisennys ennen palautusta. Vis
 |----------|----------------|
 | camelCase | Paikalliset muuttujat: `ticketCount`, `unitPrice` |
 | PascalCase | Metodit ja luokat: `GetUnitPrice`, `Program` |
+| Englanti koodissa | `ticketCount`, ei `lippumaara` — tulosteet saavat olla suomeksi |
 | 4 välilyöntiä | Sisennä lohkon sisältö |
 | Aaltosulkeet omalla rivillä | C#-tyyli |
 | Kuvaava nimi | `age` ei `a`, `isStudent` ei `flag` |
@@ -84,7 +85,20 @@ bool isStudent = true;
 
 Totuusarvoille luonteva alku on `is`, `has` tai `can`: `isAdult`, `hasDiscount`.
 
-Metodin nimi on **verbi**: `PrintHeader`, `GetUnitPrice`, `ReadInt`. Pelkkä `Price` ei kerro, tulostetaanko vai palautetaanko arvo.
+Nimet kirjoitetaan **englanniksi**: muuttujat, metodit ja luokat. Käyttäjälle näkyvät tulosteet ja kommentit saavat olla suomeksi. Näin koodi näyttää samalta kuin työelämässä, ja englanninkieliset virheilmoitukset sekä dokumentaatio istuvat samaan tekstiin.
+
+Metodin nimi on **verbi + kohde**: `PrintHeader`, `GetUnitPrice`, `ReadInt`. Pelkkä `Price` ei kerro, tulostetaanko vai palautetaanko arvo. Testi: täydennä lause *"tämä metodi ___"* — jos lause ei synny, nimi on huono.
+
+Vakiintunut etuliite kertoo lukijalle jo paluutyypin:
+
+| Etuliite | Lupaa | Esimerkki |
+|----------|-------|-----------|
+| `Print…` | tulostaa, ei palauta mitään (`void`) | `PrintReceipt` |
+| `Read…` | kysyy käyttäjältä ja palauttaa luetun arvon | `ReadInt` |
+| `Get…` | päättelee tai laskee ja palauttaa arvon | `GetUnitPrice` |
+| `Is…` / `Has…` / `Can…` | palauttaa `bool`-arvon | `IsAdult` |
+
+Nimi ei saa valehdella: jos `GetPrice` myös tulostaa, metodi tekee enemmän kuin nimi lupaa — ja seuraava lukija yllättyy. Yksi metodi, yksi työ.
 
 Lyhenteitä kannattaa välttää, paitsi tuttuja (`id`, `i` silmukan laskurina). `custNm` on huonompi kuin `customerName`.
 

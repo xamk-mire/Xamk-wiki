@@ -344,7 +344,7 @@ Lue ehto: *"niin kauan kuin ikä on alle 0 TAI yli 130"*. Kun käyttäjä antaa 
 
 Jos ensimmäinen syöte on jo 20, silmukkaan ei mennä lainkaan. Siksi `while` sopii tilanteeseen "toista vain jos korjattavaa on".
 
-Väärä teksti (`"abc"`) kaataa ohjelman. Se on eri virhe kuin väärä lukuarvo. Katso [tyyppimuunnokset](Casting.md) ja [poikkeukset](Exception-Handling.md).
+Väärä teksti (`"abc"`) kaataa ohjelman. Se on eri virhe kuin väärä lukuarvo. Tämän sivun esimerkit lukevat luvun `Convert.ToInt32`-kutsulla **lyhyyden vuoksi** — kun `TryParse` on opittu, käytä omissa ohjelmissasi `TryParse`-silmukkaa, joka ei kaadu vaan kysyy uudelleen. Katso [tyyppimuunnokset](Casting.md) ja [poikkeukset](Exception-Handling.md).
 
 ### Ikuinen silmukka
 

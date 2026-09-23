@@ -35,8 +35,16 @@ class Program
 
     static decimal GetUnitPrice(int age)
     {
-        if (age < 12) return 7.50m;
-        if (age < 65) return AdultPrice;
+        if (age < 12)
+        {
+            return 7.50m;
+        }
+
+        if (age < 65)
+        {
+            return AdultPrice;
+        }
+
         return 9.00m;
     }
 }
@@ -78,8 +86,16 @@ public static class PriceList
 
     public static decimal GetUnitPrice(int age)
     {
-        if (age < 12) return ChildPrice;
-        if (age < 65) return 12.00m;
+        if (age < 12)
+        {
+            return ChildPrice;
+        }
+
+        if (age < 65)
+        {
+            return 12.00m;
+        }
+
         return 9.00m;
     }
 }

@@ -45,7 +45,7 @@ Voit asettaa useita palloja. Poista pallo klikkaamalla sitä uudelleen tai F9 sa
 Hyvä ensimmäinen paikka on rivi, jossa päätät hinnan tai luet iän. Kun ohjelma pysähtyy, näet `age`-muuttujan arvon ennen `if`-lausetta.
 
 ```csharp
-int age = Convert.ToInt32(Console.ReadLine());
+int age = 8;                         // kokeile eri arvoja
 decimal price = GetUnitPrice(age);   // ← F9 tähän, jos hinta on väärä
 Console.WriteLine(price);
 ```

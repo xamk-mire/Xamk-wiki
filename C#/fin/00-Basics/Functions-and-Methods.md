@@ -42,8 +42,16 @@ class Program
 
     static decimal GetUnitPrice(int age)
     {
-        if (age < 12) return 7.50m;
-        if (age < 65) return 12.00m;
+        if (age < 12)
+        {
+            return 7.50m;
+        }
+
+        if (age < 65)
+        {
+            return 12.00m;
+        }
+
         return 9.00m;
     }
 }
@@ -147,23 +155,39 @@ Sama metodinimi voi esiintyä useasti, jos parametrit eroavat määrältä tai t
 static int ReadInt(string prompt)
 {
     Console.Write(prompt);
-    return Convert.ToInt32(Console.ReadLine());
+    string text = Console.ReadLine();
+    int value;
+    bool ok = int.TryParse(text, out value);
+
+    while (!ok)
+    {
+        Console.WriteLine("Anna kokonaisluku.");
+        Console.Write(prompt);
+        text = Console.ReadLine();
+        ok = int.TryParse(text, out value);
+    }
+
+    return value;
 }
 
 static int ReadInt(string prompt, int min, int max)
 {
     int value = ReadInt(prompt);   // kutsuu yksinkertaista versiota
+
     while (value < min || value > max)
     {
         Console.WriteLine($"Anna luku väliltä {min}–{max}.");
         value = ReadInt(prompt);
     }
+
     return value;
 }
 
 int age = ReadInt("Anna ikäsi: ", 0, 130);        // 3 argumenttia → tarkistava
 int raw = ReadInt("Anna mikä tahansa luku: ");    // 1 argumentti → yksinkertainen
 ```
+
+Huomaa: luku luetaan `TryParse`-silmukalla, ei `Convert.ToInt32`-kutsulla. `Convert.ToInt32` kaataisi ohjelman syötteellä `abc` — `TryParse` kysyy uudelleen.
 
 Nimi `ReadInt` toistuu, mutta tehtävä on sama idea: lue luku. Toinen versio lisää rajat.
 

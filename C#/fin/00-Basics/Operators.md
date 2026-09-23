@@ -57,6 +57,8 @@ Merkkijonoja verrataan samalla `==`-operaattorilla:
 if (code == "LEFFA10") { /* alennus */ }
 ```
 
+Vertailu on **kirjainkokoherkkä**: `"k" == "K"` on `false`, joten jatkokysymykseen vastattu iso `K` ei jatka silmukkaa, joka odottaa pientä `k`-kirjainta. Sama koskee alennuskoodia: `"leffa10"` ei ole `"LEFFA10"`.
+
 ## Loogiset operaattorit
 
 Yhdistävät ehtoja.
