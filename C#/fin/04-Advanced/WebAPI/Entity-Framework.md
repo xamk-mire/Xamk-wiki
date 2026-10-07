@@ -454,5 +454,5 @@ muu koodi pysyy täysin samana.
 ### Seuraavaksi
 
 - [Services-and-DI](Services-and-DI.md) — Siirretään tietokantalogiikka pois controllerista service-luokkaan
-- [Database-harjoitus](https://github.com/xamk-mire/Xamk-wiki/tree/main/Assigments/Backend/Database) — Käytännön harjoitus
+- **Database-harjoitus** *(kurssitehtävä Moodlessa)* — Käytännön harjoitus
 - [Dependency Injection](../Dependency-Injection.md) — DI:n teoria syvemmin

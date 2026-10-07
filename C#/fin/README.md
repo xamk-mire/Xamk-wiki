@@ -5,39 +5,33 @@ Tervetuloa C# olio-ohjelmoinnin oppimateriaaliin! Tämä materiaali käsittelee 
 ## Sisältö
 
 ### 0. [C# Perusteet](00-Basics/)
-- [Koodauskäytännöt](00-Basics/Coding-Conventions.md)
+Sisällysluettelo: [00-Basics/README](00-Basics/README.md).
+
 - [Visual Studio -vinkit](00-Basics/Visual-Studio-Tips.md)
-- [Muuttujat](00-Basics/Variables.md)
-- [Staattiset luokat ja metodit](00-Basics/Static-Classes-and-Methods.md)
-- [Poikkeusten käsittely](00-Basics/Exception-Handling.md)
-- [Funktiot ja Metodit](00-Basics/Functions-and-Methods.md)
+- [Konsolin syöte ja tulostus](00-Basics/Console-IO.md)
+- [Muuttujat](00-Basics/Variables.md) — `int`, `decimal` (raha), `string`, `bool`
+- [Operaattorit](00-Basics/Operators.md)
+- [Tyyppimuunnokset](00-Basics/Casting.md)
 - [Ohjausrakenteet](00-Basics/Control-Structures.md)
 - [Debuggaus](00-Basics/Debug.md)
-- [Satunnaislukujen generointi](00-Basics/Random-Numbers.md)
-- [Datastruktuurit](00-Basics/Data-Structures.md)
-- [Thread.Sleep](00-Basics/Thread-Sleep.md)
+- [Funktiot ja metodit](00-Basics/Functions-and-Methods.md)
+- [Näkyvyysalueet](00-Basics/Scopes.md)
+- [Staattiset luokat ja metodit](00-Basics/Static-Classes-and-Methods.md)
+- [Tietorakenteet](00-Basics/Data-Structures.md)
+- [Koodauskäytännöt](00-Basics/Coding-Conventions.md)
 - [Enum](00-Basics/Enum.md)
-- [DateTime](00-Basics/DateTime.md)
-- [Properties](00-Basics/Properties.md)
-- [Scopes](00-Basics/Scopes.md)
-- [Region](00-Basics/Region.md)
-- [Access Modifiers](00-Basics/Access-Modifiers.md)
-- [Casting](00-Basics/Casting.md)
-- [LINQ](00-Basics/LINQ.md)
+- [Poikkeusten käsittely](00-Basics/Exception-Handling.md)
+- [Tiedostojen luku ja kirjoitus](00-Basics/File-IO.md)
 - [JSON](00-Basics/JSON.md)
-- [RegEx](00-Basics/RegEx.md)
-- [StopWatch](00-Basics/StopWatch.md)
-- [Rekursio](00-Basics/Recursion.md)
-- [Koodin kääntäminen](00-Basics/Code-Compilation.md)
+- [Propertyt](00-Basics/Properties.md)
+- [Käyttöoikeudet](00-Basics/Access-Modifiers.md)
+- [DateTime](00-Basics/DateTime.md) · [Satunnaisluvut](00-Basics/Random.md) · [Rekursio](00-Basics/Recursion.md)
 
 ### 2. [OOP-konseptit](02-OOP-Concepts/)
-- [Mitä on OOP?](02-OOP-Concepts/What-is-OOP.md) - OOP:n peruskäsitteet yleisellä tasolla
-- [OOP-tekniikat - Yleiskuvaus](02-OOP-Concepts/OOP-Techniques-Overview.md) - Kaikkien tekniikoiden yhteenveto
-- [Kapselointi (Encapsulation)](02-OOP-Concepts/Encapsulation.md)
-- [Perintä (Inheritance)](02-OOP-Concepts/Inheritance.md)
-- [Polymorfismi (Polymorphism)](02-OOP-Concepts/Polymorphism.md)
-- [Yhdistäminen (Composition)](02-OOP-Concepts/Composition.md)
-- [Rajapinnat (Interfaces)](02-OOP-Concepts/Interfaces.md)
+- [Luokat, oliot ja konstruktorit](02-OOP-Concepts/Classes-and-Objects.md)
+- [Mitä on OOP?](02-OOP-Concepts/What-is-OOP.md)
+- [Kapselointi](02-OOP-Concepts/Encapsulation.md) · [Perintä](02-OOP-Concepts/Inheritance.md)
+- [Polymorfismi](02-OOP-Concepts/Polymorphism.md) · [Yhdistäminen](02-OOP-Concepts/Composition.md) · [Rajapinnat](02-OOP-Concepts/Interfaces.md)
 
 ### 3. [Koodiesimerkit](03-Examples/)
 Lisäesimerkit
@@ -66,11 +60,11 @@ Materiaalit, jotka eivät ole suoraan C#-kieleen liittyviä:
 ## Oppimisjärjestys
 
 Suosittelemme opiskelua seuraavassa järjestyksessä:
-1. **Aloita perusteista**: [C# Perusteet](00-Basics/) - Muuttujat → Ohjausrakenteet → Funktiot → Poikkeusten käsittely
-2. **Tutustu OOP:hen**: [OOP-konseptit](02-OOP-Concepts/) - Kapselointi → Perintä → Polymorfismi → Yhdistäminen → Rajapinnat
-3. **Syvenny perusteisiin**: Enum, DateTime, Properties, LINQ, JSON, jne.
-4. **Opettele edistyneitä aiheita**: Yksikkötestaus → Suunnittelu periaatteet → Suunnittelumallit
-5. **Harjoittele koodiesimerkeillä**: [Esimerkit](03-Examples/)-kansiosta
+1. **Ajattelu**: [Vuokaaviot ja pseudokoodi](99-General/) ennen ensimmäistä riviä
+2. **Perusteet**: [C# Perusteet](00-Basics/) — konsoli → muuttujat → `if` → silmukat → metodit → kokoelmat
+3. **OOP:n alkeet**: [Luokat ja konstruktorit](02-OOP-Concepts/Classes-and-Objects.md) → propertyt → kapselointi → perinnän perusteet
+4. **Enum, poikkeukset, tiedostot + JSON**
+5. **Syvennä**: rajapinnat, polymorfismi, LINQ, [edistyneet aiheet](04-Advanced/)
 
 ## Hyödyllisiä linkkejä
 

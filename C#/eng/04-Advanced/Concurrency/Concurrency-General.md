@@ -526,7 +526,7 @@ Recommended study order:
 
 ### Practical Exercise
 
-Try what you've learned in practice: [Restaurant order system exercise](../../../Assigments/ConcurrencyExercises/README.md)
+Try what you've learned in practice: **Restaurant order system exercise** *(exercise in the course Moodle)*
 
 ### External Resources
 

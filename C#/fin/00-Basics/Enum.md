@@ -1,169 +1,116 @@
-# Enum (Enumeraatio)
+# Enum (enumeraatio)
 
-[Microsoftin virallinen dokumentaatio](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/enum)
+**Enum** on nimetty lista sallituista arvoista. Kirjoitat `Size.Large` etkä merkkijonoa `"iso"` tai lukua `2`.
 
-## Mikä on Enum?
+Merkkijono `"iso"` voi olla `"Iso"`, `"ISO"` tai kirjoitusvirhe `"is o"`. Enumissa väärää kokoa ei ole, ellei sitä lisätä tyyppiin.
 
-`enum` (lyhenne sanasta "enumeration") on C#:ssa arvotyyppi, joka määritellään nimettyjen vakioiden joukolla, jotka perustuvat kokonaislukutyyppiin. Sitä käytetään symbolisten nimien antamiseen kokonaislukuarvoille, mikä tekee koodista luettavampaa ja ylläpidettävämpää.
+Pizzan koko, lipun ikäluokka ja tilauksen tila ovat tyypillisiä enumeja: arvoja on vähän ja ne tunnetaan etukäteen.
 
-## Milloin Enumia kannattaa käyttää?
+**Microsoft:** [Enumeration types](https://learn.microsoft.com/fi-fi/dotnet/csharp/language-reference/builtin-types/enum)
 
-### 1. Liittyvien vakioiden esittäminen
+## Kartta
 
-Käytä enumia, kun sinulla on joukko liittyviä kokonaislukuvakioita, kuten viikonpäivät, kuukaudet tai työnkulun tilat.
+| Asia | Yksi lause |
+|------|------------|
+| Määrittely | `enum Size { Normal, Large, Family }` |
+| Käyttö | `Size size = Size.Large;` |
+| Vertailu | `if (size == Size.Large)` |
+| `switch` | Yksi haara per arvo — usein selkeämpi kuin merkkijonot |
+| `ToString()` | Nimi tekstinä: `"Large"` |
 
-### 2. Koodin luettavuuden ja ylläpidettävyyden parantaminen
+## Määrittely ja käyttö
 
-Enumit tekevät koodista luettavampaa ja ymmärrettävämpää korvaamalla "magia-numerot" merkityksellisillä nimillä.
-
-### 3. Tyypin turvallisuus
-
-Enumit tarjoavat tavan määritellä tyyppi, jolla voi olla vain yksi muutamasta mahdollisesta arvosta, estäen virheellisten arvojen asettamisen.
-
-## Enumien hyödyt
-
-1. **Selkeys**: Enumit tekevät koodista helpommin luettavaa ja ymmärrettävää, koska ne korvaavat kokonaislukuvakiot merkityksellisillä nimillä.
-2. **Ylläpidettävyys**: Enum-vakion arvon muuttaminen päivittää automaattisesti kaikki viittaukset, mikä vähentää virheriskiä.
-3. **Tyypin turvallisuus**: Enumit varmistavat, että vain kelvollisia arvoja käytetään.
-
-## Milloin Enumia ei kannata käyttää?
-
-### 1. Ei sovellu usein muuttuviin arvojoukkoihin
-
-Jos arvojoukko muuttuu usein, enumin käyttö ei välttämättä ole paras valinta, koska se vaatii koodin uudelleenkäännön.
-
-### 2. Suorituskyky pienissä skenaarioissa
-
-Hyvin yksinkertaisissa tai suorituskykykriittisissä tilanteissa enumin käyttö voi aiheuttaa tarpeetonta ylimääräistä kuormaa.
-
-### 3. Serialisointi ja yhteensopivuus
-
-Hajautetuissa sovelluksissa enum-arvojen muuttaminen voi rikkoa yhteensopivuuden. Ole varovainen serialisoidessasi enumeja.
-
-## Koodiesimerkit
-
-### Perus enum-määrittely
+Enum määritellään yleensä luokan ulkopuolella tai luokan sisällä, ei metodin sisällä.
 
 ```csharp
-enum WeekDay
+enum Size
 {
-    Monday,
-    Tuesday,
-    Wednesday,
-    Thursday,
-    Friday,
-    Saturday,
-    Sunday
+    Normal,
+    Large,
+    Family
 }
 ```
 
-### Enumien käyttö
-
 ```csharp
-WeekDay today = WeekDay.Monday;
+Size size = Size.Large;
 
-if (today == WeekDay.Monday)
+if (size == Size.Large)
 {
-    Console.WriteLine("Aloitetaan uusi viikko!");
-}
-
-// Enum-arvo voidaan myös muuntaa kokonaisluvuksi
-int dayNumber = (int)today;  // 0 (Monday on ensimmäinen, arvo 0)
-```
-
-### Enum eksplisiittisillä arvoilla
-
-```csharp
-enum Status
-{
-    Pending = 0,
-    InProgress = 1,
-    Completed = 2,
-    Cancelled = 3
-}
-
-Status currentStatus = Status.InProgress;
-int statusValue = (int)currentStatus;  // 1
-```
-
-### Enum switch-case-lauseessa
-
-```csharp
-enum Priority
-{
-    Low,
-    Medium,
-    High,
-    Critical
-}
-
-void ProcessTask(Priority priority)
-{
-    switch (priority)
-    {
-        case Priority.Low:
-            Console.WriteLine("Käsitellään hiljaisesti");
-            break;
-        case Priority.Medium:
-            Console.WriteLine("Käsitellään normaalisti");
-            break;
-        case Priority.High:
-            Console.WriteLine("Käsitellään kiireellisesti");
-            break;
-        case Priority.Critical:
-            Console.WriteLine("Käsitellään välittömästi!");
-            break;
-        default:
-            Console.WriteLine("Tuntematon prioriteetti");
-            break;
-    }
-}
-
-// Käyttö
-ProcessTask(Priority.High);
-```
-
-### Enum merkkijonona
-
-```csharp
-enum Color
-{
-    Red,
-    Green,
-    Blue
-}
-
-Color myColor = Color.Red;
-
-// Muunnetaan merkkijonoksi
-string colorName = myColor.ToString();  // "Red"
-
-// Muunnetaan merkkijonosta enumiksi
-if (Enum.TryParse<Color>("Green", out Color parsedColor))
-{
-    Console.WriteLine($"Parsed color: {parsedColor}");  // Green
+    price += 3.00m;
 }
 ```
 
-### Enum kaikilla arvoilla
+Nimet ovat PascalCase. Pisteen jälkeen IntelliSense näyttää vaihtoehdot. Et joudu muistamaan merkkijonoja.
+
+Ikäluokka samalla idealla:
 
 ```csharp
-enum Direction
+enum AgeCategory
 {
-    North,
-    South,
-    East,
-    West
+    Child,
+    Adult,
+    Senior
 }
 
-// Käydään läpi kaikki enum-arvot
-foreach (Direction dir in Enum.GetValues(typeof(Direction)))
+static AgeCategory GetCategory(int age)
 {
-    Console.WriteLine(dir);
+    if (age < 12) return AgeCategory.Child;
+    if (age < 65) return AgeCategory.Adult;
+    return AgeCategory.Senior;
 }
 ```
+
+## switch sopii enumille
+
+`switch` vertaa tarkkoja arvoja. Enum on juuri sitä.
+
+```csharp
+switch (size)
+{
+    case Size.Normal:
+        price = 10.00m;
+        break;
+    case Size.Large:
+        price = 13.00m;
+        break;
+    case Size.Family:
+        price = 18.00m;
+        break;
+}
+```
+
+Jos lisäät myöhemmin uuden koon, kääntäjä voi varoittaa puuttuvasta haarasta. Merkkijono-`if` ei varoita.
+
+Lisää `switch`-lauseesta: [ohjausrakenteet](Control-Structures.md#switch--yksi-muuttuja-monta-tarkkaa-arvoa).
+
+## Numero taustalla
+
+C# tallentaa enumin kokonaislukuna. Ensimmäinen nimi on `0`, seuraava `1`, ja niin edelleen. Voit antaa luvut itse, mutta alussa oletus riittää.
+
+```csharp
+Size size = Size.Large;
+int number = (int)size;          // 1, jos Large on toinen
+string name = size.ToString();   // "Large"
+```
+
+Tekstistä enumiksi:
+
+```csharp
+if (Enum.TryParse("Large", out Size parsed))
+{
+    Console.WriteLine(parsed);
+}
+```
+
+Älä käytä enumia, jos lista muuttuu joka päivä tai tulee tiedostosta (kaupungin nimet, elokuvien otsikot). Siihen sopii [taulukko tai List](Data-Structures.md).
+
+Kaikkien arvojen läpikäynti (`Enum.GetValues`) ja liput (`[Flags]`) ovat myöhempää.
 
 ## Yhteenveto
 
-Enumit ovat C#:ssa tehokas ominaisuus, joka parantaa merkittävästi koodin luettavuutta, ylläpidettävyyttä ja turvallisuutta, kun niitä käytetään asianmukaisesti. Niitä tulisi kuitenkin käyttää harkiten, erityisesti tilanteissa, joissa joustavuus tai suorituskyky on keskeinen huolenaihe.
+- Enum on suljettu lista nimistä. Parempi kuin taikanumero tai merkkijono.
+- Vertaa `==` tai `switch`.
+- Sopii kokoon, tilaan, ikäluokkaan. Ei sovi avoimeen listaan.
+- Kirjoitusvirhe nimessä on käännösvirhe — hyvä asia.
 
+Seuraavaksi: [Ohjausrakenteet](Control-Structures.md) · [Luokat ja oliot](../02-OOP-Concepts/Classes-and-Objects.md) · [Propertyt](Properties.md)
