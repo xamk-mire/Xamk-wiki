@@ -746,7 +746,7 @@ MyApp/
 ## Tehtävät
 
 Harjoittele DI:tä ja mockausta:
-- [UnitTestingObjects](../../../Assigments/UnitTestingObjects/README.md) - Olioiden testaaminen
+- **UnitTestingObjects** *(kurssitehtävä Moodlessa)* - Olioiden testaaminen
 
 ---
 

@@ -17,10 +17,10 @@ Tervetuloa Web API -kehityksen materiaaleihin! Tämä osio käsittelee backendin
 - [Health Checks](Health-Checks.md) - Sovelluksen terveystarkistukset tuotannossa (ASP.NET Core Health Checks middleware)
 
 ### Harjoitukset
-- [Vaihe 1: Backend Basics](https://github.com/xamk-mire/Xamk-wiki/tree/main/Assigments/Backend/Backend%20basics) - Ensimmäinen Web API controllereilla ja staattisella listalla
-- [Vaihe 2: Tietokanta](https://github.com/xamk-mire/Xamk-wiki/tree/main/Assigments/Backend/Database) - EF Core ja SQLite
-- [Vaihe 3: Service-kerros](https://github.com/xamk-mire/Xamk-wiki/tree/main/Assigments/Backend/Services) - Logiikka service-luokkaan
-- [Vaihe 4: Autentikointi](https://github.com/xamk-mire/Xamk-wiki/tree/main/Assigments/Backend/Authentication) - JWT ja käyttäjähallinto
+- **Vaihe 1: Backend Basics** *(kurssitehtävä Moodlessa)* - Ensimmäinen Web API controllereilla ja staattisella listalla
+- **Vaihe 2: Tietokanta** *(kurssitehtävä Moodlessa)* - EF Core ja SQLite
+- **Vaihe 3: Service-kerros** *(kurssitehtävä Moodlessa)* - Logiikka service-luokkaan
+- **Vaihe 4: Autentikointi** *(kurssitehtävä Moodlessa)* - JWT ja käyttäjähallinto
 
 ---
 

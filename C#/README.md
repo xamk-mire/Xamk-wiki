@@ -22,7 +22,7 @@ English learning materials for C# programming.
 - [Yleiset ohjelmointimateriaalit](fin/99-General/) - IDE, Git, UML, jne.
 
 ### [English Materials](eng/)
-Coming soon...
+Selected topics translated to English: basics (casting, scopes, delegates, lambdas, LINQ), OOP concepts, dependency injection, concurrency and unit testing.
 
 ## Oppimisjärjestys
 

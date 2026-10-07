@@ -666,7 +666,7 @@ Request → Logging → Cache → Retry → OrderService
 
 ### Tehtävät
 
-- [Clean Architecture API: Part 5 - Caching](../../../Assigments/CleanArchitectureBookingAPI/Part5-Caching/README.md)
+- **Clean Architecture API: Part 5 - Caching** *(kurssitehtävä Moodlessa)*
 
 ---
 

@@ -76,7 +76,7 @@ Suosittelemme opiskelua seuraavassa järjestyksessä:
 5. **Web API** - Opi backend-kehityksen perusteet ja REST API
    - Aloita [Backend ja API:sta](WebAPI/Backend-and-API.md) (teoria)
    - Jatka [Controllers](WebAPI/Controllers.md) (ASP.NET Core -kontrollerit)
-   - Tee [Backend Basics -harjoitus](https://github.com/xamk-mire/Xamk-wiki/tree/main/Assigments/Backend%20basics) (käytännön toteutus)
+   - Tee **Backend Basics -harjoitus** *(kurssitehtävä Moodlessa)* (käytännön toteutus)
 6. **Ohjelmistoarkkitehtuuri** - Ymmärrä eri arkkitehtuurimallit
    - Aloita Layered Architecture:sta
    - Jatka Clean Architecture:en

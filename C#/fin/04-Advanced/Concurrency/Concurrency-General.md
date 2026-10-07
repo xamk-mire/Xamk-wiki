@@ -526,7 +526,7 @@ Suosittelemme opiskelua tässä järjestyksessä:
 
 ### Käytännön harjoitus
 
-Kokeile opittuja asioita käytännössä: [Ravintolan tilausjärjestelmä -harjoitus](../../../Assigments/ConcurrencyExercises/README.md)
+Kokeile opittuja asioita käytännössä: **Ravintolan tilausjärjestelmä -harjoitus** *(kurssitehtävä Moodlessa)*
 
 ### Ulkoiset lähteet
 
