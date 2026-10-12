@@ -1,5 +1,7 @@
 # Azure-palvelut
 
+> 🇬🇧 **English versions:** [PostgreSQL, Infrastructure as Code, Bicep](../eng/Azure/README.md)
+
 Tervetuloa Azure-oppimateriaaliin! Tämä materiaali käsittelee Microsoftin Azure-pilvipalvelun keskeisiä palveluita ja niiden käyttöä sovelluskehityksessä.
 
 ## Mikä on Azure?
