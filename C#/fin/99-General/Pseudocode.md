@@ -4,6 +4,8 @@
 
 Pseudokoodaus tarkoittaa algoritmin tai ohjelman rakenteen kirjoittamista yksinkertaistetussa muodossa, joka muistuttaa ohjelmointikieltä mutta on vapaamuotoisempi ja ymmärrettävämpi ihmisille, jotka eivät ole ohjelmointikielten asiantuntijoita. Pseudokoodi ei ole suoritettavaa koodia, vaan se on tarkoitettu ohjelman tai algoritmin logiikan ja toiminnallisuuden kuvaamiseen.
 
+Saman ratkaisun voi piirtää [vuokaaviona](Flowchart.md). Pseudokoodin `JOS` on vuokaavion salmiakki, ja `NIIN KAUAN KUIN` on nuoli, joka palaa taaksepäin. Kumpikin kuvaa saman algoritmin: toinen tekstinä, toinen kuvana.
+
 ## Pseudokoodauksen hyödyt
 
 ### 1. Yksinkertaistaminen
@@ -112,6 +114,24 @@ ALOITA
 LOPPU
 ```
 
+### Esimerkki 6: Toisto — salasana
+
+```
+ALOITA
+  LUE salasana
+
+  NIIN KAUAN KUIN salasana on väärä
+    TULOSTA "Väärä salasana, yritä uudelleen"
+    LUE salasana
+
+  TULOSTA "Tervetuloa"
+LOPPU
+```
+
+Sisennetyt rivit toistuvat niin kauan kuin ehto on tosi. Kun salasana on oikein, suoritus jatkuu sisennyksen jälkeiseltä riviltä. Vuokaaviossa sama kohta on salmiakki, jonka ei-nuoli palaa kysymykseen.
+
+Kurssin tehtävissä syötteen lukeminen kirjoitetaan usein sanalla `KYSY`. `LUE` ja `KYSY` tarkoittavat samaa asiaa.
+
 ## Harjoitustehtäviä
 
 1. **Tervehdys**
@@ -140,6 +160,11 @@ LOPPU
    - Jos käyttäjä on opiskelija on alennusprosentti 15%
    - Tulosta "Alennusprosenttisi on [alennusProsentti]"
 
+6. **Salasana enintään kolmella yrityksellä**
+   - Kysy salasanaa niin kauan, kunnes se on oikein
+   - Laske yritykset. Kolmannen väärän yrityksen jälkeen tulosta "Liian monta yritystä" ja lopeta
+   - Tähän tarvitset toiston, laskurin ja kaksi ehtoa
+
 ## Yhteenveto
 
 Pseudokoodi on:
@@ -148,5 +173,5 @@ Pseudokoodi on:
 - **Yleispätevää**: Ei riippuvaista ohjelmointikielestä
 - **Hyödyllistä**: Auttaa suunnittelussa ja kommunikoinnissa
 
-Seuraavaksi: [Algoritmi](Algorithm.md)
+Seuraavaksi: [Vuokaavio](Flowchart.md) · [Algoritmi](Algorithm.md)
 

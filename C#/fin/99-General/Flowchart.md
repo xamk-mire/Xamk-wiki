@@ -37,15 +37,31 @@ Vuokaavio (flowchart) on graafinen esitys, joka kuvaa prosessin vaiheet ja niide
 
 ## Vuokaavion symbolit
 
-Vuokaavioissa käytetään standardoituja symboleja:
+Viisi symbolia riittää tällä kurssilla.
 
-- **Aloitus/Lopetus**: Ympyrä tai pyöristetty suorakulmio
-- **Prosessi**: Suorakulmio (esim. laskutoimitus, muuttujan asetus)
-- **Päätös**: Timantti (esim. if-lause, vertailu)
-- **Input/Output**: Suunnikas (esim. käyttäjän syöte, tulostus)
-- **Nuoli**: Yhdistää symbolit ja näyttää suoritusjärjestyksen
+| Symboli | Muoto | Käyttö |
+|---------|-------|--------|
+| **Aloitus / Lopetus** | Soikio | Ohjelman alku- ja loppupiste |
+| **Prosessi** | Suorakulmio | Toimenpide, esimerkiksi laskutoimitus tai arvon asetus |
+| **Valinta** | Salmiakki | Kyllä/ei-kysymys, jonka kohdalla kaavio haarautuu kahtia |
+| **Syöte / Tuloste** | Suunnikas | Tiedon lukeminen käyttäjältä tai tulostaminen ruudulle |
+| **Nuoli** | Viiva | Suoritusjärjestys: mihin mennään seuraavaksi |
 
-## Vuokaavion luonti prosessi
+Nimeä valinnan molemmat nuolet: toinen on **kyllä**, toinen **ei**. Ilman nimiä lukija ei tiedä, kumpaan haaraan mennään.
+
+## Kolme rakennetta vuokaaviossa
+
+Jokainen vuokaavio rakentuu kolmesta peruskuviosta. Ne vastaavat [algoritmin kolmea rakennetta](Algorithm.md#kolme-rakennetta).
+
+**Peräkkäisyys** on suora putki: soikio, sitten suorakulmioita ja suunnikkaita, lopuksi soikio. Nuolet kulkevat vain eteenpäin.
+
+**Valinta** on salmiakki keskellä putkea. Kyllä-nuoli vie yhteen haaraan, ei-nuoli toiseen. Haarat yhtyvät taas, jos ohjelma jatkuu yhteistä polkua.
+
+**Toisto** on nuoli, joka palaa taaksepäin. Salmiakki kysyy esimerkiksi "Onko salasana oikein?". Ei-nuoli palaa kysymykseen, kyllä-nuoli jatkaa eteenpäin. Ilman paluunuolta kaavio ei toista mitään.
+
+Saman kuvion voi kirjoittaa [pseudokoodina](Pseudocode.md): salmiakki on `JOS`, paluunuoli on `NIIN KAUAN KUIN`.
+
+## Vuokaavion laatiminen vaiheittain
 
 Vuokaavion laatiminen vaatii huolellista suunnittelua ja jäsennystä. Seuraavat vaiheet voivat auttaa laatimaan hyvän vuokaavion:
 

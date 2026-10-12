@@ -661,6 +661,13 @@ resource postgresServer 'Microsoft.DBforPostgreSQL/flexibleServers@2024-08-01' =
     version: '16'
     administratorLogin: administratorLogin
     administratorLoginPassword: administratorLoginPassword
+    authConfig: {
+      passwordAuth: 'Enabled'
+      activeDirectoryAuth: 'Disabled'
+    }
+    network: {
+      publicNetworkAccess: 'Enabled' // App Service + palomuurisääntö; ilman tätä what-if ennustaa julkisen pääsyn poistoa
+    }
     storage: {
       storageSizeGB: 32
     }
@@ -682,6 +689,10 @@ resource postgresServer 'Microsoft.DBforPostgreSQL/flexibleServers@2024-08-01' =
 resource database 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2024-08-01' = {
   parent: postgresServer
   name: databaseName
+  properties: {
+    charset: 'UTF8'
+    collation: 'en_US.utf8'
+  }
 }
 
 // Palomuuri: salli Azure-palvelut (0.0.0.0 on erikoisarvo, ei "koko internet")

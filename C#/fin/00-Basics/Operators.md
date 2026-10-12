@@ -59,6 +59,8 @@ if (code == "LEFFA10") { /* alennus */ }
 
 Vertailu on **kirjainkokoherkkä**: `"k" == "K"` on `false`, joten jatkokysymykseen vastattu iso `K` ei jatka silmukkaa, joka odottaa pientä `k`-kirjainta. Sama koskee alennuskoodia: `"leffa10"` ei ole `"LEFFA10"`.
 
+Yksi yhtäläisyysmerkki `=` sijoittaa arvon (`age = 18`), kaksi `==` vertaa (`age == 18`). Ehtoon kuuluu vertailu: `if (age = 18)` yrittää sijoittaa luvun eikä käänny. Katso [yleisiä virheitä valinnassa](Control-Structures.md#yleisiä-virheitä-valinnassa).
+
 ## Loogiset operaattorit
 
 Yhdistävät ehtoja.

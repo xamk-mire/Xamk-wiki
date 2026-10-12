@@ -1,90 +1,48 @@
 # Algoritmi
 
-## Mikä on algoritmi?
+**Algoritmi** on askellista, jota tietokone voi seurata sellaisenaan. Tietokone tekee täsmälleen sen, mitä lista sanoo. Se ei arvaa puuttuvaa askelta eikä korjaa epäselvää.
 
-Algoritmi on joukko sääntöjä tai ohjeita, joita noudattamalla voidaan ratkaista jokin tietty ongelma tai tehtävä. Algoritmit voivat olla yksinkertaisia tai monimutkaisia riippuen ongelman luonteesta.
+Arjen esimerkki on resepti. Ihmiselle riittää ohje "keitä vettä". Tietokoneelle pitää kertoa, mistä tietää veden kiehuvan ja mitä tehdään, jos vedenkeitin on tyhjä.
 
-Esimerkiksi resepti ruoan valmistamiseksi voidaan ajatella algoritmina. Siinä on tietty sarja ohjeita, joita noudattamalla saamme lopputulokseksi tietyn ruokalajin.
-
-Tietojenkäsittelyssä algoritmit ovat keskeisessä roolissa. Esimerkiksi hakukoneet käyttävät monimutkaisia algoritmeja etsiessään ja järjestäessään tietoa verkon miljardeista sivuista. Ohjelmointikielet, joilla tietokoneohjelmia kirjoitetaan, ovat työkaluja algoritmien ilmaisemiseen tavalla, jonka tietokone voi ymmärtää ja suorittaa.
-
-Oikein suunnitellut algoritmit tehostavat toimintoja ja mahdollistavat monimutkaisten ongelmien ratkaisun. Huonosti suunnitellut algoritmit voivat sen sijaan kuluttaa paljon aikaa ja resursseja eivätkä välttämättä tuota toivottua lopputulosta.
+Saman askellistan voi esittää [vuokaaviona](Flowchart.md) tai [pseudokoodina](Pseudocode.md). C#-koodi on sama lista kirjoitettuna kielellä, jonka kääntäjä ymmärtää.
 
 **Muita lähteitä:**
-- [Wikipedia - Algoritmi](https://fi.wikipedia.org/wiki/Algoritmi)
+- [Wikipedia: Algoritmi](https://fi.wikipedia.org/wiki/Algoritmi)
 
-## Mikä on hyvä algoritmi?
+## Hyvä algoritmi
 
-Hyvän algoritmin tunnusmerkit voivat vaihdella riippuen kontekstista ja käyttötarkoituksesta. Alla on joitakin yleisiä ominaisuuksia, joita otetaan huomioon. Mitä näistä otetaan huomioon ja mitä näistä painotetaan eniten, riippuu aina kehitettävän ohjelman käyttötarkoituksesta.
+Tällä kurssilla hyvä algoritmi täyttää kolme ehtoa.
 
-### 1. Tehokkuus
+| Ominaisuus | Selitys |
+|------------|---------|
+| **Yksiselitteinen** | Jokaisen askeleen voi suorittaa vain yhdellä tavalla |
+| **Äärellinen** | Algoritmi päättyy joskus eikä jatku ikuisesti |
+| **Järjestetty** | Askelten järjestyksellä on väliä |
 
-Algoritmin tulisi käyttää mahdollisimman vähän resursseja (kuten prosessoriaikaa ja muistia) suhteessa siihen, mitä sen tehtävänä on suorittaa. Aikavaativuus ja tilavaativuus ovat kaksi keskeistä mittaria tehokkuudessa.
+"Odota" ei ole yksiselitteinen askel. "Odota 3 minuuttia" on. Jos salasanaa kysytään uudelleen eikä yrityksiä rajoiteta, algoritmi ei ole äärellinen: käyttäjä voi vastata väärin loputtomiin.
 
-**Esimerkki**: Kuvittele, että olet kirjastossa ja etsit tiettyä kirjaa, joka on järjestetty aakkosjärjestyksessä. Jos tiedät, miten aakkoset on järjestetty, voit mennä suoraan oikeaan osaan hyllyä sen sijaan, että kulkisit joka hyllyn läpi alusta loppuun. Binäärihaku toimii samalla tavalla kuin tämä menetelmä: sen sijaan, että tarkastelisi jokaista kirjaa yksi kerrallaan (kuten lineaarisessa haussa), se keskittyy listaan ja tarkastelee vain sitä osaa, jossa haluttu kirja todennäköisesti on. Se tekee etsinnästä huomattavasti nopeamman.
+## Kolme rakennetta
 
-### 2. Selkeys
+Kolme rakennetta riittää kuvaamaan minkä tahansa ohjelman.
 
-Algoritmin tulisi olla ymmärrettävä. Selkeästi kuvattu algoritmi on helpompi tarkistaa, ylläpitää ja optimoida.
+| Rakenne | Mitä tapahtuu | Vuokaaviossa |
+|---------|----------------|--------------|
+| **Peräkkäisyys** | Askeleet suoritetaan järjestyksessä alusta loppuun | Suora putki, nuolet eteenpäin |
+| **Valinta** | Ohjelma haarautuu ehdon mukaan | Salmiakki ja kyllä/ei-nuolet |
+| **Toisto** | Sama askel toistuu, kunnes ehto täyttyy | Nuoli takaisin aiempaan kohtaan |
 
-**Esimerkki**: Kun kokkaat ensimmäistä kertaa, yksinkertainen ja selkeä resepti on helpompi seurata kuin monimutkainen ohjeistus.
+C#:ssa samat rakenteet ovat rivit allekkain, `if` / `else` sekä silmukat `while` ja `for`. Katso [ohjausrakenteet](../00-Basics/Control-Structures.md).
 
-### 3. Yleiskäyttöisyys
+## Tehokkuus — myöhemmin
 
-Joskus algoritmin arvoa mitataan sen perusteella, kuinka monenlaisiin ongelmiin se soveltuu.
+Myöhemmin algoritmeja vertaillaan myös sen mukaan, kuinka paljon aikaa ja muistia ne käyttävät. Tätä mitataan Big O -notaatiolla. Sitä ei tarvita vielä. Ensin algoritmin pitää olla yksiselitteinen, äärellinen ja järjestetty.
 
-**Esimerkki**: Vaate, joka toimii sekä sateella että kuorimiseen tai tehokas järjestelyalgoritmi, joka toimii monenlaisissa tietorakenteissa ja syötteissä (kuten [QuickSort](https://fi.wikipedia.org/wiki/Pikalajittelu)).
-
-### 4. Luotettavuus
-
-Algoritmin tulisi toimia oikein kaikilla mahdollisilla syötteillä ja tuottaa oikea lopputulos.
-
-**Esimerkki**: Kuvitellaan, että sinulla on koululaskin. Kun syötät laskimeen kaksi numeroa ja valitset yhteenlaskutoiminnon, odotat saavasi oikean summan joka kerta. Olipa syötteesi sitten 2 + 2 tai 999 + 1, laskimen tulisi antaa oikea tulos jokaisessa tilanteessa. Jos laskin antaisi erilaisia tuloksia samalle syötteelle tai jos sillä olisi rajat syötteille, jolloin se ei toimisi oikein, se ei olisi luotettava. Luotettavuus tarkoittaa sitä, että algoritmi (tässä tapauksessa yhteenlaskutoiminto) antaa oikean tuloksen johdonmukaisesti kaikille syötteille.
-
-### 5. Stabiilisuus
-
-Joissakin yhteyksissä, kuten numeerisessa analyysissä, algoritmin stabiilisuus (kyky käsitellä epätarkkuuksia ja virheitä) on tärkeää.
-
-**Esimerkki**: Tässä on hyvä reaalimaailman esimerkki, joka toteutui vähän aikaa sitten: [UK Air Traffic Control Chaos Was a '1 in 15 Million' Problem - The New York Times](https://www.nytimes.com/2023/09/06/world/europe/uk-flights-air-traffic-control-chaos.html)
-
-### 6. Skaalautuvuus
-
-Hyvä algoritmi pystyy käsittelemään suuria datamääriä ilman, että suorituskyky romahtaa.
-
-**Esimerkki**: Kuten metro, joka voi kuljettaa tuhansia ihmisiä päivittäin, niinkuin Google pystyy käsittelemään valtavat määrät dataa.
-
-### 7. Joustavuus
-
-Algoritmin kykyä mukautua muuttuviin olosuhteisiin tai vaatimuksiin voidaan pitää arvossa.
-
-**Esimerkki**: Kuten lamppu, jonka kirkkautta voi säätää tai pilvipalveluiden algoritmit voivat skaalautua tarpeen mukaan.
-
-### 8. Turvallisuus
-
-Joissakin sovelluksissa, kuten salauksessa, algoritmin turvallisuus on keskeistä. Tämä tarkoittaa sitä, että ulkopuolisten on vaikea murtaa tai manipuloida sitä.
-
-**Esimerkki**: Kassakaappi, vaikka kaikki tietävät, että kassakaappi lukitsee arvoesineet, vain harva osaa murtaa sellaisen.
-
-### 9. Kustannustehokkuus
-
-Kun otetaan huomioon kaikki resurssit (esim. kehitysaika, suorituskyky, muistin käyttö), algoritmin tulisi tarjota hyvää vastinetta resursseille.
-
-**Esimerkki**: Energiatehokas talo, joka pitää lämmön sisällä talvella ja säästää sähköä. Teollisuudessa esimerkiksi algoritmit optimoivat resurssien käyttöä, jotta tuotanto olisi optimaalista.
-
-### 10. Adaptiivisuus
-
-Jotkut algoritmit pystyvät mukautumaan syötteen ominaisuuksiin parantaen suorituskykyään.
-
-**Esimerkki**: Kuten ilmastointi, joka säätää lämpötilaa ulkoisten olosuhteiden mukaan tai miten suositusalgoritmit mukautuvat käyttäjän toiminnan mukaan.
+Lisää: [Big O](Big-O.md).
 
 ## Yhteenveto
 
-Hyvä algoritmi on:
-- **Tehokas**: Käyttää resursseja tehokkaasti
-- **Selkeä**: Helppo ymmärtää ja ylläpitää
-- **Luotettava**: Toimii oikein kaikilla syötteillä
-- **Skaalautuva**: Toimii myös suurilla datamäärillä
-- **Soveltuva**: Sopii käyttötarkoitukseensa
+- Algoritmi on askellista, jonka tietokone voi suorittaa sellaisenaan.
+- Hyvä algoritmi on yksiselitteinen, äärellinen ja järjestetty.
+- Kolme rakennetta riittää: peräkkäisyys, valinta ja toisto.
 
-Seuraavaksi: [Pseudokoodaus](Pseudocode.md)
-
+Seuraavaksi: [Vuokaavio](Flowchart.md) · [Pseudokoodi](Pseudocode.md)

@@ -14,7 +14,7 @@ Arjen esimerkki: kassalla ikä kysytään kirjoittamalla. Näppäimistö antaa m
 | Käyttäjä kirjoitti rahasumman | `Convert.ToDecimal(...)` |
 | `int` kerrotaan `decimal`-hinnalla | Ei muunnosta — C# tekee sen itse |
 | Desimaalit pois (`3.9` → `3`) | `(int)arvo` — tieto katoaa |
-| Syöte voi olla mitä tahansa tekstiä | `int.TryParse` — opitaan myöhemmin |
+| Syöte voi olla mitä tahansa tekstiä | [`int.TryParse`](#tryparse--kysy-uudelleen) — palauttaa `bool`, kysy uudelleen |
 
 ## Konsolin syöte on aina tekstiä
 
@@ -42,7 +42,40 @@ int age = Convert.ToInt32(Console.ReadLine());
 
 Väärä teksti (`"abc"`) → `FormatException`. Liian iso luku (`9999999999`) → `OverflowException`. Lue virheilmoituksesta **tyyppi** ja **oman koodin rivi** — [poikkeusten käsittely](Exception-Handling.md#virheilmoituksen-lukeminen).
 
-Alussa `Convert.ToInt32` riittää. Se on yksinkertainen. Se kaatuu väärästä tekstistä. `TryParse` estää kaatumisen. Molemmat ovat oikein — tiedä ero. `TryParse`: [Muuttujat](Variables.md).
+`Convert.ToInt32` on lyhyempi kirjoittaa, mutta se kaatuu väärästä tekstistä. `TryParse` ei kaadu. Molemmat ovat oikein, kunhan tiedät eron.
+
+## TryParse — kysy uudelleen
+
+`int.TryParse` yrittää muuntaa tekstin luvuksi. Paluuarvo on `bool`: onnistuiko muunnos. Itse luku tallentuu `out`-muuttujaan.
+
+| Syöte | Paluuarvo | `out`-muuttuja |
+|-------|-----------|----------------|
+| `"20"` | `true` | `20` |
+| `"abc"` | `false` | `0` |
+| `""` | `false` | `0` |
+
+`Convert.ToInt32("abc")` kaataa ohjelman. `int.TryParse("abc", out age)` palauttaa `false`, ja ohjelma jatkaa.
+
+Yksi kutsu ei riitä, kun ohjelma tarvitsee kelvollisen luvun jatkaakseen. `while`-silmukka kysyy uudelleen, kunnes muunnos onnistuu:
+
+```csharp
+Console.Write("Anna ikä: ");
+string? text = Console.ReadLine();
+int age;
+bool ok = int.TryParse(text, out age);
+
+while (!ok)
+{
+    Console.WriteLine("Anna kokonaisluku.");
+    Console.Write("Anna ikä: ");
+    text = Console.ReadLine();
+    ok = int.TryParse(text, out age);
+}
+```
+
+Pidä tulos omassa `ok`-muuttujassaan. Ehto `while (!ok)` luetaan silloin: "niin kauan kuin muunnos ei onnistunut".
+
+Huomaa, että `0` on kelvollinen kokonaisluku, joten `TryParse` palauttaa sille `true`. Rajojen tarkistus (`age < 0 || age > 130`) on eri asia kuin muunnoksen onnistuminen, ja se tehdään erikseen. Katso [while](Control-Structures.md#while--toista-niin-kauan-kuin).
 
 ## Automaattinen muunnos — pienempi mahtuu isompaan
 
@@ -119,7 +152,7 @@ Kun käsittelet olioita, `is` kysyy tyyppiä ja `as` yrittää muuntaa ilman kaa
 ## Yhteenveto
 
 - Syöte on `string`. Luvuksi: `Convert.ToInt32` tai `Convert.ToDecimal`.
-- Väärä teksti kaataa ohjelman — lue tyyppi ja rivinumero.
+- `Convert.ToInt32("abc")` kaataa ohjelman. `TryParse` palauttaa `false`, ja `while (!ok)` -silmukka kysyy uudelleen.
 - `int` × `decimal` toimii ilman erillistä muunnosta.
 - `(int)3.9` on `3`. Tieto katoaa tahallaan.
 - Raha pysyy `decimal`-tyypissä.

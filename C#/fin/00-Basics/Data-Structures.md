@@ -65,9 +65,22 @@ Tyhjä taulukko tietylle koolle: `int[] numbers = new int[5];` — viisi paikkaa
 
 Kaksiulotteinen taulukko (`int[,]`) on ruudukko. Alussa yksi rivi riittää. Sisäkkäiset silmukat: [ohjausrakenteet](Control-Structures.md#sisäkkäiset-silmukat).
 
+## Rinnakkainen taulukko
+
+**Rinnakkaiset taulukot** ovat kaksi samanpituista taulukkoa, joissa sama indeksi tarkoittaa samaa asiaa. `movies[1]` on elokuvan nimi, ja `ticketsPerMovie[1]` on sen myytyjen lippujen määrä.
+
+```csharp
+string[] movies = { "Avaruus", "Komedia", "Draama" };
+int[] ticketsPerMovie = new int[movies.Length];   // yhtä monta laskuria kuin elokuvaa
+
+ticketsPerMovie[choice] += ticketCount;           // choice on elokuvan indeksi
+```
+
+`movies.Length` pitää taulukot samankokoisina. Kun lisäät neljännen elokuvan, laskureitakin syntyy neljä ilman muuta muutosta. Kiinteä `new int[4]` hajoaa heti, kun elokuvien määrä muuttuu.
+
 ## List — koko kasvaa
 
-Listaan lisatetään alkioita ohjelman aikana. Päivän ostosten määrää ei tiedetä aamulla.
+Listaan lisätään alkioita ohjelman aikana. Päivän ostosten määrää ei tiedetä aamulla.
 
 ```csharp
 List<decimal> sales = new List<decimal>();
@@ -92,6 +105,10 @@ bool exists = names.Contains("Matti");
 Tarvitset `using System.Collections.Generic;` tiedoston alkuun, jos Visual Studio ei lisää sitä itse. **Ctrl+.** ehdottaa korjausta.
 
 `foreach` kun et tarvitse numeroa. `for` kun tarvitset indeksin tai järjestysnumeron.
+
+Kokoelma, jonka pitää kertyä kierrosten yli, luodaan silmukan **ulkopuolella**. Jos `List<decimal> purchases = new List<decimal>();` on `do-while`-silmukan sisällä, joka kierroksella syntyy uusi tyhjä lista ja edellisten asiakkaiden ostokset katoavat. Sama sääntö kuin [kertymämuuttujalla](Control-Structures.md#kertymämuuttuja).
+
+Älä kutsu `Remove`-metodia `foreach`-silmukan sisällä. Lista muuttuu kesken läpikäynnin, ja ohjelma kaatuu `InvalidOperationException`-poikkeukseen. Etsi poistettava alkio silmukassa, mutta tee `Remove` vasta silmukan jälkeen.
 
 ## Dictionary — avain avaa arvon
 
@@ -134,6 +151,28 @@ foreach (var pair in discounts)
 
 `Key` on avain, `Value` on arvo. Avaimen pitää olla uniikki. Samaa koodia ei voi lisätä kahdesti.
 
+Avain huomioi kirjainkoon: `"koira"` ja `"Koira"` ovat eri avaimia. Siksi esimerkissä käyttäjän syöte muutetaan `ToUpper()`-kutsulla isoiksi kirjaimiksi ennen hakua. Avaimet on tallennettu isoilla kirjaimilla, eikä `"leffa10"` löytäisi avainta `"LEFFA10"` ilman muunnosta.
+
+## Pienin arvo listasta
+
+Suurimman ostoksen voi alustaa nollalla, koska jokainen ostos on nollaa suurempi ja ylittää alkuarvon. Pienimmän kanssa sama ei toimi: nolla on pienempi kuin jokainen hinta, joten ehto `price < smallest` ei toteudu koskaan ja tulos jää nollaksi.
+
+Aloita sen sijaan listan ensimmäisestä alkiosta. Silloin listassa pitää olla vähintään yksi alkio.
+
+```csharp
+decimal smallest = prices[0];
+
+foreach (decimal price in prices)
+{
+    if (price < smallest)
+    {
+        smallest = price;
+    }
+}
+```
+
+Tyhjässä listassa ei ole alkiota `prices[0]`, ja haku kaatuu `ArgumentOutOfRangeException`-poikkeukseen. Tarkista `prices.Count == 0` ennen laskentaa ja tulosta silloin esimerkiksi "Ei ostoksia".
+
 ## Yleisiä virheitä
 
 **1. Indeksi 4 neljän alkion kokoelmassa**
@@ -165,9 +204,10 @@ Aloita taulukosta, Listasta ja Dictionarysta. Big O -ajat ovat [omalla sivullaan
 ## Yhteenveto
 
 - Yksi muuttuja, monta arvoa. Indeksi alkaa nollasta.
-- Taulukko: kiinteä koko, `Length`.
-- List: `Add`, `Count`, koko kasvaa.
-- Dictionary: avain → arvo, tarkista `ContainsKey`.
-- `foreach` ilman numeroa, `for` kun tarvitset indeksin.
+- Taulukko: kiinteä koko, `Length`. Rinnakkainen taulukko luodaan muodossa `new int[toinen.Length]`.
+- List: `Add`, `Count`, koko kasvaa. Luo lista silmukan ulkopuolelle, jos sen pitää kertyä. Ei `Remove`-kutsua `foreach`-silmukan sisällä.
+- Dictionary: avain → arvo, tarkista `ContainsKey`. Avain huomioi kirjainkoon.
+- `foreach` lukee. `for` kun tarvitset indeksin tai kirjoitat lokeroon.
+- Pienimmän arvon haku alkaa ensimmäisestä alkiosta, ei nollasta.
 
 Seuraavaksi: [Ohjausrakenteet](Control-Structures.md) · [Funktiot ja metodit](Functions-and-Methods.md) · [JSON](JSON.md)

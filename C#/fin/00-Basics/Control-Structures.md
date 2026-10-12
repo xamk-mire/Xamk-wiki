@@ -29,6 +29,7 @@ Arjen esimerkki: aamu. Nouset sängystä (peräkkäin). Jos sataa, otat sateenva
 | `for` | Toista **tiedetty määrä** kertoja | [for](#for--tiedetty-määrä-kertoja) |
 | `foreach` | Käy kokoelma läpi ilman järjestysnumeroa | [foreach](#foreach--käy-kokoelma-läpi) |
 | Kertymä | Summa tai laskuri, joka kasvaa silmukassa | [Kertymämuuttuja](#kertymämuuttuja) |
+| Ennätys | Suurin tähän asti nähty arvo | [Ennätys](#ennätys--suurin-arvo) |
 
 Kolme perusrakennetta riittää lähes kaikkeen:
 
@@ -344,7 +345,7 @@ Lue ehto: *"niin kauan kuin ikä on alle 0 TAI yli 130"*. Kun käyttäjä antaa 
 
 Jos ensimmäinen syöte on jo 20, silmukkaan ei mennä lainkaan. Siksi `while` sopii tilanteeseen "toista vain jos korjattavaa on".
 
-Väärä teksti (`"abc"`) kaataa ohjelman. Se on eri virhe kuin väärä lukuarvo. Tämän sivun esimerkit lukevat luvun `Convert.ToInt32`-kutsulla **lyhyyden vuoksi** — kun `TryParse` on opittu, käytä omissa ohjelmissasi `TryParse`-silmukkaa, joka ei kaadu vaan kysyy uudelleen. Katso [tyyppimuunnokset](Casting.md) ja [poikkeukset](Exception-Handling.md).
+Väärä teksti (`"abc"`) on eri virhe kuin rajojen ulkopuolella oleva luku. Tämän sivun esimerkit lukevat luvun `Convert.ToInt32`-kutsulla lyhyyden vuoksi. Omissa ohjelmissasi käytä [`TryParse`-silmukkaa](Casting.md#tryparse--kysy-uudelleen): se palauttaa `false` eikä kaada ohjelmaa.
 
 ### Ikuinen silmukka
 
@@ -473,6 +474,8 @@ foreach (tyyppi alkio in kokoelma)
 
 `foreach` ei anna järjestysnumeroa. Jos tarvitset `1. Matti`, `2. Liisa`, käytä `for`-silmukkaa ja indeksiä.
 
+`foreach` on lukemista varten. Silmukan muuttujaan ei voi sijoittaa: `name = "Testi"` silmukan sisällä ei edes käänny. Kun lokeroon pitää kirjoittaa, käytä `for`-silmukkaa ja indeksiä: `names[i] = "Testi"`.
+
 ### Kertymämuuttuja
 
 **Kertymä** on muuttuja, joka kerää summaa tai määrää silmukan aikana: välisumma, päivän myynti, asiakkaiden luku.
@@ -499,6 +502,24 @@ Jos `subtotal = 0m` on silmukan sisällä, edelliset kierrokset nollautuvat. Jä
 Sama kaava päivän myynnille: esittely ennen asiakassilmukkaa, `+=` sisällä, tulostus jälkeen.
 
 `+=` ja `++` on selitetty sivulla [Operaattorit](Operators.md).
+
+### Ennätys — suurin arvo
+
+**Ennätys** on suurin tähän asti nähty arvo, esimerkiksi päivän suurin ostos. Se ei ole summa. Kertymä kasvaa joka kierroksella (`subtotal += price`), mutta ennätys vaihtuu vain, kun uusi arvo ylittää vanhan.
+
+```csharp
+decimal biggestPurchase = 0m;          // alustus ENNEN asiakassilmukkaa
+
+// silmukan sisällä, kun asiakkaan ostos on laskettu:
+if (purchaseTotal > biggestPurchase)
+{
+    biggestPurchase = purchaseTotal;   // uusi ennätys
+}
+```
+
+Alustus on silmukan ulkopuolella aivan kuten kertymällä. Jos `biggestPurchase = 0m` on silmukan sisällä, edellinen ennätys katoaa joka kierroksella.
+
+Nolla kelpaa suurimman alkuarvoksi, koska jokainen ostos on nollaa suurempi. Pienimmän arvon kanssa nolla ei toimi: se olisi pienempi kuin jokainen hinta, eikä vertailu päivittäisi arvoa koskaan. Katso [pienin arvo listasta](Data-Structures.md#pienin-arvo-listasta).
 
 ### break ja continue
 
@@ -602,7 +623,7 @@ Käytä ternaryä vain lyhyeen, selkeään valintaan. Ketjuta mieluummin tavalli
 - `do-while`: runko ensin, ainakin yksi kerta — asiakassilmukka. Esittele ehdon muuttuja ennen silmukkaa.
 - `for`: tiedetty kierrosmäärä — liput, numerointi.
 - `foreach`: kokoelma ilman indeksiä.
-- Kertymä (`+=`) nollataan **silmukan ulkopuolella**.
+- Kertymä (`+=`) ja ennätys alustetaan **silmukan ulkopuolella**. Ennätys päivittyy vain, kun uusi arvo ylittää vanhan.
 - Ikuinen silmukka: ehdon muuttuja ei muutu. Tunnista tulvasta ja korjaa.
 
 Seuraavaksi: [Operaattorit](Operators.md) · [Debuggaus](Debug.md) · [Tietorakenteet](Data-Structures.md)

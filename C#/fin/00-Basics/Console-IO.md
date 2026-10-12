@@ -40,7 +40,7 @@ Console.Write("Kuinka monta lippua ostat? ");
 int ticketCount = Convert.ToInt32(Console.ReadLine());
 ```
 
-Jos syöte ei ole luku, ohjelma kaatuu `FormatException`-poikkeukseen. Se on normaalia — lue [poikkeuksen tyyppi ja rivinumero](Exception-Handling.md#virheilmoituksen-lukeminen). Turvallinen vaihtoehto (`TryParse`) opitaan myöhemmin.
+Jos syöte ei ole luku, `Convert.ToInt32` kaataa ohjelman `FormatException`-poikkeukseen. `int.TryParse` palauttaa sen sijaan `false`, ja `while`-silmukka kysyy luvun uudelleen: [TryParse](Casting.md#tryparse--kysy-uudelleen).
 
 > **Miksi `string?`?** Kysymysmerkki tarkoittaa, että arvo voi olla myös `null` ("ei mitään"). `ReadLine` on määritelty näin. Tyhjä Enter tuottaa tyhjän merkkijonon `""`.
 
