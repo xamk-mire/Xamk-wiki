@@ -40,6 +40,8 @@ IaC WAY (✅):
                  Reviewable                           Reliable
 ```
 
+> **In this course** you first build your Azure environment with CLI scripts, then describe the same environment in Bicep in **Assignment 4: Infrastructure as Code** *(exercise in the course Moodle)*. This page is the theory for that assignment; [Bicep](Bicep.md) is the syntax reference.
+
 ---
 
 ## Why IaC?
@@ -734,6 +736,8 @@ param location = 'northeurope'
 param sqlAdminPassword = readEnvironmentVariable('SQL_ADMIN_PASSWORD')
 ```
 
+> **Why `readEnvironmentVariable`?** A `.bicepparam` file is committed to Git, so a password must never be written into it. The function reads the value from the shell at deploy time instead. Set it before deploying: `$env:SQL_ADMIN_PASSWORD = "..."` (PowerShell) or `export SQL_ADMIN_PASSWORD=...` (bash). Combined with `@secure()` on the parameter, the password never appears in the file, the logs or the deployment history.
+
 ### Naming strategy
 
 A good naming convention makes resources easier to identify:
@@ -862,6 +866,19 @@ output primaryBlobEndpoint string = storageAccount.properties.primaryEndpoints.b
 
 ## Deployment
 
+### The everyday loop
+
+Once the template exists, day-to-day work is always the same four steps:
+
+| Step | Command | What you check |
+|---|---|---|
+| 1. Edit | `main.bicep` / `dev.bicepparam` in VS Code | The Bicep extension shows no red squiggles |
+| 2. Lint | `az bicep build --file main.bicep` | Syntax and linter warnings |
+| 3. Preview | `az deployment group what-if ...` | Only the `+`/`~` lines you expected |
+| 4. Deploy | `az deployment group create ...` | `provisioningState: Succeeded` and the outputs |
+
+> **PowerShell users:** the examples below use bash line continuation (`\`). In PowerShell, end a line with a backtick (`` ` ``) instead, and write `--name "deploy-$(Get-Date -Format yyyyMMdd-HHmmss)"` for the dated deployment name.
+
 ### Azure CLI
 
 ```bash
@@ -981,8 +998,11 @@ jobs:
 | **Idempotency** | Same code = same result, always |
 | **Bicep** | Azure's own IaC language, successor to ARM templates |
 | **Modules** | Code reuse and organisation |
-| **What-if** | Previewing changes before deployment |
+| **What-if** | Previewing changes before deployment (`+` create, `~` modify, `-` delete, `=` no change) |
+| **Drift** | Azure no longer matches the file; what-if reveals it, a new deployment fixes it |
+| **Incremental mode** | The default: resources missing from the file are left alone, never deleted |
 | **Parameter file** | Environment-specific settings in a separate file |
+| **`@secure()` + `readEnvironmentVariable`** | Passwords come from the shell at deploy time, never from a file in Git |
 
 ---
 

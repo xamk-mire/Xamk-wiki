@@ -17,6 +17,7 @@
 11. [Testing and validation](#testing-and-validation)
 12. [Common patterns](#common-patterns)
 13. [Troubleshooting](#troubleshooting)
+14. [Cheat sheet](#cheat-sheet)
 
 ---
 
@@ -50,6 +51,8 @@ az bicep upgrade
 az --version
 az bicep version
 ```
+
+> **PowerShell users:** the multi-line CLI examples on this page use bash line continuation (`\`). In PowerShell, end the line with a backtick (`` ` ``) instead. The commands and their arguments are otherwise identical.
 
 ### VS Code extension
 
@@ -240,24 +243,50 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
 
 ### Explicit dependencies
 
-Sometimes a dependency cannot be inferred from references:
+Sometimes there is no property to reference, so Bicep cannot see the dependency. The typical case: a module adds something to a resource that **another module creates**, but it receives the resource's name as a plain parameter instead of as the other module's output.
 
 ```bicep
-resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(keyVault.id, webApp.id)
-  scope: keyVault
-  properties: {
-    roleDefinitionId: subscriptionResourceId(
-      'Microsoft.Authorization/roleDefinitions',
-      '4633458b-17de-408a-b874-0445c86b69e6'
-    )
-    principalId: webApp.identity.principalId
+// main.bicep
+param serverName string
+
+module postgres 'modules/postgres.bicep' = {
+  name: 'postgresDeployment'
+  params: {
+    serverName: serverName
+  }
+}
+
+module firewall 'modules/postgres-firewall.bicep' = {
+  name: 'firewallDeployment'
+  params: {
+    serverName: serverName    // Same string as above — but NOT postgres.outputs.*, so no reference, no implicit dependency
   }
   dependsOn: [
-    keyVault        // ← Explicit dependency
+    postgres                  // ← Without this, the firewall module may run before the server exists
   ]
 }
 ```
+
+```bicep
+// modules/postgres-firewall.bicep
+param serverName string
+
+// The server is not created here, only referenced
+resource postgresServer 'Microsoft.DBforPostgreSQL/flexibleServers@2024-08-01' existing = {
+  name: serverName
+}
+
+resource allowAzure 'Microsoft.DBforPostgreSQL/flexibleServers/firewallRules@2024-08-01' = {
+  parent: postgresServer
+  name: 'AllowAzureServices'
+  properties: {
+    startIpAddress: '0.0.0.0'
+    endIpAddress: '0.0.0.0'
+  }
+}
+```
+
+> **Rule of thumb:** prefer implicit dependencies — pass `postgres.outputs.serverName` instead of the raw parameter and the `dependsOn` becomes unnecessary. Use `dependsOn` only when there is genuinely nothing to reference. A `dependsOn` that duplicates an existing reference is harmless but the linter flags it as noise.
 
 ```
 Dependency chain:
@@ -266,7 +295,7 @@ Dependency chain:
                                         │
                        Key Vault ────────┘
 
-  Bicep/ARM works out the correct creation order automatically.
+  Bicep/ARM works out the correct creation order from the references.
 ```
 
 ---
@@ -683,12 +712,15 @@ module kv 'modules/keyvault.bicep' = {
 ### Pattern 2: Tag standard
 
 ```bicep
+// utcNow() is only allowed as a parameter default value, not inside a var
+param deployedAt string = utcNow('yyyy-MM-dd')
+
 // Common tags for all resources
 var commonTags = {
   Application: appName
   Environment: environment
   ManagedBy: 'Bicep'
-  DeployedAt: utcNow()   // Deployment time (note: always causes a change)
+  DeployedAt: deployedAt   // Note: a date tag makes what-if show a change every day — leave it out if you want a clean "no change"
 }
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
@@ -794,6 +826,9 @@ output appInsightsInstrumentationKey string = appInsights.properties.Instrumenta
 | `AuthorizationFailed` | Missing permissions | Check the RBAC roles |
 | `AccountNameInvalid` | Invalid name format | Check Azure's naming rules (e.g. storage: lowercase letters only) |
 | `Conflict` | The resource is locked or in a state that prevents the change | Check resource locks and the state of the resource |
+| what-if shows `~` on `siteConfig` values you already set (`ftpsState`, `minTlsVersion`, `netFrameworkVersion`…) | Known what-if false positive on App Service | Verify with `az webapp show`; do not edit the template to chase these lines |
+| `utcNow() can only be used as a default value for a parameter` | `utcNow()` used in a `var` or resource | Move it to `param deployedAt string = utcNow()` |
+| A module runs before the resource it needs exists | Module got the name as a plain parameter, not as an output | Pass the other module's `outputs.*` or add `dependsOn` (see [Explicit dependencies](#explicit-dependencies)) |
 
 ### Useful commands
 
@@ -820,6 +855,30 @@ az bicep build --file main.bicep --stdout
 # Decompile ARM JSON into Bicep (migration)
 az bicep decompile --file template.json
 ```
+
+---
+
+## Cheat sheet
+
+| Keyword / decorator | Purpose | Example |
+|---|---|---|
+| `param` | Input to the template | `param location string = resourceGroup().location` |
+| `var` | Computed value, no input | `var appName = 'app-${name}-${env}'` |
+| `resource` | Something Azure should create | `resource sa 'Microsoft.Storage/storageAccounts@2023-01-01' = { … }` |
+| `resource … existing` | Reference without creating | `resource kv 'Microsoft.KeyVault/vaults@2023-07-01' existing = { name: 'kv-x' }` |
+| `module` | Call another `.bicep` file | `module db 'modules/postgres.bicep' = { name: 'db', params: { … } }` |
+| `output` | Value returned to the caller / CLI | `output url string = 'https://${web.properties.defaultHostName}'` |
+| `targetScope` | Deployment level | `targetScope = 'subscription'` |
+| `type` | User-defined type | `type envName = 'dev' \| 'prod'` |
+| `parent` | Child resource's parent | `parent: postgresServer` |
+| `scope` | Where a module or extension resource lands | `scope: rg` |
+| `dependsOn` | Explicit ordering (last resort) | `dependsOn: [ postgres ]` |
+| `= if (…)` | Conditional resource/module | `resource r '…' = if (deployRedis) { … }` |
+| `[for x in xs: { … }]` | Loop | `resource s '…' = [for n in names: { name: n }]` |
+| `@secure()` | Hide the value from logs and history | `@secure() param adminPassword string` |
+| `@allowed([…])` | Restrict the value | `@allowed(['dev', 'prod']) param env string` |
+| `@description('…')` | Document the parameter | `@description('App Service plan SKU') param sku string` |
+| `@minLength` / `@maxLength` / `@minValue` / `@maxValue` | Constraints | `@maxLength(24) param storageName string` |
 
 ---
 

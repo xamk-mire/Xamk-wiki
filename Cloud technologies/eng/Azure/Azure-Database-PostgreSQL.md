@@ -87,7 +87,9 @@ In addition, storage: the smallest size **32 GB ≈ €4/month**.
 
 ### Azure CLI
 
-```bash
+The CLI examples on this page are written for **PowerShell** (backtick `` ` `` line continuation, `$VAR = "..."`). In bash, use `\` and `VAR=...`.
+
+```powershell
 # Variables
 $RG = "rg-myapp-dev"
 $PG = "pg-myapp-<unique-id>"     # the name must be globally unique
@@ -121,6 +123,29 @@ Creation typically takes 5–10 minutes.
 
 > **Password tip:** generate a strong password and do not write it into the script. In PowerShell you can read it at run time: `$pw = Read-Host -AsSecureString "DB password"`.
 
+> **The same server in Bicep:** see [Example 6: PostgreSQL Flexible Server](Infrastructure-as-Code.md#example-6-postgresql-flexible-server). The CLI command and the Bicep resource create exactly the same thing — Bicep just makes it repeatable.
+
+### Testing the connection
+
+Before touching the application, check that the server answers. Install `psql` (comes with [PostgreSQL](https://www.postgresql.org/download/) or `winget install PostgreSQL.psql`) and connect from your own machine:
+
+```powershell
+psql "host=$PG.postgres.database.azure.com port=5432 dbname=myappdb user=myadmin sslmode=require"
+```
+
+```
+myappdb=> \conninfo
+You are connected to database "myappdb" as user "myadmin" on host "pg-myapp-xyz.postgres.database.azure.com" ... SSL connection (protocol: TLSv1.3 ...)
+myappdb=> \q
+```
+
+| Symptom | Likely cause |
+|---|---|
+| `no pg_hba.conf entry for host "1.2.3.4"` | Your IP is not in the firewall rules — add it (next section) |
+| `password authentication failed` | Wrong user or password; the user is `myadmin`, not `myadmin@servername` |
+| `could not translate host name` | Typo in the server name, or the server has not finished creating |
+| `connection timed out` | The server is stopped, or your network blocks port 5432 |
+
 ---
 
 ## Networking and firewall
@@ -129,7 +154,7 @@ By default, the Flexible Server's public endpoint is **completely closed**. Conn
 
 ![App Service reaches the database through the AllowAzureServices rule, your dev machine through its own IP rule, and every other address is blocked](images/postgres-network.svg)
 
-```bash
+```powershell
 # Allow Azure services (e.g. App Service) — special rule 0.0.0.0
 az postgres flexible-server firewall-rule create `
   --resource-group $RG `
@@ -179,7 +204,7 @@ Host=pg-myapp-xyz.postgres.database.azure.com;Database=myappdb;Username=myadmin;
 | Azure App Service | **Application Settings**: `ConnectionStrings__DefaultConnection` | The environment variable overrides appsettings.json |
 | Production (best level) | Key Vault + Managed Identity | No passwords in any configuration |
 
-```bash
+```powershell
 # Set it in App Service
 az webapp config appsettings set `
   --resource-group $RG `
@@ -230,6 +255,8 @@ using (var scope = app.Services.CreateScope())
 }
 ```
 
+> **Gotcha:** `EnsureCreated()` runs only when the **process starts**. If the database is deleted and recreated while the app keeps running, the tables are not recreated until you restart the app (`az webapp restart`). `/health` may already say the server is reachable while queries still fail with "relation does not exist".
+
 ---
 
 ## Microsoft Entra authentication — connecting without a password
@@ -273,7 +300,7 @@ Password authentication can eventually be disabled entirely (`passwordAuth: 'Dis
 
 A Flexible Server can be **stopped**, in which case compute is not billed (storage is still billed):
 
-```bash
+```powershell
 # Stop (compute billing stops)
 az postgres flexible-server stop --resource-group $RG --name $PG
 
