@@ -389,6 +389,6 @@ Huomaa kuinka **controller on nyt täysin vapaa tietokantakoodista**. Se vain ku
 
 ### Seuraavaksi
 
-- [Services-harjoitus](https://github.com/xamk-mire/Xamk-wiki/tree/main/Assigments/Backend/Services) — Refaktoroi ProductApi service-kerroksella
-- [Authentication harjoitus](https://github.com/xamk-mire/Xamk-wiki/tree/main/Assigments/Backend/Authentication) — Lisää JWT-autentikointi
+- **Services-harjoitus** *(kurssitehtävä Moodlessa)* — Refaktoroi ProductApi service-kerroksella
+- **Authentication harjoitus** *(kurssitehtävä Moodlessa)* — Lisää JWT-autentikointi
 - [Dependency Injection — teoria](../Dependency-Injection.md) — DI syvemmin

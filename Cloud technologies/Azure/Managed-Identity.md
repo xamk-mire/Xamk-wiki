@@ -56,6 +56,8 @@ Ei salasanoja, ei API-avaimia. Azure hoitaa tunnistautumisen.
 
 > **Ydin:** Azure tietää, että tietty App Service -instanssi on se mitä väittääkin olevansa — aivan kuten yrityksen kulunvalvontajärjestelmä tietää, kenen henkilökortti on kenen. Sinun ei tarvitse kertoa salasanaa, kortti itsessään on todiste.
 
+> **Ei vain Key Vaultiin:** tämän sivun esimerkit käyttävät Key Vaultia, mutta sama identiteetti kelpaa suoraan moniin muihinkin palveluihin — mm. Storage, Service Bus ja **Azure Database for PostgreSQL** ([Entra-autentikointi](Azure-Database-PostgreSQL.md#microsoft-entra--autentikointi--yhteys-ilman-salasanaa)). Parhaimmillaan salaisuutta ei tarvita ollenkaan, koska yhteys itsessään on identiteettipohjainen.
+
 ---
 
 ## Kolme vaihetta käytännössä

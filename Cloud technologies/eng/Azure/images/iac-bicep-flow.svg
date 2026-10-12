@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 420" width="880" height="420" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+  <rect width="880" height="420" rx="12" fill="#ffffff"/>
+  <text x="440" y="34" text-anchor="middle" font-size="20" font-weight="600" fill="#1b1b1b">How a Bicep deployment works</text>
+
+  <!-- Your files -->
+  <rect x="24" y="64" width="190" height="200" rx="10" fill="#f3f6fa" stroke="#9aa9bb"/>
+  <text x="119" y="88" text-anchor="middle" font-size="13" font-weight="600" fill="#44546a">YOUR REPOSITORY (Git)</text>
+  <rect x="44" y="102" width="150" height="56" rx="8" fill="#e7f1fb" stroke="#0078d4"/>
+  <text x="119" y="126" text-anchor="middle" font-size="15" font-weight="600" fill="#0b4a80">main.bicep</text>
+  <text x="119" y="145" text-anchor="middle" font-size="12" fill="#333">desired state</text>
+  <rect x="44" y="172" width="150" height="56" rx="8" fill="#e7f1fb" stroke="#0078d4"/>
+  <text x="119" y="196" text-anchor="middle" font-size="15" font-weight="600" fill="#0b4a80">dev.bicepparam</text>
+  <text x="119" y="215" text-anchor="middle" font-size="12" fill="#333">environment values</text>
+
+  <!-- compile -->
+  <line x1="214" y1="164" x2="276" y2="164" stroke="#444" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="245" y="152" text-anchor="middle" font-size="12" fill="#444">compile</text>
+  <rect x="280" y="124" width="140" height="80" rx="8" fill="#fff8e6" stroke="#c98a00"/>
+  <text x="350" y="158" text-anchor="middle" font-size="15" font-weight="600" fill="#7a5300">ARM JSON</text>
+  <text x="350" y="178" text-anchor="middle" font-size="12" fill="#333">(done for you by</text>
+  <text x="350" y="193" text-anchor="middle" font-size="12" fill="#333">az deployment)</text>
+
+  <!-- ARM -->
+  <line x1="420" y1="164" x2="482" y2="164" stroke="#444" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="486" y="104" width="160" height="120" rx="10" fill="#0078d4"/>
+  <text x="566" y="142" text-anchor="middle" font-size="15" font-weight="600" fill="#fff">Azure Resource</text>
+  <text x="566" y="161" text-anchor="middle" font-size="15" font-weight="600" fill="#fff">Manager</text>
+  <text x="566" y="186" text-anchor="middle" font-size="12" fill="#e6f2fb">compares the file</text>
+  <text x="566" y="202" text-anchor="middle" font-size="12" fill="#e6f2fb">with what exists</text>
+
+  <!-- Azure resources -->
+  <line x1="646" y1="164" x2="700" y2="164" stroke="#444" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="704" y="64" width="152" height="200" rx="10" fill="#f3f6fa" stroke="#9aa9bb"/>
+  <text x="780" y="88" text-anchor="middle" font-size="13" font-weight="600" fill="#44546a">RESOURCE GROUP</text>
+  <rect x="718" y="100" width="124" height="40" rx="6" fill="#fff" stroke="#0078d4"/>
+  <text x="780" y="125" text-anchor="middle" font-size="12" fill="#1b1b1b">App Service plan</text>
+  <rect x="718" y="150" width="124" height="40" rx="6" fill="#fff" stroke="#0078d4"/>
+  <text x="780" y="175" text-anchor="middle" font-size="12" fill="#1b1b1b">Web App</text>
+  <rect x="718" y="200" width="124" height="40" rx="6" fill="#fff" stroke="#0078d4"/>
+  <text x="780" y="225" text-anchor="middle" font-size="12" fill="#1b1b1b">PostgreSQL server</text>
+
+  <!-- what-if output -->
+  <line x1="566" y1="224" x2="566" y2="290" stroke="#444" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arr)"/>
+  <text x="576" y="262" font-size="12" fill="#444">what-if: report only, nothing changes</text>
+  <rect x="24" y="294" width="832" height="104" rx="10" fill="#f7f7f7" stroke="#bbb"/>
+  <text x="44" y="320" font-size="13" font-weight="600" fill="#44546a">WHAT-IF SYMBOLS: read them before every deploy</text>
+  <g font-size="14">
+    <text x="44" y="352" font-family="Consolas, monospace" font-weight="700" fill="#107c10">+</text>
+    <text x="64" y="352" fill="#1b1b1b">Create: not in Azure yet</text>
+    <text x="300" y="352" font-family="Consolas, monospace" font-weight="700" fill="#c98a00">~</text>
+    <text x="320" y="352" fill="#1b1b1b">Modify: exists, a property differs</text>
+    <text x="600" y="352" font-family="Consolas, monospace" font-weight="700" fill="#d13438">-</text>
+    <text x="620" y="352" fill="#1b1b1b">Delete (only in Complete mode)</text>
+    <text x="44" y="380" font-family="Consolas, monospace" font-weight="700" fill="#555">=</text>
+    <text x="64" y="380" fill="#1b1b1b">NoChange: Azure already matches the file</text>
+    <text x="400" y="380" font-family="Consolas, monospace" font-weight="700" fill="#555">*</text>
+    <text x="420" y="380" fill="#1b1b1b">Ignore: in Azure but not in the file (left alone)</text>
+  </g>
+</svg>

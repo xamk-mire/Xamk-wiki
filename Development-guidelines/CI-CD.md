@@ -9,8 +9,11 @@
 5. [GitHub Actions](#github-actions)
 6. [Käytännön esimerkki: .NET CI/CD](#käytännön-esimerkki-net-cicd)
 7. [Secrets ja ympäristömuuttujat](#secrets-ja-ympäristömuuttujat)
-8. [Best Practices](#best-practices)
-9. [Yhteenveto](#yhteenveto)
+8. [Azure-kirjautuminen putkessa: OIDC](#azure-kirjautuminen-putkessa-oidc)
+9. [Laatuportit ja branch protection](#laatuportit-ja-branch-protection)
+10. [Ilmoitukset epäonnistumisista](#ilmoitukset-epäonnistumisista)
+11. [Best Practices](#best-practices)
+12. [Yhteenveto](#yhteenveto)
 
 ---
 
@@ -270,6 +273,8 @@ jobs:
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
 ```
 
+> **Huom:** publish profile on **pitkäikäinen salaisuus** — yksinkertainen tapa aloittaa, mutta suositeltu tapa on **OIDC** (`azure/login@v2` + federated identity), jolloin repoon ei tallenneta yhtään salasanaa tai avainta. Katso [OIDC-luku](#azure-kirjautuminen-putkessa-oidc) alempana.
+
 ### IaC deploy — Bicep GitHub Actionsilla
 
 ```yaml
@@ -282,6 +287,10 @@ on:
     paths:
       - 'infra/**'
 
+permissions:
+  id-token: write   # OIDC-token (ks. OIDC-luku alempana)
+  contents: read
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -289,17 +298,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Azure Login
+      - name: Azure Login (OIDC — ei pitkäikäisiä salaisuuksia)
         uses: azure/login@v2
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: What-if (esikatselu lokiin)
+        run: |
+          az deployment group what-if \
+            --resource-group my-resource-group \
+            --template-file infra/main.bicep \
+            --parameters infra/dev.bicepparam
 
       - name: Deploy Bicep
-        uses: azure/arm-deploy@v2
-        with:
-          resourceGroupName: my-resource-group
-          template: ./infra/main.bicep
-          parameters: environment=production
+        run: |
+          az deployment group create \
+            --resource-group my-resource-group \
+            --template-file infra/main.bicep \
+            --parameters infra/dev.bicepparam
 ```
 
 ---
@@ -342,6 +360,119 @@ jobs:
       - name: Build
         run: dotnet build --configuration ${{ env.CONFIGURATION }}
 ```
+
+---
+
+## Azure-kirjautuminen putkessa: OIDC
+
+Putki tarvitsee oikeudet Azureen. Huonoin tapa on tallentaa **pitkäikäinen salaisuus** (service principal -salasana tai publish profile) GitHub Secretsiin: se ei vanhene, se pitää kierrättää käsin, ja vuotaessaan se toimii missä tahansa.
+
+**OIDC (OpenID Connect) / federated identity** poistaa ongelman: GitHub Actions todistaa identiteettinsä Azurelle **lyhytikäisellä tokenilla**, jonka Azure vaihtaa käyttöoikeuteen. Repoon ei tallenneta yhtään salasanaa — vain kolme *tunnistetta* (client id, tenant id, subscription id), jotka eivät ole salaisuuksia vaikka ne secrets-osioon tallennetaankin.
+
+```
+Pitkäikäinen salaisuus (❌):              OIDC / federated identity (✅):
+
+GitHub Secrets:                          GitHub Secrets:
+  AZURE_CREDENTIALS = {                    AZURE_CLIENT_ID       = <guid>
+    "clientSecret": "oikea salasana,       AZURE_TENANT_ID       = <guid>
+     joka toimii kaikkialla ja             AZURE_SUBSCRIPTION_ID = <guid>
+     ikuisesti" }                          (tunnisteita, ei salaisuuksia)
+        │                                      │
+        ▼                                      ▼
+  Vuotaa → hyökkääjällä                  Workflow saa kertakäyttöisen tokenin,
+  pysyvä pääsy Azureen                   joka kelpaa VAIN tästä reposta,
+                                         VAIN määritellystä haarasta
+```
+
+### Käyttöönotto (Azure CLI)
+
+```bash
+# 1. Sovellusrekisteröinti + service principal
+az ad app create --display-name "gh-myapp-deploy"
+# → ota talteen appId
+az ad sp create --id <appId>
+
+# 2. Oikeudet: Contributor VAIN omaan resource groupiin (least privilege)
+az role assignment create \
+  --assignee <appId> \
+  --role Contributor \
+  --scope /subscriptions/<sub-id>/resourceGroups/<rg-name>
+
+# 3. Federated credential: luota TÄSMÄLLEEN tähän repoon ja haaraan
+az ad app federated-credential create --id <appId> --parameters '{
+  "name": "github-main",
+  "issuer": "https://token.actions.githubusercontent.com",
+  "subject": "repo:<owner>/<repo>:ref:refs/heads/main",
+  "audiences": ["api://AzureADTokenExchange"]
+}'
+```
+
+`subject`-kenttä on turvallisuuden ydin: token kelpaa vain, kun workflow ajaa nimenomaan tästä reposta ja tästä haarasta. Toisen repon (tai forkin) workflow ei saa pääsyä, vaikka tunnisteet vuotaisivat.
+
+### Käyttö workflowssa
+
+```yaml
+permissions:
+  id-token: write   # ilman tätä OIDC-token ei irtoa
+  contents: read
+
+steps:
+  - name: Azure Login
+    uses: azure/login@v2
+    with:
+      client-id: ${{ secrets.AZURE_CLIENT_ID }}
+      tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+      subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+```
+
+---
+
+## Laatuportit ja branch protection
+
+CI-tarkistukset ovat hyödyttömiä, jos ne voi ohittaa. **Branch protection** tekee tarkistuksista pakollisia: main-haaraan ei pääse kuin pull requestin kautta, ja PR ei mergeydy ennen kuin kaikki portit ovat vihreällä.
+
+```
+Kehittäjä ──► feature-haara ──► Pull Request ──► main ──► automaattinen deploy
+                                    │
+                          ┌─────────┴──────────┐
+                          │  LAATUPORTIT        │
+                          │  ✅ Build           │
+                          │  ✅ Testit          │
+                          │  ✅ Lint/format     │
+                          │  ✅ Katselmointi    │
+                          │     (ihminen/AI)    │
+                          └────────────────────┘
+                          Kaikki vihreällä → merge sallittu
+                          Yksikin punainen → merge estetty
+```
+
+### Käyttöönotto GitHubissa
+
+`Repository → Settings → Branches → Add branch protection rule`:
+
+| Asetus | Vaikutus |
+|--------|----------|
+| **Require a pull request before merging** | Suoraan mainiin ei voi pushata |
+| **Require status checks to pass** | Valitut CI-jobit (esim. `build-and-test`) pakollisia |
+| **Require branches to be up to date** | PR testataan mainin uusinta versiota vasten |
+| **Do not allow bypassing the above settings** | Säännöt koskevat myös adminia (itseäsi) |
+
+> **Huom:** yksityisissä repoissa branch protection vaatii GitHub Pro -tason (opiskelijat saavat sen [GitHub Student Developer Packista](https://education.github.com/pack)). Julkisissa repoissa se on ilmainen.
+
+### AI-katselmointi porttina
+
+Ihmiskatselmoinnin rinnalle (tai opiskeluprojektissa sen sijaan) voi kytkeä **AI-koodikatselmoinnin** — esim. GitHub Copilot code review — joka kommentoi PR:n muutokset automaattisesti. AI-katselmointi löytää mekaanisia ongelmia (bugiepäilyt, nimeäminen, unohtunut virheenkäsittely), mutta **ei ymmärrä kontekstia**: sen huomautukset ovat ehdotuksia, jotka ihminen hyväksyy tai perustellusti hylkää. Hyvä käytäntö: jokaiseen AI-kommenttiin reagoidaan — joko korjaus tai lyhyt perustelu, miksi ei korjata.
+
+---
+
+## Ilmoitukset epäonnistumisista
+
+Automaattinen putki ilman ilmoituksia on vaarallinen: rikkinäinen deploy voi jäädä huomaamatta päiviksi. Vähimmäistaso on **sähköposti-ilmoitus epäonnistuneesta workflow-ajosta**:
+
+1. GitHub → oma profiili → **Settings → Notifications → Actions**
+2. Valitse **Only notify for failed workflows**
+
+Tämän jälkeen jokainen punainen ajo mainissa tuottaa sähköpostin — myös deploy-vaiheen tai deploymentin jälkeisen **smoke testin** epäonnistuminen. Smoke test (esim. `curl /health` deployn jälkeen) kannattaa aina lisätä putken viimeiseksi askeleeksi: se muuttaa "deploy meni läpi" -tiedon muotoon "sovellus oikeasti vastaa".
 
 ---
 

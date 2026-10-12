@@ -7,11 +7,12 @@
 3. [Hinnoittelu](#hinnoittelu)
 4. [RBAC-pääsynhallinta](#rbac-pääsynhallinta)
 5. [Managed Identity](#managed-identity)
-6. [Verkkokonfiguraatio](#verkkokonfiguraatio)
-7. [Audit-lokit ja monitorointi](#audit-lokit-ja-monitorointi)
-8. [Key Vaultin luominen](#key-vaultin-luominen)
-9. [Salaisuuksien hallinta CLI:llä](#salaisuuksien-hallinta-clillä)
-10. [Parhaat käytännöt](#parhaat-käytännöt)
+6. [Key Vault -referenssit App Servicessä](#key-vault--referenssit-app-servicessä)
+7. [Verkkokonfiguraatio](#verkkokonfiguraatio)
+8. [Audit-lokit ja monitorointi](#audit-lokit-ja-monitorointi)
+9. [Key Vaultin luominen](#key-vaultin-luominen)
+10. [Salaisuuksien hallinta CLI:llä](#salaisuuksien-hallinta-clillä)
+11. [Parhaat käytännöt](#parhaat-käytännöt)
 
 ---
 
@@ -170,6 +171,52 @@ MANAGED IDENTITY (✅):
 | **Elinkaari** | Poistetaan resurssin mukana | Itsenäinen |
 | **Jakaminen** | Yksi per resurssi | Usean resurssin kesken |
 | **Suositus** | Yksinkertaiset tapaukset | Monimutkaiset arkkitehtuurit |
+
+---
+
+## Key Vault -referenssit App Servicessä
+
+Sovelluksen ei aina tarvitse kutsua Key Vaultia itse (`SecretClient`). App Service osaa hakea salaisuuden puolestasi **Key Vault -referenssillä**: Application Setting, jonka arvo on osoitin Key Vaultiin. Sovellus näkee tavallisen ympäristömuuttujan — se ei tiedä Key Vaultista mitään.
+
+### Syntaksi
+
+```
+@Microsoft.KeyVault(SecretUri=https://<vault-nimi>.vault.azure.net/secrets/<salaisuuden-nimi>/)
+```
+
+Kun versio jätetään pois (huomaa päättävä `/`), App Service hakee aina **uusimman version** — salaisuuden kierrätys ei vaadi konfiguraatiomuutosta.
+
+### Edellytykset
+
+1. App Servicellä on **Managed Identity** (system-assigned riittää)
+2. Identiteetillä on **Key Vault Secrets User** -rooli kyseiseen vaultiin
+3. Application Setting -arvo on yllä olevassa muodossa (asetetaan Bicepissä, CLI:llä tai Portalissa)
+
+### Bicep-esimerkki
+
+```bicep
+appSettings: [
+  {
+    name: 'AdminApiKey'
+    value: '@Microsoft.KeyVault(SecretUri=${keyVault.properties.vaultUri}secrets/AdminApiKey/)'
+  }
+]
+```
+
+Huomaa: **Bicep asettaa vain osoittimen** — salaisuuden arvo ei ole templatessa eikä versionhallinnassa. Arvo asetetaan kerran erikseen (`az keyvault secret set ...`).
+
+### Vianetsintä
+
+Portal → App Service → **Environment variables**: jokaisen Key Vault -referenssin vieressä näkyy tila (vihreä ✓ / punainen ✗). Punainen tarkoittaa lähes aina, että Managed Identity puuttuu tai roolia ei ole myönnetty — ja roolimuutos voi kestää 1–5 minuuttia.
+
+### SecretClient vs. Key Vault -referenssi
+
+| | Key Vault -referenssi | SecretClient koodissa |
+|--|------------------------|------------------------|
+| Koodimuutos | Ei — sovellus lukee tavallista konfiguraatiota | Kyllä — SDK-kutsu |
+| Salaisuuden vaihto ajon aikana | Ei — luetaan käynnistyksessä/päivityksessä | Kyllä — haettavissa milloin vain |
+| Toimii paikallisesti | Ei (App Service -ominaisuus) — paikallisesti arvo tulee esim. user secretsistä | Kyllä (`DefaultAzureCredential` + `az login`) |
+| Sopii | Käynnistyksessä luettavat asetukset (yleisin tapaus) | Dynaaminen salaisuuksien käsittely |
 
 ---
 

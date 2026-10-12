@@ -486,6 +486,6 @@ public class ProductsController : ControllerBase
 ### Seuraavaksi
 
 Kun ymmärrät controllerien toiminnan, siirry rakentamaan ensimmäinen Web API:
-- [Backend Basics -tutoriaali](https://github.com/xamk-mire/Xamk-wiki/tree/main/Assigments/Backend%20basics) — Ohjattu harjoitus askel askeleelta
+- **Backend Basics -tutoriaali** *(kurssitehtävä Moodlessa)* — Ohjattu harjoitus askel askeleelta
 - [Layered Architecture](../Architecture/Layered-Architecture.md) — Miten backend rakennetaan kerroksittain
 - [Dependency Injection](../Dependency-Injection.md) — Miten palveluita käytetään controllereissa

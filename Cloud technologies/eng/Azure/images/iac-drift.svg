@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 340" width="880" height="340" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+    <marker id="arrRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#d13438"/>
+    </marker>
+    <marker id="arrGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#107c10"/>
+    </marker>
+  </defs>
+  <rect width="880" height="340" rx="12" fill="#ffffff"/>
+  <text x="440" y="34" text-anchor="middle" font-size="20" font-weight="600" fill="#1b1b1b">Drift: when Azure no longer matches the file</text>
+
+  <!-- desired -->
+  <rect x="40" y="80" width="240" height="130" rx="10" fill="#e7f1fb" stroke="#0078d4" stroke-width="1.5"/>
+  <text x="160" y="108" text-anchor="middle" font-size="13" font-weight="600" fill="#0b4a80">DESIRED STATE (Git)</text>
+  <text x="160" y="140" text-anchor="middle" font-size="14" font-family="Consolas, monospace" fill="#1b1b1b">tags: {</text>
+  <text x="160" y="162" text-anchor="middle" font-size="14" font-family="Consolas, monospace" fill="#1b1b1b">  Environment: 'dev'</text>
+  <text x="160" y="184" text-anchor="middle" font-size="14" font-family="Consolas, monospace" fill="#1b1b1b">  ManagedBy: 'bicep' }</text>
+
+  <!-- actual -->
+  <rect x="600" y="80" width="240" height="130" rx="10" fill="#fdf0f0" stroke="#d13438" stroke-width="1.5"/>
+  <text x="720" y="108" text-anchor="middle" font-size="13" font-weight="600" fill="#a4262c">ACTUAL STATE (Azure)</text>
+  <text x="720" y="140" text-anchor="middle" font-size="14" font-family="Consolas, monospace" fill="#1b1b1b">tags: {</text>
+  <text x="720" y="162" text-anchor="middle" font-size="14" font-family="Consolas, monospace" fill="#1b1b1b">  Environment: 'production'</text>
+  <text x="720" y="184" text-anchor="middle" font-size="14" font-family="Consolas, monospace" fill="#a4262c">  (ManagedBy removed) }</text>
+
+  <!-- manual change -->
+  <text x="720" y="62" text-anchor="middle" font-size="13" fill="#a4262c">① someone edits it by hand in the Portal</text>
+
+  <!-- what-if -->
+  <line x1="600" y1="120" x2="286" y2="120" stroke="#444" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arr)"/>
+  <rect x="330" y="92" width="226" height="56" rx="8" fill="#fff8e6" stroke="#c98a00"/>
+  <text x="443" y="115" text-anchor="middle" font-size="13" font-weight="600" fill="#7a5300">② what-if compares</text>
+  <text x="443" y="135" text-anchor="middle" font-size="12" font-family="Consolas, monospace" fill="#1b1b1b">~ Environment: production → dev</text>
+
+  <!-- deploy -->
+  <path d="M160,210 C160,290 720,290 720,216" fill="none" stroke="#107c10" stroke-width="2.5" marker-end="url(#arrGreen)"/>
+  <text x="440" y="300" text-anchor="middle" font-size="14" font-weight="600" fill="#107c10">③ deploy again → Azure is put back to what the file says</text>
+  <text x="440" y="326" text-anchor="middle" font-size="13" fill="#444">The file is the memory: nobody has to remember what was changed by hand.</text>
+</svg>

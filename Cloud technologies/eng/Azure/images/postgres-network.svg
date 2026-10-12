@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 380" width="880" height="380" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#107c10"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#d13438"/>
+    </marker>
+  </defs>
+  <rect width="880" height="380" rx="12" fill="#ffffff"/>
+  <text x="440" y="34" text-anchor="middle" font-size="20" font-weight="600" fill="#1b1b1b">Who can reach the database? The firewall decides</text>
+
+  <!-- App Service -->
+  <rect x="24" y="60" width="250" height="130" rx="10" fill="#e7f1fb" stroke="#0078d4" stroke-width="1.5"/>
+  <text x="149" y="84" text-anchor="middle" font-size="13" font-weight="600" fill="#0b4a80">APP SERVICE (in Azure)</text>
+  <rect x="40" y="96" width="104" height="44" rx="6" fill="#fff" stroke="#0078d4"/>
+  <text x="92" y="123" text-anchor="middle" font-size="12" fill="#1b1b1b">Instance A</text>
+  <rect x="154" y="96" width="104" height="44" rx="6" fill="#fff" stroke="#0078d4"/>
+  <text x="206" y="123" text-anchor="middle" font-size="12" fill="#1b1b1b">Instance B</text>
+  <text x="149" y="162" text-anchor="middle" font-size="11" font-family="Consolas, monospace" fill="#333">App setting:</text>
+  <text x="149" y="178" text-anchor="middle" font-size="11" font-family="Consolas, monospace" fill="#333">ConnectionStrings__DefaultConnection</text>
+
+  <!-- Dev machine -->
+  <rect x="24" y="210" width="250" height="64" rx="10" fill="#f3f6fa" stroke="#9aa9bb"/>
+  <text x="149" y="236" text-anchor="middle" font-size="13" font-weight="600" fill="#44546a">YOUR DEV MACHINE</text>
+  <text x="149" y="256" text-anchor="middle" font-size="12" fill="#333">psql, pgAdmin, dotnet run</text>
+
+  <!-- Unknown -->
+  <rect x="24" y="294" width="250" height="64" rx="10" fill="#fdf0f0" stroke="#d13438"/>
+  <text x="149" y="320" text-anchor="middle" font-size="13" font-weight="600" fill="#a4262c">ANY OTHER IP ADDRESS</text>
+  <text x="149" y="340" text-anchor="middle" font-size="12" fill="#333">no matching rule</text>
+
+  <!-- Firewall -->
+  <rect x="486" y="60" width="26" height="298" rx="4" fill="#c98a00"/>
+  <text x="499" y="210" text-anchor="middle" font-size="13" font-weight="600" fill="#fff" transform="rotate(-90 499 210)">FIREWALL</text>
+
+  <!-- arrows -->
+  <line x1="274" y1="125" x2="482" y2="125" stroke="#107c10" stroke-width="2.5" marker-end="url(#arrG)"/>
+  <text x="378" y="112" text-anchor="middle" font-size="11" font-family="Consolas, monospace" fill="#107c10">AllowAzureServices</text>
+  <text x="378" y="145" text-anchor="middle" font-size="11" font-family="Consolas, monospace" fill="#107c10">0.0.0.0 – 0.0.0.0</text>
+
+  <line x1="274" y1="242" x2="482" y2="242" stroke="#107c10" stroke-width="2.5" marker-end="url(#arrG)"/>
+  <text x="378" y="232" text-anchor="middle" font-size="11" font-family="Consolas, monospace" fill="#107c10">MyDevMachine</text>
+  <text x="378" y="262" text-anchor="middle" font-size="11" font-family="Consolas, monospace" fill="#107c10">&lt;your-ip&gt; – &lt;your-ip&gt;</text>
+
+  <line x1="274" y1="326" x2="470" y2="326" stroke="#d13438" stroke-width="2.5" stroke-dasharray="6 4" marker-end="url(#arrR)"/>
+  <text x="378" y="316" text-anchor="middle" font-size="12" font-weight="600" fill="#d13438">blocked ✕</text>
+
+  <!-- server -->
+  <line x1="512" y1="190" x2="560" y2="190" stroke="#107c10" stroke-width="2.5" marker-end="url(#arrG)"/>
+  <rect x="564" y="100" width="292" height="180" rx="12" fill="#0078d4"/>
+  <text x="710" y="132" text-anchor="middle" font-size="15" font-weight="600" fill="#fff">PostgreSQL Flexible Server</text>
+  <text x="710" y="156" text-anchor="middle" font-size="12" font-family="Consolas, monospace" fill="#e6f2fb">&lt;name&gt;.postgres.database.azure.com</text>
+  <rect x="604" y="176" width="212" height="44" rx="6" fill="#fff"/>
+  <text x="710" y="203" text-anchor="middle" font-size="13" fill="#1b1b1b">database: data, backups</text>
+  <text x="710" y="252" text-anchor="middle" font-size="12" fill="#e6f2fb">TLS required (Ssl Mode=Require)</text>
+</svg>
