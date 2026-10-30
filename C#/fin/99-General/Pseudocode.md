@@ -1,177 +1,248 @@
-# Pseudokoodaus
+# Pseudokoodi (Pseudocode)
 
 ## Mikä on pseudokoodaus?
 
-Pseudokoodaus tarkoittaa algoritmin tai ohjelman rakenteen kirjoittamista yksinkertaistetussa muodossa, joka muistuttaa ohjelmointikieltä mutta on vapaamuotoisempi ja ymmärrettävämpi ihmisille, jotka eivät ole ohjelmointikielten asiantuntijoita. Pseudokoodi ei ole suoritettavaa koodia, vaan se on tarkoitettu ohjelman tai algoritmin logiikan ja toiminnallisuuden kuvaamiseen.
+**Pseudokoodi** on algoritmi kirjoitettuna rakenteelliseksi tekstiksi, joka muistuttaa ohjelmointikieltä mutta ei noudata minkään kielen kielioppia. Se ei ole suoritettavaa koodia. Sen tarkoitus on kuvata ohjelman logiikka niin tarkasti, että koodin kirjoittaminen on enää kääntämistä.
 
-Saman ratkaisun voi piirtää [vuokaaviona](Flowchart.md). Pseudokoodin `JOS` on vuokaavion salmiakki, ja `NIIN KAUAN KUIN` on nuoli, joka palaa taaksepäin. Kumpikin kuvaa saman algoritmin: toinen tekstinä, toinen kuvana.
+Arjen esimerkki on resepti, jonka askeleet on numeroitu ja sisennetty: "toista, kunnes taikina on sileää" ja sen alla sisennettynä "vaivaa minuutti, tarkista". Kuka tahansa kokki osaa seurata sitä, vaikka ei tunne kirjoittajan keittiötä.
 
-## Pseudokoodauksen hyödyt
+Saman ratkaisun voi piirtää [vuokaaviona](Flowchart.md). Pseudokoodin `JOS` on vuokaavion salmiakki, ja `NIIN KAUAN KUIN` on nuoli, joka palaa taaksepäin. Vuokaavio on parempi kokonaiskuvaan, pseudokoodi on nopeampi kirjoittaa ja muuttaa.
 
-### 1. Yksinkertaistaminen
+## Avainsanat
 
-Pseudokoodi auttaa kehittäjiä keskittymään algoritmin logiikkaan ilman että heidän tarvitsee huolehtia syntaksista tai kielispesifisistä rakenteista.
+Kurssilla käytetään näitä avainsanoja. Kirjoitusasu on vapaa, mutta ole johdonmukainen.
 
-### 2. Selkeys
+| Avainsana | Merkitys | Vastaava rakenne C#:ssa |
+|-----------|----------|-------------------------|
+| `KYSY x` | Lue syöte käyttäjältä muuttujaan `x` | `Console.ReadLine()` |
+| `TULOSTA "..."` | Tulosta teksti tai arvo | `Console.WriteLine(...)` |
+| `x = arvo` | Sijoita arvo muuttujaan | `x = arvo;` |
+| `JOS ehto` … `MUUTEN JOS ehto` … `MUUTEN` | Valinta | `if` / `else if` / `else` |
+| `NIIN KAUAN KUIN ehto` | Toisto | `while` |
 
-Pseudokoodi on yleensä selkeämpää ja helpommin ymmärrettävää kuin varsinainen koodi, mikä tekee siitä tehokkaan työkalun ideoiden ja ratkaisujen kommunikointiin tiimien sisällä.
+`LUE` tarkoittaa samaa kuin `KYSY`. Jotkin lähteet kehystävät ohjelman sanoilla `ALOITA` ja `LOPPU`. Kehys on valinnainen, ja kurssin tehtävissä sitä ei käytetä.
 
-### 3. Yleispätevyys
+## Kolme sääntöä
 
-Pseudokoodi ei ole sidottu mihinkään tiettyyn ohjelmointikieleen, joten se on ymmärrettävää kaikille ohjelmoijille riippumatta heidän taustastaan.
+1. **Yksi askel per rivi.** "Kysy ikä ja laske hinta" on kaksi riviä.
+2. **Sisennys näyttää rakenteen.** `JOS`-rivin alla sisennetyt rivit kuuluvat ehdon sisään. `NIIN KAUAN KUIN` -rivin alla sisennetyt rivit toistuvat. Kun sisennys loppuu, rakenne loppuu.
+3. **Ehto on vertailu, joka on tosi tai epätosi.** `age < 12`, `pin != 1234`, `answer == "k"`. Sanallinen ehto ("jos ikä on sopiva") ei käänny koodiksi.
 
-### 4. Suunnittelun tukeminen
-
-Pseudokoodi on erinomainen työkalu algoritmien ja ohjelmien suunnitteluvaiheessa, sillä se auttaa hahmottamaan ohjelman rakennetta ja toimintalogiikkaa ennen varsinaisen koodin kirjoittamista.
-
-### 5. Opetuksellinen väline
-
-Pseudokoodia käytetään usein opetuksessa algoritmien ja ohjelmoinnin peruskäsitteiden selittämiseen, koska se keskittyy logiikkaan ja suunnitteluun teknisten yksityiskohtien sijaan.
-
-## Esimerkki pseudokoodista
+## Esimerkit
 
 ### Esimerkki 1: Tervehdys
 
 ```
-ALOITA
-  LUE käyttäjän_nimi
-  TULOSTA "Hei, " + käyttäjän_nimi + "!"
-LOPPU
+KYSY name
+TULOSTA "Hei, " + name + "!"
 ```
+
+Pelkkää peräkkäisyyttä: kaksi askelta, ei haaroja.
 
 ### Esimerkki 2: Yksinkertainen laskin
 
 ```
-ALOITA
-  LUE luku1
-  LUE luku2
-  LUE operaatio
-  
-  JOS operaatio == "+" NIIN
-    tulos = luku1 + luku2
-  MUUTEN JOS operaatio == "-" NIIN
-    tulos = luku1 - luku2
-  MUUTEN JOS operaatio == "*" NIIN
-    tulos = luku1 * luku2
-  MUUTEN JOS operaatio == "/" NIIN
-    tulos = luku1 / luku2
-  LOPPU JOS
-  
-  TULOSTA tulos
-LOPPU
+KYSY number1
+KYSY number2
+KYSY operation
+
+JOS operation == "+"
+    result = number1 + number2
+MUUTEN JOS operation == "-"
+    result = number1 - number2
+MUUTEN JOS operation == "*"
+    result = number1 * number2
+MUUTEN JOS operation == "/"
+    result = number1 / number2
+MUUTEN
+    TULOSTA "Tuntematon operaatio"
+
+TULOSTA result
 ```
+
+Viimeinen `MUUTEN` on turvaverkko. Ilman sitä syöte `x` jättäisi tuloksen laskematta, eikä algoritmi kertoisi miksi.
 
 ### Esimerkki 3: Pariton vai parillinen
 
 ```
-ALOITA
-  LUE luku
-  
-  JOS luku % 2 == 0 NIIN
+KYSY number
+
+JOS number % 2 == 0
     TULOSTA "Luku on parillinen"
-  MUUTEN
+MUUTEN
     TULOSTA "Luku on pariton"
-  LOPPU JOS
-LOPPU
 ```
+
+`%` on jakojäännös. Parillisen luvun jakojäännös kahdella on nolla. Pseudokoodissa saa kirjoittaa myös "jos luku on jaollinen kahdella".
 
 ### Esimerkki 4: Alennusprosentti
 
 ```
-ALOITA
-  LUE ikä
-  
-  JOS ikä < 10 NIIN
-    alennusProsentti = 10
-  MUUTEN JOS ikä >= 10 JA ikä <= 60 NIIN
-    alennusProsentti = 0
-  MUUTEN
-    alennusProsentti = 5
-  LOPPU JOS
-  
-  TULOSTA "Alennusprosenttisi on " + alennusProsentti + "%"
-LOPPU
+KYSY age
+
+JOS age < 10
+    discountPercent = 10
+MUUTEN JOS age <= 60
+    discountPercent = 0
+MUUTEN
+    discountPercent = 5
+
+TULOSTA "Alennusprosenttisi on " + discountPercent + "%"
 ```
+
+Toisessa ehdossa riittää `age <= 60`. Jos ensimmäinen ehto oli epätosi, ikä on jo vähintään 10. Ehtojen järjestys kantaa tietoa.
 
 ### Esimerkki 5: Alennusprosentti laajennettu
 
 ```
-ALOITA
-  LUE ikä
-  LUE onko_opiskelija
-  
-  JOS onko_opiskelija == TOSI NIIN
-    alennusProsentti = 15
-  MUUTEN JOS ikä < 10 NIIN
-    alennusProsentti = 10
-  MUUTEN JOS ikä >= 10 JA ikä <= 60 NIIN
-    alennusProsentti = 0
-  MUUTEN
-    alennusProsentti = 5
-  LOPPU JOS
-  
-  TULOSTA "Alennusprosenttisi on " + alennusProsentti + "%"
-LOPPU
+KYSY age
+KYSY isStudent
+
+JOS isStudent
+    discountPercent = 15
+MUUTEN JOS age < 10
+    discountPercent = 10
+MUUTEN JOS age <= 60
+    discountPercent = 0
+MUUTEN
+    discountPercent = 5
+
+TULOSTA "Alennusprosenttisi on " + discountPercent + "%"
 ```
+
+Opiskelija-ehto on ensimmäisenä, jotta opiskelija saa aina 15 %. Jos se olisi viimeisenä, 8-vuotias opiskelija saisi 10 %, koska ensimmäinen tosi ehto voittaa.
 
 ### Esimerkki 6: Toisto — salasana
 
 ```
-ALOITA
-  LUE salasana
+KYSY password
 
-  NIIN KAUAN KUIN salasana on väärä
+NIIN KAUAN KUIN password != "kissa"
     TULOSTA "Väärä salasana, yritä uudelleen"
-    LUE salasana
+    KYSY password
 
-  TULOSTA "Tervetuloa"
-LOPPU
+TULOSTA "Tervetuloa"
 ```
 
 Sisennetyt rivit toistuvat niin kauan kuin ehto on tosi. Kun salasana on oikein, suoritus jatkuu sisennyksen jälkeiseltä riviltä. Vuokaaviossa sama kohta on salmiakki, jonka ei-nuoli palaa kysymykseen.
 
-Kurssin tehtävissä syötteen lukeminen kirjoitetaan usein sanalla `KYSY`. `LUE` ja `KYSY` tarkoittavat samaa asiaa.
+Rungon viimeinen rivi `KYSY password` on välttämätön. Ilman sitä `password` ei koskaan muutu, ehto on aina tosi ja toisto on ikuinen.
+
+### Esimerkki 7: Kertymä — ostosten summa
+
+```
+total = 0
+count = 0
+KYSY price
+
+NIIN KAUAN KUIN price != 0
+    total = total + price
+    count = count + 1
+    KYSY price
+
+TULOSTA "Ostoksia: " + count
+TULOSTA "Yhteensä: " + total
+```
+
+`total` on **kertymä**: se kerää summaa joka kierroksella. `count` on **laskuri**: se kasvaa yhdellä joka kierroksella. Kumpikin alustetaan **ennen** silmukkaa. Jos `total = 0` olisi silmukan sisällä, summa nollautuisi joka kierroksella ja jäljelle jäisi vain viimeinen hinta.
+
+Syöte `0` lopettaa silmukan. Sellaista arvoa, joka ei ole kelvollinen hinta, kutsutaan lopetusarvoksi.
+
+Samalla laskurilla rajoitetaan yrityksiä: salasanakysely lopetetaan, kun laskuri saavuttaa kolme. Silloin silmukan ehto tarvitsee kaksi osaa: `password != "kissa"` **ja** `attempts < 3`.
+
+## Sama ratkaisu kolmessa muodossa
+
+Vuoristorataan pääsee, jos pituus on vähintään 140 cm.
+
+![Vuoristoradan pituusraja: salmiakki haarauttaa kyllä- ja ei-haaroihin](images/04-huvipuisto-valinta.svg)
+
+Pseudokoodina:
+
+```
+KYSY height
+
+JOS height >= 140
+    TULOSTA "Tervetuloa!"
+MUUTEN
+    TULOSTA "Et pääse kyytiin"
+```
+
+C#-koodina:
+
+```csharp
+Console.Write("Anna pituus (cm): ");
+int height = Convert.ToInt32(Console.ReadLine());
+
+if (height >= 140)
+{
+    Console.WriteLine("Tervetuloa!");
+}
+else
+{
+    Console.WriteLine("Et pääse kyytiin");
+}
+```
+
+Rakenne on sama kaikissa kolmessa. C# lisää vain kieliopin: tyypin `int`, sulkeet, aaltosulkeet ja puolipisteet. Siksi hyvä pseudokoodi kääntyy koodiksi rivi riviltä.
+
+## Yleisiä virheitä
+
+**1. Liian epämääräinen askel**
+
+```
+tarkista salasana
+```
+
+Mihin verrataan? Mitä tehdään, jos salasana on väärä? Kirjoita vertailu ja molemmat haarat auki, kuten esimerkissä 6.
+
+**2. Liian koodimainen**
+
+```
+Console.WriteLine("Hei");
+int age = int.Parse(Console.ReadLine());
+```
+
+Tämä on jo C#-koodia. Pseudokoodin tarkoitus on ajatella rakenne ilman kielioppia. Jos osaat jo kirjoittaa koodin suoraan, kirjoita koodi.
+
+**3. Sisennys puuttuu**
+
+```
+NIIN KAUAN KUIN password != "kissa"
+TULOSTA "Väärä salasana"
+KYSY password
+TULOSTA "Tervetuloa"
+```
+
+Mitkä rivit toistuvat? Ilman sisennystä ei tiedä, kuuluuko "Tervetuloa" silmukan sisään vai sen jälkeen.
+
+**4. Toiston runko ei muuta ehtoa**
+
+```
+KYSY pin
+
+NIIN KAUAN KUIN pin != 1234
+    TULOSTA "Väärä PIN"
+```
+
+`pin` ei koskaan muutu. Toisto on ikuinen. Lisää `KYSY pin` silmukan sisään.
 
 ## Harjoitustehtäviä
 
-1. **Tervehdys**
-   - Pyydä käyttäjältä nimeä
-   - Tulosta "Hei, [käyttäjän nimi]!"
+Kirjoita jokaisesta pseudokoodi. Tehtävät 1–3 tehdään myös kurssin ensimmäisessä harjoituksessa **Vuokaaviot ja pseudokoodi** *(kurssitehtävä Moodlessa)*.
 
-2. **Yksinkertainen laskin**
-   - Pyydä käyttäjältä kaksi lukua
-   - Kysy käyttäjältä, haluaako hän laskea lukujen summan, eron, tulon vai osamäärän
-   - Tulosta valitun operaation tulos
-
-3. **Pariton vai parillinen**
-   - Pyydä käyttäjältä kokonaisluku
-   - Tarkista onko luku pariton vai parillinen
-   - Tulosta "Luku on pariton" tai "Luku on parillinen" sen mukaan, kumpi se on
-
-4. **Alennusprosentti**
-   - Kysy käyttäjältä ikää
-   - Jos ikä on pienempi kuin 10-vuotta on alennusprosentti 10%
-   - Jos ikä on 10-60 on alennusprosentti 0%
-   - Jos ikä on yli 60 on alennusprosentti 5%
-   - Tulosta "Alennusprosenttisi on [alennusProsentti]"
-
-5. **Laajenna alennusprosenttialgoritmiä**
-   - Kysy käyttäjältä onko hän opiskelija
-   - Jos käyttäjä on opiskelija on alennusprosentti 15%
-   - Tulosta "Alennusprosenttisi on [alennusProsentti]"
-
-6. **Salasana enintään kolmella yrityksellä**
-   - Kysy salasanaa niin kauan, kunnes se on oikein
-   - Laske yritykset. Kolmannen väärän yrityksen jälkeen tulosta "Liian monta yritystä" ja lopeta
-   - Tähän tarvitset toiston, laskurin ja kaksi ehtoa
+1. **Tervehdys.** Pyydä käyttäjältä nimi ja tulosta "Hei, [nimi]!".
+2. **Yksinkertainen laskin.** Pyydä kaksi lukua ja laskutoimitus (summa, erotus, tulo tai osamäärä). Tulosta tulos.
+3. **Pariton vai parillinen.** Pyydä kokonaisluku ja kerro, onko se pariton vai parillinen.
+4. **Alennusprosentti.** Kysy ikä. Alle 10-vuotias saa 10 %, 10–60-vuotias 0 % ja yli 60-vuotias 5 %. Tulosta prosentti.
+5. **Laajenna alennusprosenttia.** Kysy myös, onko käyttäjä opiskelija. Opiskelija saa 15 %.
+6. **Salasana enintään kolmella yrityksellä.** Kysy salasanaa, kunnes se on oikein. Laske yritykset. Kolmannen väärän yrityksen jälkeen tulosta "Liian monta yritystä" ja lopeta. Tarvitset toiston, laskurin ja kaksi ehtoa.
 
 ## Yhteenveto
 
-Pseudokoodi on:
-- **Yksinkertaista**: Keskittyy logiikkaan, ei syntaksiin
-- **Selkeää**: Helppo ymmärtää kaikille
-- **Yleispätevää**: Ei riippuvaista ohjelmointikielestä
-- **Hyödyllistä**: Auttaa suunnittelussa ja kommunikoinnissa
+- Pseudokoodi on algoritmi tekstinä: melkein koodia, mutta ilman kielioppia.
+- Avainsanat: `KYSY`, `TULOSTA`, `x = arvo`, `JOS` / `MUUTEN JOS` / `MUUTEN`, `NIIN KAUAN KUIN`.
+- Yksi askel per rivi, sisennys näyttää rakenteen, ehto on vertailu.
+- Kertymä ja laskuri alustetaan ennen silmukkaa. Toiston rungossa pitää olla askel, joka voi muuttaa ehdon.
+- Hyvä pseudokoodi kääntyy C#-koodiksi rivi riviltä.
 
-Seuraavaksi: [Vuokaavio](Flowchart.md) · [Algoritmi](Algorithm.md)
-
+Seuraavaksi: [Vuokaavio](Flowchart.md) · [Algoritmi](Algorithm.md) · [Konsolin syöte ja tulostus](../00-Basics/Console-IO.md)

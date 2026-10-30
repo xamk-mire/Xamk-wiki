@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="540" height="700" viewBox="0 0 540 700" role="img" aria-label="Toisto: nuoli palaa taaksepäin">
+  <rect width="540" height="700" fill="#f7f5f2"/>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1d3557"/>
+    </marker>
+  </defs>
+
+  <text x="24.0" y="32.0" text-anchor="start" font-family="Segoe UI, Calibri, sans-serif" font-size="18" fill="#1d3557" font-weight="700">Toisto: nuoli palaa taaksepäin</text>
+  <rect x="175.0" y="60.0" width="150" height="40" rx="20.0" fill="#2a9d8f"/>
+  <text x="250.0" y="84.9" text-anchor="middle" font-family="Segoe UI, Calibri, sans-serif" font-size="14" fill="#ffffff" font-weight="700">ALOITUS</text>
+  <line x1="250.0" y1="100.0" x2="250.0" y2="136.0" stroke="#1d3557" stroke-width="2" marker-end="url(#arr)"/>
+  <polygon points="161.0,144.0 355.0,144.0 339.0,196.0 145.0,196.0" fill="#457b9d"/>
+  <text x="250.0" y="174.9" text-anchor="middle" font-family="Segoe UI, Calibri, sans-serif" font-size="14" fill="#ffffff" font-weight="700">Kysy salasana</text>
+  <line x1="250.0" y1="196.0" x2="250.0" y2="240.0" stroke="#1d3557" stroke-width="2" marker-end="url(#arr)"/>
+  <polygon points="250.0,252.0 355.0,304.0 250.0,356.0 145.0,304.0" fill="#e9c46a" stroke="#9b2226" stroke-width="1.6"/>
+  <text x="250.0" y="299.9" text-anchor="middle" font-family="Segoe UI, Calibri, sans-serif" font-size="14" fill="#1d3557" font-weight="700">salasana</text>
+  <text x="250.0" y="317.9" text-anchor="middle" font-family="Segoe UI, Calibri, sans-serif" font-size="14" fill="#1d3557" font-weight="700">oikein?</text>
+  <text x="264.0" y="374.0" text-anchor="start" font-family="Segoe UI, Calibri, sans-serif" font-size="13" fill="#2d6a4f" font-weight="700">kyllä</text>
+  <line x1="250.0" y1="356.0" x2="250.0" y2="400.0" stroke="#1d3557" stroke-width="2" marker-end="url(#arr)"/>
+  <polygon points="161.0,410.0 355.0,410.0 339.0,462.0 145.0,462.0" fill="#457b9d"/>
+  <text x="250.0" y="432.1" text-anchor="middle" font-family="Segoe UI, Calibri, sans-serif" font-size="13" fill="#ffffff" font-weight="700">Tulosta:</text>
+  <text x="250.0" y="449.1" text-anchor="middle" font-family="Segoe UI, Calibri, sans-serif" font-size="13" fill="#ffffff" font-weight="700">"Tervetuloa"</text>
+  <line x1="250.0" y1="462.0" x2="250.0" y2="516.0" stroke="#1d3557" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="175.0" y="524.0" width="150" height="40" rx="20.0" fill="#2a9d8f"/>
+  <text x="250.0" y="548.9" text-anchor="middle" font-family="Segoe UI, Calibri, sans-serif" font-size="14" fill="#ffffff" font-weight="700">LOPETUS</text>
+  <path d="M 355 304 L 440 304 L 440 170 L 355 170" fill="none" stroke="#1d3557" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="446.0" y="240.0" text-anchor="start" font-family="Segoe UI, Calibri, sans-serif" font-size="13" fill="#c1121f" font-weight="700">ei</text>
+  <text x="270.0" y="620.0" text-anchor="middle" font-family="Segoe UI, Calibri, sans-serif" font-size="13" fill="#457b9d">Ei-haara palaa kysymykseen, kunnes vastaus on oikein.</text>
+  <text x="270.0" y="644.0" text-anchor="middle" font-family="Segoe UI, Calibri, sans-serif" font-size="13" fill="#457b9d">Jos salasana ei koskaan täsmää, silmukka on ikuinen.</text>
+</svg>

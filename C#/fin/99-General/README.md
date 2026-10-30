@@ -11,13 +11,13 @@ Tämä kansio sisältää materiaaleja, jotka eivät ole suoraan C#-kieleen liit
 - [Tehtävien palautusohjeet](Assignment-Submission.md) - Ohjeet tehtävien palauttamiseen
 
 ### Ohjelmointikäsitteet
-- [Algoritmi](Algorithm.md) - Mitä on algoritmi ja mitä on hyvä algoritmi
-- [Pseudokoodaus](Pseudocode.md) - Algoritmien kirjoittaminen pseudokoodina
+- [Algoritmi](Algorithm.md) - Askellista, hyvän algoritmin kolme ehtoa ja kolme rakennetta
+- [Vuokaavio (Flowchart)](Flowchart.md) - Algoritmi kuvana: symbolit ja kolme rakennetta
+- [Pseudokoodaus](Pseudocode.md) - Algoritmi tekstinä: avainsanat ja esimerkit
 - [Ongelman määrittäminen ja ratkominen](Problem-Solving.md) - Ongelmanratkaisutekniikat
 
 ### Suunnittelu ja dokumentointi
 - [UML](UML.md) - Unified Modeling Language -kaaviot
-- [Vuokaavio (Flow chart)](Flowchart.md) - Visuaalinen esitys algoritmeista
 - [draw.io](DrawIO.md) - Työkalu kaavioiden luomiseen
 
 ### Algoritmit

@@ -76,6 +76,8 @@ Yhdistävät ehtoja.
 while (age < 0 || age > 130)
 {
     Console.WriteLine("Virheellinen ikä.");
+    Console.Write("Anna ikä: ");
+    age = Convert.ToInt32(Console.ReadLine());   // ilman tätä riviä silmukka olisi ikuinen
 }
 
 // Jatketaan, kunnes vastaus on k TAI e — eli kun se EI ole k JA EI ole e

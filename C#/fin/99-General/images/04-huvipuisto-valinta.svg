@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="740" viewBox="0 0 640 740" role="img" aria-label="Valinta: pääseekö vuoristorataan?">
+  <rect width="640" height="740" fill="#f7f5f2"/>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1d3557"/>
+    </marker>
+  </defs>
+
+  <text x="24.0" y="32.0" text-anchor="start" font-family="Segoe UI, Calibri, sans-serif" font-size="18" fill="#1d3557" font-weight="700">Valinta: pääseekö vuoristorataan?</text>
+  <rect x="155.0" y="60.0" width="150" height="40" rx="20.0" fill="#2a9d8f"/>
+  <text x="230.0" y="84.9" text-anchor="middle" font-family="Segoe UI, Calibri, sans-serif" font-size="14" fill="#ffffff" font-weight="700">ALOITUS</text>
+  <line x1="230.0" y1="100.0" x2="230.0" y2="128.0" stroke="#1d3557" stroke-width="2" marker-end="url(#arr)"/>
+  <polygon points="146.0,135.0 330.0,135.0 314.0,185.0 130.0,185.0" fill="#457b9d"/>
+  <text x="230.0" y="164.9" text-anchor="middle" font-family="Segoe UI, Calibri, sans-serif" font-size="14" fill="#ffffff" font-weight="700">Kysy pituus</text>
+  <line x1="230.0" y1="185.0" x2="230.0" y2="222.0" stroke="#1d3557" stroke-width="2" marker-end="url(#arr)"/>
+  <polygon points="230.0,236.0 335.0,286.0 230.0,336.0 125.0,286.0" fill="#e9c46a" stroke="#9b2226" stroke-width="1.6"/>
+  <text x="230.0" y="281.9" text-anchor="middle" font-family="Segoe UI, Calibri, sans-serif" font-size="14" fill="#1d3557" font-weight="700">pituus ≥</text>
+  <text x="230.0" y="299.9" text-anchor="middle" font-family="Segoe UI, Calibri, sans-serif" font-size="14" fill="#1d3557" font-weight="700">140 cm?</text>
+  <text x="244.0" y="354.0" text-anchor="start" font-family="Segoe UI, Calibri, sans-serif" font-size="13" fill="#2d6a4f" font-weight="700">kyllä</text>
+  <line x1="230.0" y1="336.0" x2="230.0" y2="378.0" stroke="#1d3557" stroke-width="2" marker-end="url(#arr)"/>
+  <polygon points="141.0,390.0 335.0,390.0 319.0,442.0 125.0,442.0" fill="#457b9d"/>
+  <text x="230.0" y="412.1" text-anchor="middle" font-family="Segoe UI, Calibri, sans-serif" font-size="13" fill="#ffffff" font-weight="700">Tulosta:</text>
+  <text x="230.0" y="429.1" text-anchor="middle" font-family="Segoe UI, Calibri, sans-serif" font-size="13" fill="#ffffff" font-weight="700">"Tervetuloa!"</text>
+  <text x="352.0" y="274.0" text-anchor="start" font-family="Segoe UI, Calibri, sans-serif" font-size="13" fill="#c1121f" font-weight="700">ei</text>
+  <path d="M 335 286 L 480 286 L 480 390" fill="none" stroke="#1d3557" stroke-width="2" marker-end="url(#arr)"/>
+  <polygon points="391.0,398.0 585.0,398.0 569.0,450.0 375.0,450.0" fill="#457b9d"/>
+  <text x="480.0" y="420.1" text-anchor="middle" font-family="Segoe UI, Calibri, sans-serif" font-size="13" fill="#ffffff" font-weight="700">Tulosta: "Et</text>
+  <text x="480.0" y="437.1" text-anchor="middle" font-family="Segoe UI, Calibri, sans-serif" font-size="13" fill="#ffffff" font-weight="700">pääse kyytiin"</text>
+  <line x1="230.0" y1="442.0" x2="230.0" y2="548.0" stroke="#1d3557" stroke-width="2" marker-end="url(#arr)"/>
+  <path d="M 480 450 L 480 568 L 230 568" fill="none" stroke="#1d3557" stroke-width="2"/>
+  <line x1="230.0" y1="568.0" x2="230.0" y2="590.0" stroke="#1d3557" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="155.0" y="598.0" width="150" height="40" rx="20.0" fill="#2a9d8f"/>
+  <text x="230.0" y="622.9" text-anchor="middle" font-family="Segoe UI, Calibri, sans-serif" font-size="14" fill="#ffffff" font-weight="700">LOPETUS</text>
+  <text x="320.0" y="690.0" text-anchor="middle" font-family="Segoe UI, Calibri, sans-serif" font-size="13" fill="#457b9d">Salmiakista lähtee aina kaksi nuolta: kyllä ja ei.</text>
+</svg>

@@ -18,325 +18,85 @@ Lue rivi vasemmalta: tyyppi, nimi, arvo. `int age = 20` tarkoittaa: "luo kokonai
 
 | Tyyppi | Mitä säilyttää | Esimerkki kurssilla |
 |--------|----------------|---------------------|
-| `int` | Kokonaisluku | Ikä, lippumäärä |
-| `decimal` | Rahasumma, tarkka desimaali | Hinta, välisumma — aina `m`-pääte |
+| `int` | Kokonaisluku | Ikä, lippumäärä, saldo |
+| `decimal` | Rahasumma, tarkka desimaali | Hinta, välisumma. Aina `m`-pääte |
 | `string` | Teksti | Nimi, alennuskoodi, syöte |
 | `bool` | Kyllä tai ei | `isStudent`, ehdon tulos |
 | `const` | Arvo, joka ei muutu | `ChildPrice = 7.50m` |
-| `var` | Tyyppi päätellään oikealta | `var age = 20` → silti `int` |
-| `null` | "Ei mitään" | Tyhjä viittaus, ei luku nolla |
+| `double`, `var`, `null` | Myöhemmin | [Lyhyesti sivun lopussa](#double-var-ja-null--myöhemmin) |
 
-Syöte konsolista on aina `string`, kunnes muunnat sen — [tyyppimuunnokset](Casting.md). Laskumerkit: [operaattorit](Operators.md).
+Syöte konsolista on aina `string`, kunnes muunnat sen: [tyyppimuunnokset](Casting.md). Laskumerkit: [operaattorit](Operators.md).
 
-## Muuttujatyypit C#-kielessä
-
-### string
-
-[Virallinen dokumentaatio - String Class (System) | Microsoft Learn](https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/strings/)
-
-`string` on tietotyyppi, jota käytetään merkkijonojen tallentamiseen ja käsittelemiseen. Merkkijono on yksinkertaisesti tekstiä, eli se voi sisältää sanoja, lauseita, numeroita tai muita merkkejä.
-
-#### Esimerkki
+## Muuttujan määrittely
 
 ```csharp
-string tervehdys = "Hei maailma!";
-Console.WriteLine(tervehdys);
+tyyppi nimi = arvo;
 ```
-
-Tässä esimerkissä `tervehdys` on `string`-tyyppinen muuttuja, ja siihen on tallennettu teksti "Hei maailma!". Hipsut `" "` kertovat, että kyseessä on merkkijono.
-
-#### Merkkijonojen yhdistäminen
 
 ```csharp
-string etuNimi = "Matti";
-string sukuNimi = "Meikäläinen";
-string kokoNimi = etuNimi + " " + sukuNimi;
-Console.WriteLine(kokoNimi); // Tulostaa: Matti Meikäläinen
+int balance = 200;            // kokonaisluku
+decimal price = 7.50m;        // raha, m-pääte
+string name = "Matti";        // teksti hipsuissa
+bool isStudent = true;        // tosi tai epätosi
 ```
 
-#### Merkkijonon pituus
+Muuttujan voi esitellä ensin ja antaa arvon myöhemmin. Lukeminen ennen arvon antamista ei käänny.
 
 ```csharp
-string sana = "Ohjelmointi";
-Console.WriteLine(sana.Length); // Tulostaa: 11
+int ticketCount;              // esittely: säilö on olemassa, mutta tyhjä
+ticketCount = 2;              // sijoitus: säilöön laitetaan 2
 ```
 
-#### Merkkijonojen vertailu
-
-Merkkijonoja vertaillaan, jotta voidaan tarkistaa ovatko kaksi tekstiä samat – esimerkiksi käyttäjän syöttämä salasana, hakusana, tiedostonimi tai tietokannan avain täsmää tallennettuun arvoon.
-
-**Kirjainkoko.** `"LEFFA10"` ja `"leffa10"` ovat eri merkkijonoja. Yksi tapa tehdä vertailu kirjainkoosta riippumattomaksi:
+Arvoa voi vaihtaa niin monta kertaa kuin haluat. Nimi ja tyyppi pysyvät.
 
 ```csharp
-if (code.ToUpper() == "LEFFA10")
-{
-    // alennus
-}
+int balance = 200;
+balance = balance - 50;       // lue vanha arvo, laske, laita tulos samaan säilöön
+Console.WriteLine(balance);   // 150
 ```
 
-`ToUpper()` / `ToLower()` luo uuden merkkijonon (string on *immutable*). Ammattikoodissa kirjainkoosta riippumaton vertailu tehdään usein näin:
+Rivi `balance = balance - 50` ei ole yhtälö. Se luetaan oikealta vasemmalle: laske ensin `balance - 50`, sijoita sitten tulos säilöön `balance`. Laskuri `count++` toimii samalla idealla: [sijoitus ja lyhenteet](Operators.md#sijoitus-ja-lyhenteet).
+
+Tyyppi ei vaihdu. `int`-säilöön ei mahdu tekstiä:
 
 ```csharp
-if (a.Equals(b, StringComparison.OrdinalIgnoreCase)) { /* ... */ }
+int age = 20;
+// age = "kaksikymmentä";     // ei käänny: Cannot implicitly convert type 'string' to 'int'
 ```
 
-`OrdinalIgnoreCase` ei riipu käyttöjärjestelmän kielestä (esim. turkin I/İ). Tunnisteille ja koodeille se on turvallisempi kuin `ToLower()`. Alussa `.ToUpper()` riittää.
-
-#### Merkkijonon muokkaaminen
-
-```csharp
-string lause = "Hei maailma";
-Console.WriteLine(lause.ToUpper());   // HEI MAAILMA
-Console.WriteLine(lause.ToLower());   // hei maailma
-Console.WriteLine(lause.Substring(4)); // maailma
-```
-
-#### Merkkijonojen tulostustavat
-
-**1. String interpolation (suositeltu tapa)**
-
-```csharp
-string nimi = "Matti";
-int ika = 30;
-
-Console.WriteLine($"Hei, nimeni on {nimi} ja olen {ika} vuotta vanha.");
-```
-
-**2. String.Format**
-
-```csharp
-string tulos = string.Format("Hei, nimeni on {0} ja olen {1} vuotta vanha.", nimi, ika);
-Console.WriteLine(tulos);
-```
-
-**3. Placeholderit Console.WriteLine:ssa**
-
-```csharp
-Console.WriteLine("Hei, nimeni on {0} ja olen {1} vuotta vanha.", nimi, ika);
-```
-
-**4. Merkkijonojen yhdistäminen**
-
-```csharp
-Console.WriteLine("Hei, nimeni on " + nimi + " ja olen " + ika + " vuotta vanha.");
-```
-
-#### Merkkijonon muuntaminen eri tietotyypeiksi (parsiminen)
-
-Tietokoneessa kaikki mitä luetaan käyttäjältä tai vaikka tiedostosta, tulee **tekstinä** eli `string`-muodossa. Jos haluat tehdä laskutoimituksia, päivämäärien käsittelyä tai desimaalilaskentaa, teksti pitää muuttaa **oikeaan tietotyyppiin**. Tätä sanotaan *parsimiseksi* (engl. *parsing*).
-
-**1: string → int (kokonaisluku)**
-
-```csharp
-string teksti = "123";
-int luku = int.Parse(teksti);
-int tulos = luku + 10;
-Console.WriteLine(tulos); // 133
-```
-
-Selitys:
-- `"123"` on teksti (merkkijono), vaikka se näyttää numerolta.
-- `int.Parse("123")` muuttaa sen oikeaksi kokonaisluvuksi (`int`).
-- Nyt voidaan laskea: 123 + 10 = 133.
-
-Jos käyttäjä syöttäisi jotain muuta kuin numeroita (esim. `"abc"`), ohjelma kaatuisi, koska sitä ei voi muuttaa luvuksi.
-
-**2: string → int turvallisesti TryParse (Tätä kannattaa käyttää lähtökohtaisesti!)**
-
-```csharp
-string syote = Console.ReadLine();
-if (int.TryParse(syote, out int tulos))
-{
-    Console.WriteLine($"Luku on: {tulos}");
-}
-else
-{
-    Console.WriteLine("Syöte ei ole kelvollinen kokonaisluku.");
-}
-```
-
-Selitys:
-- `TryParse` yrittää muuntaa tekstin luvuksi.
-- Jos onnistuu, tulos tallentuu `tulos`-muuttujaan ja ohjelma jatkuu normaalisti.
-- Jos epäonnistuu (esim. `"kissa"`), ohjelma **ei kaadu**, vaan menee `else`-haaraan.
-
-Tätä kannattaa käyttää aina, kun syöte tulee käyttäjältä, koska käyttäjä voi kirjoittaa mitä tahansa.
-
-Aluksi syöte muunnetaan usein `Convert.ToInt32(Console.ReadLine())` -kutsulla. Se on yksinkertaisempi, mutta kaatuu väärästä tekstistä (`FormatException`). `TryParse` estää kaatumisen. Molemmat ovat oikein — tiedä ero.
-
-**3: string → double (desimaaliluku)**
-
-```csharp
-string teksti = "23.5";
-double luku = double.Parse(teksti);
-Console.WriteLine(luku); // 23.5
-```
-
-Selitys:
-- `double.Parse` muuttaa tekstin liukuluvuksi (desimaaliluku).
-- Suomessa desimaalierotin on **pilkku (,)**, mutta monessa maassa se on **piste (.)**.
-- Jos ohjelma toimii väärällä asetuksella, se voi aiheuttaa virheen.
-- Lopulta doublella ja muilla numerotyypeillä on samat parsimismetodit, kuten int:llä, eli Parse ja TryParse.
-
-**4: string → DateTime (päivämäärä)**
-
-```csharp
-string paivamaara = "2024-01-15";
-DateTime pvm = DateTime.Parse(paivamaara);
-Console.WriteLine(pvm);
-```
-
-Selitys:
-- `DateTime.Parse` muuttaa tekstin päivämääräksi.
-
-**Huomio!** `string` on C#:ssa *immutable* (eli muuttumaton). Kun muokkaat merkkijonoa, C# luo aina uuden merkkijonon eikä muuta alkuperäistä.
-
----
+## Tyypit
 
 ### int
 
-[Virallinen dokumentaatio](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/integral-numeric-types)
+[Microsoft: Integral numeric types](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/integral-numeric-types)
 
-`int` on tietotyyppi, jota käytetään tallentamaan kokonaislukuja, eli lukuja ilman desimaaleja. `int` tulee sanasta "integer", joka tarkoittaa kokonaislukua.
-
-#### Esimerkki
+`int` (*integer*) on kokonaisluku: ilman desimaaleja, positiivinen tai negatiivinen. Ikä, lippumäärä, valikon numero ja silmukan laskuri ovat `int`-tyyppisiä.
 
 ```csharp
-int ika = 25; // ika on int-tyyppinen muuttuja
-Console.WriteLine(ika); // Tulostaa 25
+int age = 25;
+int ticketCount = 3;
+int attempts = 0;
+
+attempts = attempts + 1;      // 1
+attempts++;                   // 2
 ```
 
-#### Muutamia keskeisiä asioita int-tyypistä
-
-**1. Arvon rajat**: `int` voi tallentaa arvoja välillä -2,147,483,648 ja 2,147,483,647, koska se on 32-bittinen kokonaisluku.
-
-**2. Yksinkertaiset laskutoimitukset**: `int`-muuttujilla voi suorittaa peruslaskuja:
+Kahden `int`-luvun jako on kokonaislukujako. Desimaalit katkaistaan pois:
 
 ```csharp
-int a = 10;
-int b = 3;
-
-int summa = a + b;       // 13
-int erotus = a - b;      // 7
-int tulo = a * b;        // 30
-int jako = a / b;        // 3 (kokonaislukuosuus!, jos haluat että luvussa on desimaaleja käytä double/decimal muuttujaa)
-int jakoJäännös = a % b; // 1
-
-Console.WriteLine($"Summa: {summa}, Erotus: {erotus}, Tulo: {tulo}");
-Console.WriteLine($"Jakolasku: {jako}, Jakojäännös: {jakoJäännös}");
+int result = 17 / 5;          // 3, ei 3.4
+int remainder = 17 % 5;       // 2 (jakojäännös)
 ```
 
-**3. Kokonaislukuosuus ja jakojäännös**: Kun jaetaan kokonaislukuja, tuloksena saadaan vain kokonaisluku. Jakojäännöksen saa `%`-operaattorilla.
+Jos tarvitset desimaalit, laske `decimal`-tyypillä. Katso [aritmeettiset operaattorit](Operators.md#aritmeettiset-operaattorit).
 
-```csharp
-int x = 17;
-int y = 5;
-
-Console.WriteLine(x / y); // 3
-Console.WriteLine(x % y); // 2
-```
-
-**4. Käyttö ohjelmoinnissa**: `int`-tyyppi on yleisin muuttujaohjelmoinnissa. Esimerkiksi laskureissa ja silmukoissa käytetään usein int-muuttujia:
-
-```csharp
-for (int i = 1; i <= 5; i++)
-{
-    Console.WriteLine($"Kierros {i}");
-}
-```
-
-**5. Muunnokset**: Jos haluat muuttaa kokonaisluvun desimaaliluvuksi, voit muuntaa sen `double`-tyypiksi:
-
-```csharp
-int kokonaisluku = 7;
-double desimaali = (double)kokonaisluku / 2;
-Console.WriteLine(desimaali); // 3.5
-```
-
-**6. Inkrementti ja dekrementti**: Int-muuttujan arvoa voi kasvattaa tai vähentää yhdellä käyttämällä `++` ja `--`.
-
-```csharp
-int luku = 10;
-luku++; // nyt 11
-luku--; // takaisin 10
-```
-
-**7. Oletusarvo**: Jos luot int-muuttujan ilman arvoa, sen oletusarvo on 0 (kun se on olion kenttä).
-
-```csharp
-int oletus;
-Console.WriteLine(default(int)); // 0
-```
-
-#### Yhteenveto
-
-`int` on erittäin yleinen tietotyyppi, jota käytetään kokonaislukujen käsittelyyn. Sen avulla voidaan tehdä peruslaskuja, hallita silmukoita, laskea summia ja monia muita toimintoja.
-
----
-
-### double
-
-`double` on tietotyyppi, jota käytetään tallentamaan desimaalilukuja, eli lukuja, joissa voi olla murtolukuosa. Se on nimensä mukaisesti lyhenne sanasta "double precision floating point number", mikä viittaa sen kykyyn tallentaa lukuja suuremmalla tarkkuudella kuin esimerkiksi `float`-tyyppi.
-
-#### Esimerkki
-
-```csharp
-double lampotila = 23.5;
-Console.WriteLine(lampotila); // 23.5
-```
-
-Tässä esimerkissä `lampotila` on `double`-tyyppinen muuttuja, ja siihen on tallennettu arvo 23.5.
-
-#### Muutamia keskeisiä asioita double-tyypistä
-
-**1. Arvon rajat ja tarkkuus**: `double` voi tallentaa hyvin suuria tai hyvin pieniä lukuja, ja sen tarkkuus on 15–16 desimaalin tarkkuudella. Se voi tallentaa arvoja välillä noin ±5.0 × 10^−324 ja ±1.7 × 10^308.
-
-**2. Laskutoimitukset**: `double`-tyyppisillä muuttujilla voit suorittaa erilaisia laskutoimituksia, kuten yhteenlaskua, vähennyslaskua, kertolaskua ja jakolaskua aivan kuten `int`-muuttujilla, mutta se tukee myös murtolukuja.
-
-```csharp
-double a = 10.5;
-double b = 3.2;
-
-double summa = a + b;       // 13.7
-double erotus = a - b;      // 7.3
-double tulo = a * b;        // 33.6
-double jako = a / b;        // 3.28125
-
-Console.WriteLine($"Summa: {summa}, Erotus: {erotus}, Tulo: {tulo}, Jako: {jako}");
-```
-
-**3. Tarkkuus ja virheet**: Koska `double` on liukulukutyyppi, se ei aina voi tallentaa desimaalilukuja täydellisen tarkasti. Tämä voi johtaa pieniin pyöristysvirheisiin, erityisesti kun käsitellään hyvin pieniä tai hyvin suuria lukuja.
-
-**Älä käytä `double`-tyyppiä rahalle.** `0.1 + 0.2` ei ole tietokoneessa täsmälleen `0.3`. Lipun hinnassa, kuitissa ja päivän myynnissä käytetään aina `decimal`-tyyppiä — katso seuraava osio.
-
-**4. Muunnokset**: Joskus saatat haluta muuntaa `double`-arvon esimerkiksi `int`-arvoksi. Tämä onnistuu käyttämällä tyyppimuunnosta, mutta huomaa, että tällöin desimaaliosa katkaistaan pois.
-
-```csharp
-double desimaali = 3.7;
-int kokonaisluku = (int)desimaali;
-Console.WriteLine(kokonaisluku); // 3 (desimaaliosa katkaistu)
-```
-
-**5. Oletusarvo**: Jos luot `double`-muuttujan ilman, että annat sille aluksi arvoa, sen oletusarvo on 0.0.
-
-```csharp
-double oletus;
-Console.WriteLine(default(double)); // 0.0
-```
-
-**6. Käyttö ohjelmoinnissa**: `double` sopii mittauksiin, lämpötiloihin, koordinaatteihin ja tieteellisiin laskuihin. **Rahalaskut kuuluvat `decimal`-tyypille**, ei `double`:lle.
-
-#### Yhteenveto
-
-`double` on liukuluku desimaaleille, kun pieni pyöristysvirhe ei haittaa. Rahaan, hintoihin ja kuitteihin käytä `decimal`.
-
----
+`int` mahtuu välille −2 147 483 648 … 2 147 483 647. Kurssin luvut mahtuvat siihen. Konsolista luettu liian iso luku kaataa ohjelman `OverflowException`-poikkeukseen: [tyyppimuunnokset](Casting.md).
 
 ### decimal — raha
 
-[Virallinen dokumentaatio](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/floating-point-numeric-types)
+[Microsoft: Floating-point numeric types](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/floating-point-numeric-types)
 
-`decimal` on desimaaliluku, joka on suunniteltu **tarkkaan** laskentaan. Rahat (`hinta`, `välisumma`, `alennus`, `myynti`) kannattaa pitää `decimal`-tyyppinä.
+`decimal` on desimaaliluku, joka on suunniteltu **tarkkaan** laskentaan. Rahat (`price`, `subtotal`, `discount`, `dailySales`) pidetään `decimal`-tyyppinä.
 
 ```csharp
 decimal childPrice = 7.50m;
@@ -356,372 +116,242 @@ Console.WriteLine($"Maksettavaa: {total:F2} €");
 // Maksettavaa: 21,60 €
 ```
 
-**Miksi ei `double`?** Liukuluku tallentaa luvun kaksikantaisena approksimaationa. Sentit voivat "valua":
+`int` kertaa `decimal` onnistuu ilman muunnosta. Lippumäärä kertaa hinta on `decimal`:
 
 ```csharp
-double a = 0.1;
-double b = 0.2;
-Console.WriteLine(a + b);          // 0.30000000000000004
+int ticketCount = 2;
+decimal unitPrice = 12.00m;
+decimal subtotal = unitPrice * ticketCount;   // 24.00
+```
+
+**Miksi ei `double`?** Liukuluku tallentaa luvun likiarvona. Sentit voivat "valua":
+
+```csharp
+Console.WriteLine(0.1 + 0.2);      // 0.30000000000000004
 Console.WriteLine(0.1m + 0.2m);    // 0.3
 ```
 
-Yhdessä laskussa virhe on mitätön; sadassa kuitissa se kertyy. Siksi nyrkkisääntö: **raha = `decimal`**.
+Yhdessä laskussa virhe on mitätön. Sadassa kuitissa se kertyy. Nyrkkisääntö: **raha = `decimal`**.
 
-Vakiohinnat kannattaa merkitä `const`-sanalla, kun arvo ei muutu ohjelman aikana:
+### string
+
+[Microsoft: Strings](https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/strings/)
+
+`string` on merkkijono eli tekstiä: sanoja, lauseita, myös numeroita merkkeinä. Teksti kirjoitetaan hipsuihin `" "`. Hipsut kertovat kääntäjälle, että kyseessä on teksti, eivätkä ne tulostu.
 
 ```csharp
-const decimal ChildPrice = 7.50m;
+string greeting = "Hei maailma!";
+Console.WriteLine(greeting);           // Hei maailma!
 ```
 
----
+Ilman hipsuja `Hei` olisi muuttujan nimi, jota ei ole olemassa, ja koodi ei käänny.
+
+`"200"` ja `200` ovat eri asia. Ensimmäinen on kolme merkkiä, toinen on luku. Merkeillä ei voi laskea:
+
+```csharp
+string text = "200";
+int number = 200;
+// int sum = text + 1;          // ei käänny: teksti + luku ei ole lasku
+int sum = number + 1;           // 201
+```
+
+Merkkijonoja yhdistetään `+`-merkillä. Selkeämpi tapa on **interpolointi**: `$`-alkuinen merkkijono, jossa muuttuja on aaltosulkeissa.
+
+```csharp
+string firstName = "Matti";
+int age = 30;
+
+Console.WriteLine("Hei, " + firstName + "! Olet " + age + " vuotta.");   // yhdistäminen
+Console.WriteLine($"Hei, {firstName}! Olet {age} vuotta.");              // interpolointi
+```
+
+Ilman `$`-merkkiä aaltosulkeet tulostuvat sellaisenaan: `Hei, {firstName}!`. Lisää: [merkkijonointerpolaatio](Console-IO.md#merkkijonointerpolaatio).
+
+Kaksi metodia, joita tarvitset alussa:
+
+```csharp
+string code = "leffa10";
+
+Console.WriteLine(code.Length);        // 7 (merkkien määrä)
+Console.WriteLine(code.ToUpper());     // LEFFA10
+```
+
+Vertailu `==` on **kirjainkokoherkkä**: `"LEFFA10"` ja `"leffa10"` ovat eri merkkijonoja. Jos kirjainkoolla ei saa olla väliä, muunna syöte ensin isoiksi kirjaimiksi: `code.ToUpper() == "LEFFA10"`. Katso [vertailuoperaattorit](Operators.md#vertailuoperaattorit).
 
 ### bool (Boolean)
 
-[Microsoftin virallinen dokumentaatio](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/bool)
+[Microsoft: bool](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/bool)
 
-C#-ohjelmointikielessä `boolean` (tai lyhyemmin `bool`) on tietotyyppi, joka voi saada kaksi arvoa: `true` (tosi) tai `false` (epätosi). Tätä tietotyyppiä käytetään yleensä ehtojen arvioinnissa ja logiikan hallinnassa.
-
-#### Esimerkki bool-muuttujan käytöstä
+`bool` voi saada vain kaksi arvoa: `true` (tosi) tai `false` (epätosi). Sitä käytetään ehdoissa.
 
 ```csharp
-bool onkoTosi = true;
+bool isStudent = true;
 
-if (onkoTosi)
+if (isStudent)
 {
-    Console.WriteLine("Muuttuja on tosi.");
-}
-else
-{
-    Console.WriteLine("Muuttuja on epätosi.");
+    Console.WriteLine("Opiskelija-alennus");
 }
 ```
 
-Tässä esimerkissä, koska `onkoTosi`-muuttujan arvo on `true`, ohjelma tulostaa "Muuttuja on tosi."
-
-#### Boolean-arvoja tuotetaan usein vertailuoperaatioiden yhteydessä
-
-Boolean-arvoja tuotetaan usein vertailuoperaatioiden yhteydessä, kuten:
-- `==` (yhtä suuri kuin)
-- `!=` (ei yhtä suuri kuin)
-- `<` (pienempi kuin)
-- `>` (suurempi kuin)
-- `<=` (pienempi tai yhtä suuri kuin)
-- `>=` (suurempi tai yhtä suuri kuin)
-
-#### Esimerkkejä
+Vertailun tulos on `bool`. Siksi vertailun voi tallentaa muuttujaan ja käyttää myöhemmin:
 
 ```csharp
-int ika = 20;
-bool onTaysiIkanen = ika >= 18;
-bool onAlaIkanen = ika < 18;
+int age = 20;
+bool isAdult = age >= 18;       // true
+bool isChild = age < 12;        // false
 
-Console.WriteLine($"On täysi-ikäinen: {onTaysiIkanen}"); // true
-Console.WriteLine($"On alaikäinen: {onAlaIkanen}"); // false
-
-// Loogiset operaattorit
-bool ehto1 = true;
-bool ehto2 = false;
-
-bool ja = ehto1 && ehto2;  // false (molempien pitää olla true)
-bool tai = ehto1 || ehto2; // true (jompikumpi riittää)
-bool ei = !ehto1;          // false (kääntää arvon)
+Console.WriteLine(isAdult);     // True
 ```
 
----
+Nimeä `bool`-muuttuja kysymykseksi, johon vastataan kyllä tai ei: `isStudent`, `hasDiscount`, `canContinue`.
 
-### null
+Ehtoja yhdistetään operaattoreilla `&&` (ja), `||` (tai) ja `!` (ei): [loogiset operaattorit](Operators.md#loogiset-operaattorit). `int.TryParse` palauttaa `bool`-arvon, joka kertoo, onnistuiko muunnos: [TryParse](Casting.md#tryparse--kysy-uudelleen).
 
-#### Mitä tarkoittaa null?
+### const — arvo, joka ei muutu
 
-Vertaus reaalimaailmasta voi auttaa hahmottamaan `null`-konseptia.
-
-Kuvittele, että sinulla on autonavainnipussa paikka talosi avaimelle.
-
-1. **Avain paikallaan**: Tämä vastaisi tilannetta, jossa muuttujalla on viittaus johonkin arvoon. Talosi avaimenippusi paikassa on konkreettinen avain.
-2. **Ei avainta**: Jos avainnipussa ei ole avainta talosi avainpaikassa, se vastaa `null`-viittausta. Se tarkoittaa, että olet tietoinen avaimen pitämisestä tuossa paikassa, mutta juuri nyt siinä ei ole avainta. Jos yrittäisit avata ovea tuolla "ei olemassa olevalla" avaimella, kohtaisit ongelman - vastaavasti kuin jos yrittäisit käyttää `null`-viittausta koodissa.
-3. **Tässä kontekstissa**:
-   - Avain = todellinen olio tai arvo koodissa.
-   - Avaimen paikka = muuttuja tai viittaustyyppi koodissa.
-   - Ei avainta = `null` viittaus.
-
-Reaalimaailmassa `null`-tilanne voi vastata monia asioita: tyhjä laatikko, postilaatikko ilman postia, kirjahylly ilman kirjoja jne. Se kuvaa tilaa, jossa odotettu asia tai esine puuttuu.
-
-#### null C#-ohjelmointikielessä
-
-C#-ohjelmointikielessä "null" tarkoittaa arvoa tai viittausta, joka ei osoita mihinkään. Se on tyypillisesti tapa ilmaista, että muuttuja ei osoita mihinkään olemassa olevaan objektiin tai muistialueeseen.
-
-#### Esimerkkejä
-
-**1. Referenssityypit**: Muuttujan (kuten luokan instanssin) viittaus voi olla `null`, mikä tarkoittaa, että se ei viittaa mihinkään olion esiintymään.
+`const` on vakio. Arvo annetaan kerran, eikä sitä voi vaihtaa. Lippujen hinnat ja PIN-koodi ovat vakioita.
 
 ```csharp
-string teksti = null;
+const decimal ChildPrice = 7.50m;
+const decimal AdultPrice = 12.00m;
+const int CorrectPin = 1234;
 
-if (teksti == null)
-{
-    Console.WriteLine("Teksti on null");
-}
-else
-{
-    Console.WriteLine(teksti);
-}
+// ChildPrice = 8.00m;         // ei käänny: The left-hand side of an assignment must be a variable
 ```
 
-**2. Nullable-arvotyypit**: C# tukee nullable-versioita arvotyypeistä, kuten int, float, ja bool. Tämä tarkoittaa, että voit asettaa näiden tyyppien muuttujia arvoon `null` erityisen syntaksin avulla laittamalla muuttujan perään **?**
+Vakion nimi on PascalCase, muuttujan camelCase. Kun vakio tarvitaan useassa metodissa, se kirjoitetaan luokan tasolle `Main`-metodin ulkopuolelle: [luokan taso](Scopes.md#luokan-taso--jaettu-tieto).
+
+Vakio korvaa "taikaluvun". Rivi `price = 7.50m` ei kerro, mikä hinta on kyseessä. Rivi `price = ChildPrice` kertoo. Kun hinta muuttuu, korjaat yhden rivin.
+
+## Syöte on tekstiä
+
+`Console.ReadLine()` palauttaa aina `string`-arvon, vaikka käyttäjä kirjoittaisi numeroita. Luvuksi se muunnetaan erikseen:
 
 ```csharp
-int? numero = null; // nullable int
-
-if (numero.HasValue)
-{
-    Console.WriteLine($"Numero on: {numero.Value}");
-}
-else
-{
-    Console.WriteLine("Numero on null");
-}
-
-// Tai lyhyemmin:
-int? ika = null;
-Console.WriteLine(ika ?? 0); // Jos ika on null, käytetään 0
+Console.Write("Anna ikäsi: ");
+string? input = Console.ReadLine();
+int age = Convert.ToInt32(input);
 ```
 
-**3. Tyypillinen käyttö**: `null`-arvoa käytetään usein ilmaisemaan, että jotain ei ole määritelty tai että jokin ei ole saatavilla. Esimerkiksi, jos yrität hakea tietokannasta tietoa, joka ei ole olemassa, saattaisit palauttaa `null`.
-
-On tärkeää huomata, että arvotyypeillä (kuten int, float, bool) ei ole oletusarvoisesti `null`-arvoa, ellei niitä tehdä nullable-tyyppiseksi. Tämän takia `int?` voi olla `null`, mutta pelkkä `int` ei voi.
-
----
-
-### var
-
-`var` on avainsana, jota käytetään muuttujan tyypin automaattiseen päätteleminen sen perusteella, mikä arvo sille annetaan. Tämä tarkoittaa, että kun käytät `var`-avainsanaa, sinun ei tarvitse määrittää tarkkaa tietotyyppiä, vaan C# tekee sen puolestasi. Tämä voi tehdä koodin kirjoittamisesta hieman nopeampaa ja luettavampaa tietyissä tilanteissa.
-
-#### Esimerkki
-
-```csharp
-var ika = 25; // ika on automaattisesti tyypiltään int
-Console.WriteLine(ika.GetType()); // System.Int32
-```
-
-Tässä esimerkissä `ikä`-muuttuja on automaattisesti tyypiltään `int`, koska sille annettu arvo 25 on kokonaisluku.
-
-#### Muutamia keskeisiä asioita var-avainsanasta
-
-**1. Tyypin päättely**: C# päättää muuttujan tyypin automaattisesti annettavan arvon perusteella. Esimerkiksi, jos annat muuttujalle merkkijonon, siitä tulee `string`, ja jos annat desimaaliluvun, siitä tulee `double`.
-
-```csharp
-var nimi = "Matti";        // string
-var ika = 25;             // int
-var hinta = 19.99;        // double
-var onkoAktiivinen = true; // bool
-```
-
-**2. Koodin luettavuus**: `var` voi tehdä koodista helpommin luettavaa, erityisesti kun tyyppi on ilmeinen tai kun käytetään monimutkaisia tyyppinimiä.
-
-```csharp
-// Ilman var - pitkä tyyppinimi
-Dictionary<string, List<int>> data = new Dictionary<string, List<int>>();
-
-// Var-avainsanalla - lyhyempi
-var data = new Dictionary<string, List<int>>();
-```
-
-**3. Rajoitukset**: `var`-avainsanaa voi käyttää vain, kun muuttuja alustetaan samalla rivillä, eli sille annetaan heti arvo. Ilman arvoa C# ei pysty päättelemään tyyppiä.
-
-```csharp
-// ✅ HYVÄ
-var luku = 10;
-
-// ❌ HUONO - ei voi käyttää var ilman arvoa
-var luku; // Virhe!
-luku = 10;
-```
-
-**4. Yleiskäyttöisyys**: Vaikka `var` helpottaa tiettyjen asioiden kirjoittamista, sen käyttö voi joskus tehdä koodista vähemmän selkeää, jos tyypin päätteleminen ei ole ilmeistä koodin lukijalle. Tällaisissa tilanteissa on parempi käyttää suoraan tietotyyppiä.
-
-```csharp
-// ✅ HYVÄ - tyyppi on ilmeinen
-var nimi = "Matti";
-var ika = 25;
-
-// ❌ HUONO - tyyppi ei ole selvä
-var tulos = ProcessData(); // Mikä tyyppi?
-```
-
-**5. Käyttö tapauksissa, joissa tarkka tyyppi ei ole heti ilmeinen**: `var` voi olla erityisen hyödyllinen silloin, kun käytät pitkiä tyyppinimiä tai kun tarkka tyyppi ei ole yhtä tärkeä koodin toiminnan ymmärtämisen kannalta.
-
-```csharp
-// Pitkä tyyppinimi - var tekee koodista luettavampaa
-var kayttajat = new List<Dictionary<string, object>>();
-
-// Sama ilman var - vähemmän luettavaa
-List<Dictionary<string, object>> kayttajat = new List<Dictionary<string, object>>();
-```
-
-#### Yhteenveto
-
-`var` on kätevä työkalu, joka voi tehdä koodin kirjoittamisesta ja lukemisesta sujuvampaa, kun sitä käytetään oikein. Se on kuitenkin hyvä käyttää harkiten, jotta koodin luettavuus ja ymmärrettävyys säilyy.
-
----
-
-## Muuttujan määrittely
-
-### Perussyntaksi
-
-```csharp
-tyyppi muuttujanNimi = arvo;
-```
-
-### Esimerkkejä
-
-```csharp
-// Kokonaisluku
-int age = 25;
-
-// Desimaaliluku
-double price = 19.99;
-decimal salary = 5000.50m;
-
-// Merkkijono
-string name = "Matti";
-
-// Totuusarvo
-bool isActive = true;
-
-// Merkki
-char grade = 'A';
-```
+`Convert.ToInt32("abc")` kaataa ohjelman `FormatException`-poikkeukseen. `int.TryParse` ei kaada, vaan palauttaa `false`, ja ohjelma voi kysyä uudelleen. Molemmat selitetään sivulla [tyyppimuunnokset](Casting.md).
 
 ## Muuttujan nimeäminen
 
-### Säännöt
+Säännöt, jotka kääntäjä vaatii:
 
-1. Nimi voi alkaa kirjaimella tai alaviivalla (`_`)
-2. Nimi voi sisältää kirjaimia, numeroita ja alaviivoja
-3. Nimi ei voi olla varattu sana (esim. `int`, `class`, `void`)
-4. Nimi on kirjainkokoherkkä (`age` ≠ `Age`)
+1. Nimi alkaa kirjaimella tai alaviivalla `_`.
+2. Nimi saa sisältää kirjaimia, numeroita ja alaviivoja. Ei välilyöntiä, ei viivaa.
+3. Nimi ei saa olla varattu sana (`int`, `class`, `void`).
+4. Nimi on kirjainkokoherkkä: `age` ja `Age` ovat eri muuttujat.
 
 ```csharp
-// ✅ HYVÄ
-int age = 25;
+int age = 25;              // hyvä
 string firstName = "Matti";
 bool isActive = true;
-int _count = 0;
 
-// ❌ HUONO
-int 2age = 25;        // Ei voi alkaa numerolla
-string first-name = "Matti";  // Ei voi sisältää viivaa
-int class = 5;        // Varattu sana
+// int 2age = 25;          // ei voi alkaa numerolla
+// string first-name = ""; // viiva ei käy
+// int class = 5;          // varattu sana
 ```
 
-### Nimeämiskäytännöt
+Käytännöt, joita kurssilla noudatetaan:
 
-- **camelCase**: Paikalliset muuttujat ja private-kentät
-- **PascalCase**: Public-kentät ja propertyt
+| Käytäntö | Esimerkki |
+|----------|-----------|
+| camelCase muuttujille | `ticketCount`, `unitPrice` |
+| PascalCase vakioille | `ChildPrice` |
+| Englanti | `age`, ei `ika` |
+| Kuvaava nimi | `ticketCount`, ei `n` tai `x` |
+
+Lisää: [koodauskäytännöt](Coding-Conventions.md).
+
+## Yleisiä virheitä
+
+**1. `m`-pääte puuttuu**
 
 ```csharp
-public class Person
+// decimal price = 7.50;     // ei käänny: Cannot implicitly convert type 'double' to 'decimal'
+decimal price = 7.50m;
+```
+
+**2. Muuttujaa luetaan ennen arvon antamista**
+
+```csharp
+int total;
+// Console.WriteLine(total); // ei käänny: Use of unassigned local variable 'total'
+total = 0;
+Console.WriteLine(total);    // 0
+```
+
+Kertymämuuttuja alustetaan aina: `decimal total = 0m;`.
+
+**3. Sama nimi kahdesti**
+
+```csharp
+int age = 20;
+// int age = 25;             // ei käänny: A local variable named 'age' is already defined
+age = 25;                    // oikein: sijoitus ilman tyyppiä
+```
+
+Tyyppi kirjoitetaan vain esittelyssä. Sijoituksessa riittää nimi.
+
+**4. Teksti ja luku sekaisin**
+
+```csharp
+string input = "200";
+// if (input == 200)          // ei käänny: string ja int eivät ole vertailukelpoisia
+if (Convert.ToInt32(input) == 200)
 {
-    // Private field - camelCase
-    private string firstName;
-    private int age;
-    
-    // Public property - PascalCase
-    public string FirstName { get; set; }
-    public int Age { get; set; }
-    
-    public void DisplayInfo()
-    {
-        // Local variable - camelCase
-        string fullName = $"{FirstName} {Age}";
-        Console.WriteLine(fullName);
-    }
+    Console.WriteLine("Sama luku");
 }
 ```
 
-## Muuttujan käyttö
+**5. Sijoitus vertailun paikalla**
 
-### Arvon lukeminen
+`age = 18` sijoittaa, `age == 18` vertaa. `if (age = 18)` ei käänny. Katso [yleisiä virheitä valinnassa](Control-Structures.md#yleisiä-virheitä-valinnassa).
 
-```csharp
-int x = 10;
-int y = 20;
-int sum = x + y;  // Lukee x:n ja y:n arvot
-Console.WriteLine(sum);  // Tulostaa: 30
-```
+## double, var ja null — myöhemmin
 
-### Arvon muuttaminen
+Näitä ei tarvita kurssin ensimmäisissä ohjelmissa. Lyhyt esittely riittää, jotta tunnistat ne, kun näet ne.
 
-```csharp
-int count = 0;
-count = 5;        // Muuttaa arvon
-count = count + 1; // Kasvattaa arvoa yhdellä
-count++;          // Sama kuin yllä (lyhennysmerkintä)
-```
+### double
 
-## Vakiot (Constants)
-
-Vakio on muuttuja, jonka arvoa ei voi muuttaa:
+`double` on liukuluku: desimaaliluku, joka sopii mittauksiin, lämpötiloihin ja koordinaatteihin. Pieni pyöristysvirhe ei haittaa niissä.
 
 ```csharp
-// const - kääntöaikainen vakio
-const int MaxRetryAttempts = 3;
-const double Pi = 3.14159;
-const string AppName = "MyApp";
-
-// readonly - suoritusaikainen vakio (vain luokassa)
-public class Config
-{
-    public readonly string ConnectionString;
-    
-    public Config()
-    {
-        ConnectionString = "Server=localhost;"; // Asetetaan konstruktorissa
-    }
-}
+double temperature = 23.5;
+double average = 17 / 5.0;    // 3.4
 ```
 
-## Muuttujien laajuus (Scope)
+Rahaan `double` ei sovi, koska `0.1 + 0.2` ei ole tasan `0.3`. Käytä rahalle `decimal`-tyyppiä.
 
-Muuttujan laajuus määrittää, missä muuttujaa voidaan käyttää:
+### var
+
+`var` antaa kääntäjän päätellä tyypin oikealta puolelta. `var age = 20` on silti `int`-muuttuja, ja tyyppi ei voi vaihtua myöhemmin.
 
 ```csharp
-public class Example
-{
-    // Luokan taso - näkyy koko luokassa
-    private int classLevel = 10;
-    
-    public void Method1()
-    {
-        // Metodin taso - näkyy vain metodissa
-        int methodLevel = 20;
-        
-        if (true)
-        {
-            // Lohkon taso - näkyy vain lohkossa
-            int blockLevel = 30;
-            
-            // Voimme käyttää kaikkia
-            Console.WriteLine(classLevel);   // OK
-            Console.WriteLine(methodLevel);  // OK
-            Console.WriteLine(blockLevel);   // OK
-        }
-        
-        // blockLevel ei ole näkyvissä täällä
-        // Console.WriteLine(blockLevel); // ❌ Virhe!
-    }
-}
+var age = 20;                  // int
+var name = "Matti";            // string
+var price = 7.50m;             // decimal
 ```
+
+Alussa kirjoita tyyppi näkyviin. Silloin rivi kertoo lukijalle, onko kyseessä luku vai teksti, ja opit tyypit.
+
+### null
+
+`null` tarkoittaa "ei mitään": säilö on olemassa, mutta siinä ei ole arvoa. Se ei ole sama kuin luku `0` tai tyhjä teksti `""`.
+
+`Console.ReadLine()` on määritelty palauttamaan `string?`. Kysymysmerkki kertoo, että arvo voi olla myös `null`. Siksi syötteen muuttuja kirjoitetaan usein muodossa `string? input`. Tavallinen Enter-painallus tuottaa tyhjän merkkijonon `""`, ei `null`-arvoa.
+
+`int?` ja `HasValue` kuuluvat olio-ohjelmoinnin jälkeen. Niitä ei tarvita vielä.
 
 ## Yhteenveto
 
-- Muuttujat tallentavat dataa
-- Tyyppi määrittää, millaista dataa muuttuja voi sisältää
-- Nimeä muuttujat selkeästi ja noudata käytäntöjä
-- Käytä `var`-avainsanaa kun tyyppi on ilmeinen
-- Vakiot (`const`) eivät voi muuttua
-- `string` on immutable - muutokset luovat uuden merkkijonon
-- Rahalaskut: aina `decimal` ja `m`-pääte, tulostus `{summa:F2}`
-- Syöte: `Convert.ToInt32` on yksinkertainen; `TryParse` ei kaada ohjelmaa väärästä tekstistä
+- Muuttujalla on tyyppi, nimi ja arvo: `int age = 20;`. Arvo voi vaihtua, tyyppi ei.
+- `int` kokonaisluvuille, `decimal` rahalle (`m`-pääte, tulostus `:F2`), `string` tekstille, `bool` kyllä/ei-arvoille.
+- `"200"` on tekstiä, `200` on luku. Syöte on aina tekstiä, kunnes muunnat sen.
+- `const` on vakio: arvo annetaan kerran, nimi PascalCase.
+- Nimet englanniksi ja camelCase. Nimen pitää kertoa, mitä säilö sisältää.
+- Näkyvyysalue eli missä muuttujan nimeä saa käyttää: [Näkyvyysalueet](Scopes.md).
 
 Seuraavaksi: [Konsolin syöte ja tulostus](Console-IO.md) · [Operaattorit](Operators.md) · [Ohjausrakenteet](Control-Structures.md)
