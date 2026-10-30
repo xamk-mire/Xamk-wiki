@@ -1,43 +1,31 @@
-# Vuokaavio (Flow chart)
+# Vuokaavio (Flowchart)
 
-**Muita materiaaleja:**
-- [Vuokaavio (omaantahtiin.com)](https://matikka.omaantahtiin.com/pitkamatikka/maa11/vuokaavio)
+**Vuokaavio** on algoritmin kuva. Askeleet ovat laatikoita, ja nuolet kertovat, mihin laatikkoon mennään seuraavaksi. Kaaviosta näkee yhdellä silmäyksellä, missä ohjelma haarautuu ja missä se palaa taaksepäin.
 
-## Mikä on vuokaavio?
+Arjen esimerkki on kartta. Askellista on reittiohje tekstinä: "käänny vasemmalle, sitten oikealle". Vuokaavio on sama reitti piirrettynä. Risteyksen näkee kartasta heti, tekstistä vasta lukemalla.
 
-Vuokaavio (flowchart) on graafinen esitys, joka kuvaa prosessin vaiheet ja niiden väliset suhteet sekä mahdolliset päätöksentekopisteet. Ohjelmoinnissa vuokaaviota voidaan käyttää algoritmin tai ohjelman logiikan kuvaamiseen visuaalisessa muodossa ennen koodin kirjoittamista.
+Vuokaavio piirretään **ennen** koodia. Kun haarat ja silmukat ovat paperilla, koodin kirjoittaminen on kääntämistä: jokainen laatikko on rivi tai lohko C#-koodia.
 
-## Vuokaavion hyötyjä ohjelmoinnissa
+**Muita lähteitä:** [Vuokaavio (omaantahtiin.com)](https://matikka.omaantahtiin.com/pitkamatikka/maa11/vuokaavio)
 
-### 1. Algoritmien suunnittelu
+## Kartta
 
-- Vuokaavio auttaa ohjelmoijia suunnittelemaan ja jäsentämään algoritmin logiikan ennen koodin kirjoittamista
-- Se auttaa visualisoimaan prosessin kulun ja havaitsemaan mahdolliset ongelmat tai puutteet suunnitteluvaiheessa
+| Kaaviossa | Pseudokoodissa | C#-koodissa |
+|-----------|----------------|-------------|
+| Soikio ALOITUS / LOPETUS | ensimmäinen ja viimeinen rivi | `Main`-metodin alku ja loppu |
+| Suunnikas "Kysy ikä" | `KYSY age` | `Console.ReadLine()` |
+| Suunnikas "Tulosta hinta" | `TULOSTA price` | `Console.WriteLine(price)` |
+| Suorakulmio "saldo = saldo - summa" | `balance = balance - amount` | `balance = balance - amount;` |
+| Salmiakki "ikä < 12?" | `JOS age < 12` | `if (age < 12)` |
+| Nuoli, joka palaa taaksepäin | `NIIN KAUAN KUIN` | `while` |
 
-### 2. Selkeys ja ymmärrettävyys
-
-- Vuokaavio tekee ohjelmiston toiminnasta helpommin ymmärrettävää, erityisesti niille, jotka eivät ole koodaajia
-- Se on tehokas väline kommunikointiin tiimin jäsenten tai sidosryhmien välillä
-
-### 3. Dokumentointi
-
-- Vuokaavioita voidaan käyttää ohjelmistoprojektien dokumentoinnissa, mikä helpottaa tulevaa viittauskäyttöä ja mahdollistaa paremman ymmärryksen ohjelmiston toiminnasta
-
-### 4. Vianmääritys (Debugging)
-
-- Vuokaavio voi helpottaa virheiden löytämistä ja korjaamista, koska se antaa visuaalisen esityksen siitä, miten ohjelma toimii ja missä mahdolliset ongelmat saattavat olla
-
-### 5. Oppiminen ja koulutus
-
-- Vuokaavioiden laatiminen ja lukeminen on arvokas taito, erityisesti ohjelmoinnin oppimisessa, koska se auttaa ymmärtämään loogista ajattelua ja prosessin hallintaa
-
-### 6. Ajansäästö
-
-- On usein nopeampaa ja helpompaa tehdä muutoksia vuokaaviossa kuin koodissa, erityisesti monimutkaisissa projekteissa
+Pseudokoodin avainsanat: [Pseudokoodi](Pseudocode.md). C#-rakenteet: [Ohjausrakenteet](../00-Basics/Control-Structures.md).
 
 ## Vuokaavion symbolit
 
 Viisi symbolia riittää tällä kurssilla.
+
+![Vuokaavion viisi symbolia: aloitus/lopetus, prosessi, valinta, syöte/tuloste ja nuoli](images/01-symbolit.svg)
 
 | Symboli | Muoto | Käyttö |
 |---------|-------|--------|
@@ -47,70 +35,78 @@ Viisi symbolia riittää tällä kurssilla.
 | **Syöte / Tuloste** | Suunnikas | Tiedon lukeminen käyttäjältä tai tulostaminen ruudulle |
 | **Nuoli** | Viiva | Suoritusjärjestys: mihin mennään seuraavaksi |
 
-Nimeä valinnan molemmat nuolet: toinen on **kyllä**, toinen **ei**. Ilman nimiä lukija ei tiedä, kumpaan haaraan mennään.
+Salmiakista lähtee aina **kaksi** nuolta. Nimeä ne: toinen on **kyllä**, toinen **ei**. Ilman nimiä lukija ei tiedä, kumpaan haaraan mennään.
+
+Kirjoita salmiakin kysymys **vertailuna**, joka on tosi tai epätosi: `pituus >= 140?`, ei "onko tarpeeksi pitkä?". Vertailu kääntyy suoraan koodiksi.
 
 ## Kolme rakennetta vuokaaviossa
 
 Jokainen vuokaavio rakentuu kolmesta peruskuviosta. Ne vastaavat [algoritmin kolmea rakennetta](Algorithm.md#kolme-rakennetta).
 
-**Peräkkäisyys** on suora putki: soikio, sitten suorakulmioita ja suunnikkaita, lopuksi soikio. Nuolet kulkevat vain eteenpäin.
+### Peräkkäisyys — suora putki
 
-**Valinta** on salmiakki keskellä putkea. Kyllä-nuoli vie yhteen haaraan, ei-nuoli toiseen. Haarat yhtyvät taas, jos ohjelma jatkuu yhteistä polkua.
+![Teen keittäminen vuokaaviona: askeleet peräkkäin alusta loppuun](images/03-tee-perakkain.svg)
 
-**Toisto** on nuoli, joka palaa taaksepäin. Salmiakki kysyy esimerkiksi "Onko salasana oikein?". Ei-nuoli palaa kysymykseen, kyllä-nuoli jatkaa eteenpäin. Ilman paluunuolta kaavio ei toista mitään.
+Soikio, sitten suorakulmioita ja suunnikkaita, lopuksi soikio. Nuolet kulkevat vain eteenpäin. Jokainen ajo tekee samat asiat samassa järjestyksessä.
 
-Saman kuvion voi kirjoittaa [pseudokoodina](Pseudocode.md): salmiakki on `JOS`, paluunuoli on `NIIN KAUAN KUIN`.
+### Valinta — salmiakki haarauttaa
 
-## Vuokaavion laatiminen vaiheittain
+![Vuoristoradan pituusraja: salmiakki haarauttaa kyllä- ja ei-haaroihin](images/04-huvipuisto-valinta.svg)
 
-Vuokaavion laatiminen vaatii huolellista suunnittelua ja jäsennystä. Seuraavat vaiheet voivat auttaa laatimaan hyvän vuokaavion:
+Salmiakki keskellä putkea. Kyllä-nuoli vie yhteen haaraan, ei-nuoli toiseen. Haarat yhtyvät taas, jos ohjelma jatkuu yhteistä polkua.
 
-### 1. Määrittele tavoite
+Seuraa kaaviota arvoilla 139, 140 ja 141. Ehto on `pituus >= 140`, joten 140 menee kyllä-haaraan. Jos ehto olisi `pituus > 140`, 140-senttinen jäisi rannalle. Yhden merkin ero vaihtaa tuloksen rajalla.
 
-Määritä selkeästi, mitä prosessia tai algoritmia aiot kuvata vuokaaviossa.
+### Monta haaraa peräkkäin
 
-### 2. Tutki prosessi
+![Arvosana pisteistä: kaksi salmiakkia peräkkäin, kolme mahdollista tulosta](images/05-arvosana-valinta.svg)
 
-Tutki ja ymmärrä prosessi perusteellisesti. Kerää kaikki tarvittavat tiedot ja resurssit, jotka auttavat sinua kuvaamaan prosessin vaiheet ja loogisen kulun.
+Kolme luokkaa vaatii kaksi salmiakkia peräkkäin. Toinen kysytään vain, jos ensimmäinen vastasi "ei". Siksi toisessa salmiakissa riittää `pisteet < 75`: jos tähän asti päästiin, pisteitä on jo vähintään 50. **Ehtojen järjestys kantaa tietoa.**
 
-### 3. Luonnostele
+Jos salmiakit vaihdetaan toisin päin (ensin `< 75`, sitten `< 50`), syöte 30 päätyy haaraan "Hyvä". Laita kapein ehto ensin.
 
-Aloita tekemällä karkea luonnos prosessista paperille tai digitaalisesti. Tämä auttaa sinua järjestämään ajatuksesi ja tunnistamaan prosessin eri vaiheet ja päätöskohdat.
+### Toisto — nuoli palaa taaksepäin
 
-### 4. Valitse työkalut
+![Salasanan kysely: ei-haara palaa takaisin kysymykseen](images/06-salasana-toisto.svg)
 
-Valitse työkalu, jolla aiot laatia vuokaavion. On olemassa monia ohjelmistoja ja online-työkaluja, kuten:
-- **Draw.io** (ilmainen, online)
-- **Microsoft Visio** (maksullinen)
-- **Lucidchart** (maksullinen, online)
+Salmiakki kysyy "salasana oikein?". Ei-nuoli palaa takaisin kysymykseen, kyllä-nuoli jatkaa eteenpäin. Ilman paluunuolta kaavio ei toista mitään.
 
-### 5. Laadi vuokaavio
+Paluunuolen sisään jäävä silmukka pyörii niin kauan, kuin salmiakki vastaa "ei". Jos salasana ei koskaan täsmää, silmukka on ikuinen. Rajoitus syntyy laskurilla ja toisella salmiakilla: "yrityksiä < 3?".
 
-Aloita vuokaavion laatiminen valitulla työkalulla. Käytä oikeita symboleita eri vaiheiden ja päätösten kuvaamiseen.
+## Lue kaavio sormella
 
-### 6. Tarkista looginen kulku
+Kaavio testataan samalla tavalla kuin askellista: valitse syöte ja seuraa nuolia sormella ALOITUS-soikiosta LOPETUS-soikioon. Kirjaa jokaisen salmiakin vastaus ja jokainen tuloste.
 
-Tarkista vuokaavion looginen kulku varmistaaksesi, että kaikki vaiheet ja päätökset on kuvattu oikein ja että vuokaavio johtaa haluttuun lopputulokseen.
+Tarkista kolme asiaa:
 
-### 7. Pyydä palautetta
+1. Päättyykö jokainen polku LOPETUS-symboliin?
+2. Onko jokaisella salmiakilla sekä kyllä- että ei-nuoli?
+3. Muuttuuko toiston sisällä jokin, mikä voi kääntää salmiakin vastauksen?
 
-Pyydä palautetta muilta tiimin jäseniltä tai sidosryhmiltä varmistaaksesi, että vuokaavio on ymmärrettävä ja että se kuvaa prosessia oikein.
+Valitse syötteiksi raja-arvot: luku juuri rajan alla, tasan rajalla ja juuri yli. Katso [askella algoritmi käsin](Algorithm.md#askella-algoritmi-käsin).
 
-### 8. Tee tarvittavat muutokset
+## Yleisiä virheitä
 
-Perustuen saatuun palautteeseen, tee tarvittavat korjaukset ja päivitykset vuokaavioon.
+**1. Nuolia ei ole nimetty.** Salmiakista lähtee kaksi nuolta, mutta kumpikaan ei kerro, onko se kyllä vai ei. Kaaviota ei voi lukea.
 
-### 9. Dokumentoi ja jaa
+**2. Salmiakista lähtee yksi nuoli.** Kysymys, jolla on vain yksi vastaus, ei ole valinta. Joko toinen haara puuttuu tai salmiakin pitäisi olla suorakulmio.
 
-Dokumentoi vuokaavio ja jaa se muiden kanssa. Selitä tarvittaessa vuokaavion tärkeät kohdat ja varmista, että kaikki sidosryhmät ymmärtävät sen.
+**3. Toisto ilman paluunuolta.** Kaaviossa lukee "kysy uudelleen", mutta nuoli jatkaa eteenpäin. Kone ei palaa taaksepäin, ellei nuoli palaa.
 
-### 10. Päivitä tarvittaessa
+**4. Toisto, jonka ehto ei voi muuttua.** Silmukka tulostaa "Väärä salasana" ja palaa salmiakkiin, mutta uutta salasanaa ei kysytä. Vastaus on ikuisesti "ei". Lisää KYSY-askel silmukan sisään.
 
-Kun prosessi muuttuu tai kun saat lisätietoa, päivitä vuokaavio vastaamaan uusia tietoja ja vaatimuksia.
+**5. Polku, joka ei pääty.** Jokin haara jää ilman nuolta tai LOPETUS-soikiota. Seuraa jokainen polku loppuun asti.
+
+## Piirtotyökalu
+
+Kynä ja paperi riittävät harjoitteluun. Siistiin kaavioon sopii [draw.io](https://app.diagrams.net/): vasemman reunan paletista kohta **Flowchart** sisältää kaikki viisi symbolia. Lyhyt ohje: [draw.io](DrawIO.md).
 
 ## Yhteenveto
 
-Olemalla taitava vuokaavion laatimisessa, ohjelmoija pystyy suunnittelemaan ja kommunikoimaan ohjelmiston rakenteen ja toiminnallisuuden tehokkaammin, mikä voi johtaa korkealaatuisempaan ja virheettömämpään koodiin. Vuokaaviot auttavat myös ohjelmoijia ja tiimejä pysymään järjestäytyneinä ja keskittyneinä projektin eri vaiheissa, mikä voi olla erityisen hyödyllistä monimutkaisissa tai laajoissa ohjelmistoprojekteissa.
+- Vuokaavio on algoritmi kuvana: laatikot ovat askeleita, nuolet suoritusjärjestys.
+- Viisi symbolia: soikio, suorakulmio, salmiakki, suunnikas ja nuoli.
+- Salmiakista lähtee aina kaksi nimettyä nuolta, kyllä ja ei. Kysymys kirjoitetaan vertailuna.
+- Peräkkäisyys on suora putki, valinta on salmiakki, toisto on nuoli taaksepäin.
+- Testaa kaavio sormella raja-arvoilla. Jokaisen polun pitää päättyä LOPETUS-symboliin.
 
-Seuraavaksi: [draw.io](DrawIO.md)
-
+Seuraavaksi: [Pseudokoodi](Pseudocode.md) · [Algoritmi](Algorithm.md) · [draw.io](DrawIO.md)
