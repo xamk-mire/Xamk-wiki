@@ -18,7 +18,7 @@ Arjen esimerkki: kassan näyttö ja näppäimistö. Ohjelma kirjoittaa kysymykse
 Console.WriteLine("=== Elokuvateatteri Tähti ===");
 Console.WriteLine();                          // tyhjä rivi
 Console.Write("Anna ikäsi: ");                // kursori jää odottamaan samalle riville
-string? syote = Console.ReadLine();
+string? input = Console.ReadLine();
 ```
 
 `Write` sopii kysymyksiin (`Anna ikäsi: `), `WriteLine` otsikoihin ja valmiisiin riveihin.

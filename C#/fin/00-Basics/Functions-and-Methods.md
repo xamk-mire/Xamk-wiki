@@ -155,7 +155,7 @@ Sama metodinimi voi esiintyä useasti, jos parametrit eroavat määrältä tai t
 static int ReadInt(string prompt)
 {
     Console.Write(prompt);
-    string text = Console.ReadLine();
+    string? text = Console.ReadLine();
     int value;
     bool ok = int.TryParse(text, out value);
 
