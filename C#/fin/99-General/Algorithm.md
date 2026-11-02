@@ -61,6 +61,21 @@ Jokaisen ehdon voi rikkoa:
 
 Tietokone huomauttaa vain osasta virheitä. Epäselvä askel ei käänny C#-koodiksi lainkaan. Ikuinen toisto sen sijaan kääntyy ja ajaa, kunnes suljet ohjelman.
 
+### Mikä erottaa hyvän algoritmin toimivasta
+
+Kolme ehtoa riittää siihen, että askellista on algoritmi. Hyvältä algoritmilta odotetaan enemmän.
+
+| Ominaisuus | Mitä tarkoittaa | Esimerkki |
+|------------|-----------------|-----------|
+| **Oikeellisuus** | Antaa oikean tuloksen jokaisella sallitulla syötteellä, myös rajoilla | Arvosana-algoritmi antaa 50 pisteelle "Hyvä", ei "Hylätty" |
+| **Toistettavuus** | Sama syöte tuottaa aina saman tuloksen. Tulos ei riipu suorittajasta eikä ajankohdasta | Ikä 8 antaa lastenlipun hinnan tänään ja huomenna, sinun koneellasi ja opettajan koneella |
+| **Syöte ja tuloste** | Algoritmi kertoo, mitä tietoa se tarvitsee ja mitä se antaa ulos | Syöte: ikä ja lippumäärä. Tuloste: maksettava summa |
+| **Yleispätevyys** | Toimii kaikilla sallituilla syötteillä, ei vain sillä yhdellä, jolla sitä kokeiltiin | "Suurin kolmesta luvusta" toimii myös, kun kaksi lukua ovat yhtä suuret |
+| **Tehokkuus** | Ei tee turhaa työtä. Askelia on niin vähän kuin tehtävä vaatii | Ikä kysytään kerran, ei uudestaan jokaista lippua varten |
+| **Luettavuus** | Toinen ihminen ymmärtää askeleet lukematta kahdesti | Kuvaavat nimet (`ticketCount`, ei `x`), yksi askel per rivi |
+
+Tentissä riittää, että osaat kolme ehtoa ja tunnistat niiden rikkomisen. Muut ominaisuudet ovat syy siihen, miksi algoritmi askelletaan käsin raja-arvoilla ja miksi koodi siistitään ennen palautusta. Tehokkuutta mitataan myöhemmin tarkemmin: [Tehokkuus](#tehokkuus--myöhemmin).
+
 ## Kolme rakennetta
 
 Kolme rakennetta riittää kuvaamaan minkä tahansa ohjelman.
@@ -196,7 +211,7 @@ Lisää: [Big O](Big-O.md).
 ## Yhteenveto
 
 - Algoritmi on askellista, jonka tietokone voi suorittaa sellaisenaan.
-- Hyvä algoritmi on yksiselitteinen, äärellinen ja järjestetty.
+- Hyvä algoritmi on yksiselitteinen, äärellinen ja järjestetty. Lisäksi se on oikein, toistettava, yleispätevä, tehokas ja luettava.
 - Kolme rakennetta riittää: peräkkäisyys, valinta ja toisto.
 - Sama algoritmi voidaan kirjoittaa askellistana, vuokaaviona, pseudokoodina ja C#-koodina.
 - Testaa algoritmi askeltamalla se käsin raja-arvoilla.
