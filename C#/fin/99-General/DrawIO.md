@@ -26,9 +26,9 @@ Voit valita ja raahata sieltä haluamasi symbolin.
 
 Kun olet raahannut symbolin, voit halutessasi lisätä uuden symbolin vieämällä kursorin symbolin päälle ja painamalla nuolta, joka ilmestyy symbolin päälle.
 
-### Tekstin lisäys symbooliin
+### Tekstin lisäys symboliin
 
-Voit kirjoittaa tekstiä haluamasi symbooliin valitsemalla symbolin ja aloittamalla kirjoittamaan tekstiä.
+Voit kirjoittaa tekstiä haluamasi symboliin valitsemalla symbolin ja aloittamalla kirjoittamaan tekstiä.
 
 ## Käyttökohteet
 

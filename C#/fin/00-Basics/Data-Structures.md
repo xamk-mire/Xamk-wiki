@@ -143,13 +143,13 @@ if (discounts.TryGetValue(key, out decimal percent))
 Kaikki parit silmukassa:
 
 ```csharp
-foreach (var pair in discounts)
+foreach (KeyValuePair<string, decimal> pair in discounts)
 {
     Console.WriteLine($"{pair.Key}: {pair.Value}");
 }
 ```
 
-`Key` on avain, `Value` on arvo. Avaimen pitää olla uniikki. Samaa koodia ei voi lisätä kahdesti.
+`Key` on avain, `Value` on arvo. Parin tyyppi on pitkä, joten tässä kohdassa näkee usein lyhenteen `var pair`: kääntäjä päättelee tyypin itse. Avaimen pitää olla uniikki. Samaa koodia ei voi lisätä kahdesti.
 
 Avain huomioi kirjainkoon: `"koira"` ja `"Koira"` ovat eri avaimia. Siksi esimerkissä käyttäjän syöte muutetaan `ToUpper()`-kutsulla isoiksi kirjaimiksi ennen hakua. Avaimet on tallennettu isoilla kirjaimilla, eikä `"leffa10"` löytäisi avainta `"LEFFA10"` ilman muunnosta.
 
