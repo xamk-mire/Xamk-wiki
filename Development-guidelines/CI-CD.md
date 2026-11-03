@@ -153,8 +153,8 @@ Repository
 Workflow (ci.yml)
 ├── Trigger (milloin ajetaan?)     → push, pull_request, schedule
 ├── Job 1: "build"                  → Ajetaan Ubuntu-koneella
-│   ├── Step 1: Checkout code       → actions/checkout@v4
-│   ├── Step 2: Setup .NET          → actions/setup-dotnet@v4
+│   ├── Step 1: Checkout code       → actions/checkout@v5
+│   ├── Step 2: Setup .NET          → actions/setup-dotnet@v5
 │   ├── Step 3: dotnet restore
 │   ├── Step 4: dotnet build
 │   └── Step 5: dotnet test
@@ -170,7 +170,7 @@ Workflow (ci.yml)
 | **Job** | Joukko vaiheita, jotka ajetaan samalla koneella |
 | **Step** | Yksittäinen toiminto jobissa (komento tai valmis action) |
 | **Runner** | Kone joka suorittaa jobin (GitHubin tarjoama tai oma) |
-| **Action** | Uudelleenkäytettävä komponentti (esim. `actions/checkout@v4`) |
+| **Action** | Uudelleenkäytettävä komponentti (esim. `actions/checkout@v5`) |
 | **Artifact** | Rakennettu tiedosto joka siirretään jobien välillä |
 
 ### Triggerit
@@ -208,10 +208,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '8.0.x'
 
@@ -239,10 +239,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '8.0.x'
 
@@ -273,7 +273,7 @@ jobs:
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
 ```
 
-> **Huom:** publish profile on **pitkäikäinen salaisuus** — yksinkertainen tapa aloittaa, mutta suositeltu tapa on **OIDC** (`azure/login@v2` + federated identity), jolloin repoon ei tallenneta yhtään salasanaa tai avainta. Katso [OIDC-luku](#azure-kirjautuminen-putkessa-oidc) alempana.
+> **Huom:** publish profile on **pitkäikäinen salaisuus** — yksinkertainen tapa aloittaa, mutta suositeltu tapa on **OIDC** (`azure/login@v3` + federated identity), jolloin repoon ei tallenneta yhtään salasanaa tai avainta. Katso [OIDC-luku](#azure-kirjautuminen-putkessa-oidc) alempana.
 
 ### IaC deploy — Bicep GitHub Actionsilla
 
@@ -296,10 +296,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Azure Login (OIDC — ei pitkäikäisiä salaisuuksia)
-        uses: azure/login@v2
+        uses: azure/login@v3
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
@@ -384,30 +384,79 @@ GitHub Secrets:                          GitHub Secrets:
                                          VAIN määritellystä haarasta
 ```
 
-### Käyttöönotto (Azure CLI)
+### Mikä identiteetti putkelle?
 
-```bash
-# 1. Sovellusrekisteröinti + service principal
-az ad app create --display-name "gh-myapp-deploy"
-# → ota talteen appId
-az ad sp create --id <appId>
+Azure-puolella putki tarvitsee identiteetin, johon luottamus (federated credential) ja oikeudet kiinnitetään. Vaihtoehtoja on kaksi:
 
-# 2. Oikeudet: Contributor VAIN omaan resource groupiin (least privilege)
-az role assignment create \
-  --assignee <appId> \
-  --role Contributor \
-  --scope /subscriptions/<sub-id>/resourceGroups/<rg-name>
+| Identiteetti | Luodaan | Kuka saa luoda | Milloin |
+|---|---|---|---|
+| **User-assigned managed identity** | `az identity create` resurssiryhmään | Kuka tahansa, jolla on tilaukseen Contributor | Oletus opiskelijalle ja useimpiin projekteihin — ei Entra ID -oikeuksia, poistuu resurssiryhmän mukana |
+| **App registration** (sovellusrekisteröinti) | `az ad app create` Entra ID -hakemistoon | Vain jos organisaatio sallii (koulun tenantissa tavallinen käyttäjä **ei** saa) | Kun sama identiteetti palvelee useaa tilausta tai tarvitaan API-oikeuksia |
 
-# 3. Federated credential: luota TÄSMÄLLEEN tähän repoon ja haaraan
-az ad app federated-credential create --id <appId> --parameters '{
-  "name": "github-main",
-  "issuer": "https://token.actions.githubusercontent.com",
-  "subject": "repo:<owner>/<repo>:ref:refs/heads/main",
-  "audiences": ["api://AzureADTokenExchange"]
-}'
+Roolin myöntäminen (vaihe 2 alla) vaatii kummassakin tapauksessa tilaukseen **Owner**-roolin (tai User Access Administrator). Azure for Students antaa sen.
+
+### GitHubin subject-muoto — huomaa ID:t
+
+Federated credential sidotaan GitHubin tokenin `subject`-arvoon. **Heinäkuun 2026 jälkeen luoduissa repoissa** subject sisältää omistajan ja repon numeeriset ID:t:
+
+```
+repo:<owner>@<owner-id>/<repo>@<repo-id>:ref:refs/heads/main      # push main-haaraan
+repo:<owner>@<owner-id>/<repo>@<repo-id>:pull_request              # pull request -ajot
+repo:<owner>@<owner-id>/<repo>@<repo-id>:environment:production    # job, jolla on environment:
 ```
 
-`subject`-kenttä on turvallisuuden ydin: token kelpaa vain, kun workflow ajaa nimenomaan tästä reposta ja tästä haarasta. Toisen repon (tai forkin) workflow ei saa pääsyä, vaikka tunnisteet vuotaisivat.
+Vanha muoto `repo:<owner>/<repo>:…` (jota useimmat ohjeet vielä näyttävät) **ei täsmää** uuden repon tokeniin — kirjautuminen kaatuu virheeseen `AADSTS700213`. Oman repon prefixin saa GitHub CLI:llä:
+
+```powershell
+$Prefix = gh api repos/<owner>/<repo>/actions/oidc/customization/sub --jq .sub_claim_prefix
+# → repo:<owner>@12345678/<repo>@987654321
+```
+
+### Käyttöönotto (Azure CLI, managed identity)
+
+```powershell
+# 1. Identiteetti resurssiryhmään
+az identity create --name id-github-myapp --resource-group <rg-name>
+$ClientId    = az identity show --name id-github-myapp --resource-group <rg-name> --query clientId --output tsv
+$PrincipalId = az identity show --name id-github-myapp --resource-group <rg-name> --query principalId --output tsv
+
+# 2. Oikeudet: Contributor VAIN omaan resource groupiin (least privilege)
+az role assignment create `
+  --assignee-object-id $PrincipalId `
+  --assignee-principal-type ServicePrincipal `
+  --role Contributor `
+  --scope "/subscriptions/<sub-id>/resourceGroups/<rg-name>"
+
+# 3. Federated credential: luota TÄSMÄLLEEN tähän repoon ja haaraan
+az identity federated-credential create `
+  --name github-main `
+  --identity-name id-github-myapp `
+  --resource-group <rg-name> `
+  --issuer "https://token.actions.githubusercontent.com" `
+  --subject "${Prefix}:ref:refs/heads/main" `
+  --audiences "api://AzureADTokenExchange"
+```
+
+GitHub Secretsiin tallennetaan `AZURE_CLIENT_ID` = `$ClientId`, `AZURE_TENANT_ID` ja `AZURE_SUBSCRIPTION_ID` (`az account show`).
+
+<details>
+<summary>Sama app registrationilla</summary>
+
+```powershell
+$AppId = az ad app create --display-name "gh-myapp-deploy" --query appId --output tsv
+az ad sp create --id $AppId
+az role assignment create --assignee $AppId --role Contributor --scope "/subscriptions/<sub-id>/resourceGroups/<rg-name>"
+
+# Parametrit tiedostosta — monirivinen JSON komentorivillä hajoaa Windows PowerShellissä
+@{ name = "github-main"; issuer = "https://token.actions.githubusercontent.com"; subject = "${Prefix}:ref:refs/heads/main"; audiences = @("api://AzureADTokenExchange") } | ConvertTo-Json | Set-Content fc.json
+az ad app federated-credential create --id $AppId --parameters fc.json
+```
+
+Secretiin `AZURE_CLIENT_ID` tulee tällöin `$AppId`.
+
+</details>
+
+`subject`-kenttä on turvallisuuden ydin: token kelpaa vain, kun workflow ajaa nimenomaan tästä reposta ja tästä haarasta. Toisen repon (tai forkin) workflow ei saa pääsyä, vaikka tunnisteet vuotaisivat. Jokainen eri konteksti (pull request, environment) tarvitsee oman credentialin — yksi identiteetti voi kantaa useita.
 
 ### Käyttö workflowssa
 
@@ -418,7 +467,7 @@ permissions:
 
 steps:
   - name: Azure Login
-    uses: azure/login@v2
+    uses: azure/login@v3
     with:
       client-id: ${{ secrets.AZURE_CLIENT_ID }}
       tenant-id: ${{ secrets.AZURE_TENANT_ID }}
@@ -495,7 +544,7 @@ PR ei saa mergettävissä ennen kuin CI on vihreä.
 
 ```yaml
 - name: Cache NuGet packages
-  uses: actions/cache@v4
+  uses: actions/cache@v5
   with:
     path: ~/.nuget/packages
     key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
@@ -526,7 +575,7 @@ API_KEY: "sk-1234567890abcdef"
 
 ```yaml
 # ✅ Kiinnitetty versio — turvallinen ja toistettava
-uses: actions/checkout@v4
+uses: actions/checkout@v5
 
 # ❌ Viittaa haaraan — voi muuttua
 uses: actions/checkout@main

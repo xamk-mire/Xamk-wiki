@@ -174,7 +174,7 @@ Visual Studio rakentaa projektin, julkaisee sen Azureen ja avaa selaimen automaa
 
 Tuotantoon suositellaan automatisoitua putkea.
 
-> **Suositus:** alla oleva publish profile -tapa on yksinkertaisin, mutta se on **pitkäikäinen salaisuus**. Parempi tapa on **OIDC / federated identity** (`azure/login@v2`), jolloin repoon ei tallenneta salasanoja lainkaan — katso [CI/CD-materiaalin OIDC-luku](../../Development-guidelines/CI-CD.md#azure-kirjautuminen-putkessa-oidc).
+> **Suositus:** alla oleva publish profile -tapa on yksinkertaisin, mutta se on **pitkäikäinen salaisuus**. Parempi tapa on **OIDC / federated identity** (`azure/login@v3`), jolloin repoon ei tallenneta salasanoja lainkaan — katso [CI/CD-materiaalin OIDC-luku](../../Development-guidelines/CI-CD.md#azure-kirjautuminen-putkessa-oidc).
 
 Hae julkaisuprofiilin salaisuus:
 
@@ -198,10 +198,10 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '8.0.x'
 
