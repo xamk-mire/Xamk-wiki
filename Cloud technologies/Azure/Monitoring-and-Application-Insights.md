@@ -1,4 +1,5 @@
 # Azure Monitor ja Application Insights — sovelluksen näkyvyys
+> 🇬🇧 English version: [Monitoring-and-Application-Insights.md](../eng/Azure/Monitoring-and-Application-Insights.md)
 
 ## Sisällysluettelo
 
@@ -145,10 +146,29 @@ dotnet add package Microsoft.ApplicationInsights.AspNetCore
 
 ```csharp
 // Program.cs
-builder.Services.AddApplicationInsightsTelemetry();
+using OpenTelemetry.Trace;
+
+if (builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"] is not null)
+{
+    builder.Services.AddApplicationInsightsTelemetry();
+
+    // Npgsql (PostgreSQL) julkaisee omat jäljet "Npgsql"-lähteen alla —
+    // ilman tätä riviä dependencies-taulu jää tyhjäksi.
+    builder.Services.ConfigureOpenTelemetryTracerProvider(t => t.AddSource("Npgsql"));
+}
 ```
 
-Tämä yksi rivi kytkee automaattisen keräyksen (requests, dependencies, exceptions) ja ohjaa `ILogger`-lokit App Insightsiin. Paikallisesti ilman connection stringiä SDK on hiljaa — ei virheitä, ei dataa.
+`AddApplicationInsightsTelemetry()` kytkee automaattisen keräyksen (requests, exceptions, HttpClient- ja SqlClient-riippuvuudet) ja ohjaa `ILogger`-lokit App Insightsiin.
+
+Kaksi asiaa, jotka SDK:n **versio 3** (OpenTelemetry-pohjainen) muutti:
+
+| Asia | Ennen (2.x) | Nyt (3.x) |
+|------|-------------|-----------|
+| Ei connection stringiä | SDK oli hiljaa | SDK **kaataa käynnistyksen**: `A connection string was not found` → rekisteröi SDK vain, kun asetus on olemassa (`if` yllä) |
+| PostgreSQL-riippuvuudet | – | Vain ASP.NET Core, HttpClient ja SqlClient kuunnellaan oletuksena. Npgsql:n jäljet saa tilaamalla `AddSource("Npgsql")` |
+| Sampling | adaptiivinen | **rate limiting** (jälkiä/sekunti); säilytetyt rivit saavat `microsoft.sample_rate`-kentän, `sum(itemCount)` arvioi todellisen määrän |
+
+> **Huom (Bicep + putki):** Log Analytics ja App Insights vaativat, että tilauksessa on rekisteröity resource providerit `Microsoft.OperationalInsights`, `Microsoft.Insights` ja `Microsoft.AlertsManagement`. Omalla CLI:llä Owner-roolissa ARM tekee sen automaattisesti, mutta putken identiteetti (Contributor yhteen resurssiryhmään) ei saa — deploy kaatuu virheeseen `MissingSubscriptionRegistration`. Rekisteröi kerran käsin: `az provider register --namespace Microsoft.OperationalInsights --wait` (ja samoin kaksi muuta).
 
 ---
 
@@ -291,6 +311,12 @@ az monitor metrics alert create \
 Hälytys myös **palautuu** automaattisesti (resolved), kun ehto ei enää täyty — siitä lähtee oma sähköpostinsa.
 
 > **Huom:** sähköposti tulee osoitteesta `azure-noreply@microsoft.com` ja voi mennä roskapostiin — tarkista sieltä ensin, jos mitään ei kuulu.
+>
+> **Vahvista osoite:** kun sähköposti lisätään Action Groupiin, Azure lähettää viestin *"Verify your email address"* kertakäyttökoodilla. Ennen vahvistusta vastaanottaja ei saa yhtään hälytystä, vaikka sääntö näkyy Portalissa *Fired*-tilassa. Koodi vanhenee 30 minuutissa.
+
+### Hälytykset taskussa: Azure-mobiilisovellus
+
+Päivystäjä ei istu sähköpostin ääressä. [Azure mobile app](https://azure.microsoft.com/en-us/get-started/azure-portal/mobile-app/) (Android/iOS) kirjautuu samalla tilillä ja näyttää samat hälytykset **push-ilmoituksina** heti kun ne laukeavat. Lisäksi sovelluksesta näkee resurssien tilan (esim. PostgreSQL-palvelin *Stopped*), voi **käynnistää tai pysäyttää** resurssin, vaihtaa hälytyksen käsittelytilan (*Acknowledged* / *Closed*), seurata Service Healthia ja kuluvan kuun kustannuksia — ja Cloud Shell antaa `az`-komennot käyttöön ilman läppäriä. Sovellus on ikkuna, ei korvike: KQL, dashboardit ja Bicep tehdään edelleen portaalissa ja putkessa.
 
 ---
 
@@ -316,7 +342,7 @@ Luonti: App Insights → **Availability** → **Add Standard test**. Testaa nime
 | Availability standard test | ~1 €/kk per testi | Poista kurssin päätteeksi |
 | Action Group -sähköposti | Ilmainen | |
 
-> **Sampling:** jos dataa syntyisi paljon, App Insights voi ottaa vain otoksen telemetriasta (adaptive sampling on .NET SDK:ssa oletuksena päällä). Kurssisovelluksen liikennemäärillä tällä ei ole merkitystä, mutta tiedä ilmiö: tuotannossa "puuttuva" pyyntö voi olla samplattu pois.
+> **Sampling:** jos dataa syntyy paljon, App Insights ottaa vain otoksen telemetriasta (.NET SDK 3.x rajoittaa jälkien määrää sekunnissa oletuksena). Jo muutaman pyynnön sekuntivauhti merkitsee osan riveistä 50 %:n otokseksi. Tiedä ilmiö: tuotannossa "puuttuva" pyyntö voi olla samplattu pois, ja `count()` laskee tallennetut rivit — `sum(itemCount)` arvioi todellisen määrän.
 
 ---
 

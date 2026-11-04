@@ -1,4 +1,5 @@
 # CI/CD — Jatkuva integraatio ja julkaisu
+> 🇬🇧 English version: [CI-CD.md](eng/CI-CD.md)
 
 ## Sisällysluettelo
 

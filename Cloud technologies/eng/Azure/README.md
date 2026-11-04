@@ -26,11 +26,23 @@ English translations of the Azure pages used in the Cloud technologies course. P
   - Modules, functions and User-Defined Types
   - Testing, validation and troubleshooting
 
+### Monitoring
+- [Azure Monitor and Application Insights](Monitoring-and-Application-Insights.md) - Observability for your application
+  - Logs, metrics, traces and correlation
+  - Log Analytics + App Insights in Bicep, the .NET SDK (version 3 / OpenTelemetry)
+  - Structured logging, PII, KQL
+  - Alerts, Action Groups, availability tests, the Azure mobile app
+
+### Related (Development guidelines)
+- [CI/CD](../../../Development-guidelines/eng/CI-CD.md) - GitHub Actions, OIDC login to Azure, quality gates
+
 ## Learning order
 
 1. [Azure Database for PostgreSQL](Azure-Database-PostgreSQL.md)
 2. [Infrastructure as Code](Infrastructure-as-Code.md)
 3. [Bicep](Bicep.md)
+4. [CI/CD](../../../Development-guidelines/eng/CI-CD.md)
+5. [Azure Monitor and Application Insights](Monitoring-and-Application-Insights.md)
 
 ## Not yet translated *(in Finnish)*
 
@@ -40,5 +52,4 @@ English translations of the Azure pages used in the Cloud technologies course. P
 - [Azure Functions](../../Azure/Azure-Functions.md)
 - [Azure Key Vault](../../Azure/Key-Vault.md)
 - [Managed Identity](../../Azure/Managed-Identity.md)
-- [Monitoring and Application Insights](../../Azure/Monitoring-and-Application-Insights.md)
 - [Cost Management](../../Azure/Cost-Management.md)
