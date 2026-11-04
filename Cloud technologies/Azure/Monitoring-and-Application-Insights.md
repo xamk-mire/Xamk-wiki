@@ -1,4 +1,5 @@
 # Azure Monitor ja Application Insights — sovelluksen näkyvyys
+> 🇬🇧 English version: [Monitoring-and-Application-Insights.md](../eng/Azure/Monitoring-and-Application-Insights.md)
 
 ## Sisällysluettelo
 
@@ -312,6 +313,10 @@ Hälytys myös **palautuu** automaattisesti (resolved), kun ehto ei enää täyt
 > **Huom:** sähköposti tulee osoitteesta `azure-noreply@microsoft.com` ja voi mennä roskapostiin — tarkista sieltä ensin, jos mitään ei kuulu.
 >
 > **Vahvista osoite:** kun sähköposti lisätään Action Groupiin, Azure lähettää viestin *"Verify your email address"* kertakäyttökoodilla. Ennen vahvistusta vastaanottaja ei saa yhtään hälytystä, vaikka sääntö näkyy Portalissa *Fired*-tilassa. Koodi vanhenee 30 minuutissa.
+
+### Hälytykset taskussa: Azure-mobiilisovellus
+
+Päivystäjä ei istu sähköpostin ääressä. [Azure mobile app](https://azure.microsoft.com/en-us/get-started/azure-portal/mobile-app/) (Android/iOS) kirjautuu samalla tilillä ja näyttää samat hälytykset **push-ilmoituksina** heti kun ne laukeavat. Lisäksi sovelluksesta näkee resurssien tilan (esim. PostgreSQL-palvelin *Stopped*), voi **käynnistää tai pysäyttää** resurssin, vaihtaa hälytyksen käsittelytilan (*Acknowledged* / *Closed*), seurata Service Healthia ja kuluvan kuun kustannuksia — ja Cloud Shell antaa `az`-komennot käyttöön ilman läppäriä. Sovellus on ikkuna, ei korvike: KQL, dashboardit ja Bicep tehdään edelleen portaalissa ja putkessa.
 
 ---
 
