@@ -310,6 +310,8 @@ az monitor metrics alert create \
 Hälytys myös **palautuu** automaattisesti (resolved), kun ehto ei enää täyty — siitä lähtee oma sähköpostinsa.
 
 > **Huom:** sähköposti tulee osoitteesta `azure-noreply@microsoft.com` ja voi mennä roskapostiin — tarkista sieltä ensin, jos mitään ei kuulu.
+>
+> **Vahvista osoite:** kun sähköposti lisätään Action Groupiin, Azure lähettää viestin *"Verify your email address"* kertakäyttökoodilla. Ennen vahvistusta vastaanottaja ei saa yhtään hälytystä, vaikka sääntö näkyy Portalissa *Fired*-tilassa. Koodi vanhenee 30 minuutissa.
 
 ---
 
