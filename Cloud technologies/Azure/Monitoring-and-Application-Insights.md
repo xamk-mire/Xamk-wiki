@@ -338,8 +338,8 @@ Luonti: App Insights → **Availability** → **Add Standard test**. Testaa nime
 |-----|------------------------|--------|
 | Log Analytics ingestointi | ~2–3 €/GB, **ensimmäiset 5 GB/kk ilmaisia** (per laskutustili) | Pieni kurssisovellus tuottaa megatavuja — käytännössä ilmaista |
 | Datan säilytys | 31 pv ilmaista (App Insights -data 90 pv), sen jälkeen ~0,1 €/GB/kk | 30 pv retention riittää kurssille |
-| Metric alert -sääntö | ~0,1 €/kk per sääntö | |
-| Availability standard test | ~1 €/kk per testi | Poista kurssin päätteeksi |
+| Metric alert -sääntö | ~0,1 €/kk per valvottu aikasarja, **ensimmäiset 10 ilmaisia** | Kurssin kaksi sääntöä: 0 € |
+| Availability standard test | **~0,0006 € per suoritus** — 5 sijaintia × 5 min välein ≈ 43 000 suoritusta/kk ≈ 25 €/kk | Kurssiympäristön kallein rivi planin rinnalla; harvempi väli tai vähemmän sijainteja pudottaa suoraan. Poista kurssin päätteeksi |
 | Action Group -sähköposti | Ilmainen | |
 
 > **Sampling:** jos dataa syntyy paljon, App Insights ottaa vain otoksen telemetriasta (.NET SDK 3.x rajoittaa jälkien määrää sekunnissa oletuksena). Jo muutaman pyynnön sekuntivauhti merkitsee osan riveistä 50 %:n otokseksi. Tiedä ilmiö: tuotannossa "puuttuva" pyyntö voi olla samplattu pois, ja `count()` laskee tallennetut rivit — `sum(itemCount)` arvioi todellisen määrän.
