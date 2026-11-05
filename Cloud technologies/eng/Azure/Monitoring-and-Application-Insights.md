@@ -339,7 +339,7 @@ Creation: App Insights → **Availability** → **Add Standard test**. Test a `/
 | Log Analytics ingestion | ~2–3 €/GB, **first 5 GB/month free** (per billing account) | A small course app produces megabytes — free in practice |
 | Data retention | 31 days free (App Insights data 90 days), then ~0.1 €/GB/month | 30-day retention is enough for the course |
 | Metric alert rule | ~0.1 €/month per monitored time series, **first 10 free** | The course's two rules: 0 € |
-| Availability standard test | **~0.0006 € per execution** — 5 locations × every 5 min ≈ 43 000 executions/month ≈ 25 €/month | The most expensive line of the course environment next to the plan; a longer interval or fewer locations cuts it directly. Delete it at the end of the course |
+| Availability standard test | List price **~0.0006 € per execution** — 5 locations × every 5 min ≈ 43 000 executions/month ≈ 25 €/month | Check your own Cost analysis: the course staff's first day of billing showed no such line. If it appears, a longer interval or fewer locations cuts it directly. Delete it at the end of the course |
 | Action Group e-mail | Free | |
 
 > **Sampling:** when a lot of data is produced, App Insights keeps only a sample of the telemetry (the .NET SDK 3.x limits traces per second by default). Even a few requests per second mark some rows as a 50 % sample. Know the phenomenon: in production a "missing" request may have been sampled out, and `count()` counts stored rows — `sum(itemCount)` estimates the real number.
