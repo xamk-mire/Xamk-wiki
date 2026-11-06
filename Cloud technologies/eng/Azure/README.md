@@ -52,4 +52,4 @@ English translations of the Azure pages used in the Cloud technologies course. P
 - [Azure Functions](../../Azure/Azure-Functions.md)
 - [Azure Key Vault](../../Azure/Key-Vault.md)
 - [Managed Identity](../../Azure/Managed-Identity.md)
-- [Cost Management](../../Azure/Cost-Management.md)
+- [Cost Management](Cost-Management.md)

@@ -1,4 +1,5 @@
 # Azure Cost Management — kustannusten seuranta ja hallinta
+> 🇬🇧 English version: [Cost-Management.md](../eng/Azure/Cost-Management.md)
 
 ## Sisällysluettelo
 
@@ -49,6 +50,37 @@ Kaksi seurausta:
 1. **"En käyttänyt sitä" ei tarkoita "se ei maksanut".** Provisioitu kapasiteetti (App Service plan, tietokannan compute) laskuttaa ajasta, ei käytöstä.
 2. **Poistaminen ja pysäyttäminen ovat eri asioita.** Pysäytetty PostgreSQL ei laskuta computesta, mutta tallennustila laskuttaa edelleen. Vain poistettu resurssi on ilmainen.
 
+### SKU, mittari ja mittayksikkö
+
+Kolme sanaa, joilla hinnasto puhuu:
+
+| Termi | Mikä se on | Esimerkki |
+|-------|------------|-----------|
+| **SKU** (stock keeping unit) | Tuotteen *kokoluokka*, jonka valitset: nimi, jolla Azure tietää mitä kapasiteettia annat | App Service `F1`, `B1`, `S1`; PostgreSQL `Standard_B1ms`; Storage `Standard_LRS` |
+| **Mittari** (meter) | Yksi laskutettava asia SKU:n sisällä. Yhdellä resurssilla on tyypillisesti useita | B1ms-palvelin: *compute-tunnit*, *tallennus GB/kk*, *varmuuskopiotallennus GB/kk* |
+| **Mittayksikkö** (unit of measure) | Missä yksikössä mittari laskee | `1 Hour`, `1 GB/Month`, `10K` (operaatiota), `1/Execution` |
+
+Lasku on siis summa riveistä *mittari × käytetyt yksiköt × yksikköhinta*. Kun ennustat omaa laskuasi, aloita SKU:sta, listaa sen mittarit ja arvioi jokaiselle yksiköt — se on tämän sivun ensimmäisen taulukon sarake "Mittarit".
+
+### Listahinta vs. lasku: Retail Prices API
+
+Hinnoittelulaskuri on yksi lähde listahinnoille. Toinen on **Retail Prices API**: julkinen, kirjautumaton rajapinta, joka palauttaa saman hinnaston JSON:na.
+
+```powershell
+$Filter = "armRegionName eq 'francecentral' and priceType eq 'Consumption' and serviceName eq 'Azure Database for PostgreSQL'"
+(Invoke-RestMethod "https://prices.azure.com/api/retail/prices?currencyCode=EUR&`$filter=$Filter").Items |
+  Select-Object skuName, meterName, retailPrice, unitOfMeasure | Format-Table
+```
+
+| Parametri | Merkitys |
+|-----------|----------|
+| `armRegionName` | Alue — sama SKU maksaa eri alueilla eri verran |
+| `priceType eq 'Consumption'` | Käytön mukaan laskutettava hinta (vaihtoehdot: `Reservation`, `DevTestConsumption`) |
+| `currencyCode=EUR` | Valuutta; oletus USD |
+| `NextPageLink` | Vastaus on sivutettu (100 riviä) — seuraava sivu tästä kentästä |
+
+**Listahinta on ennuste, lasku on totuus.** Toteutunut lasku poikkeaa listahinnasta ainakin näistä syistä: ilmaistasot (Log Analyticsin 5 GB, App Servicen F1), opiskelija- ja sponsorikrediitit, mittari joka ei kyseisessä tilauksessa ole käytössä tai näkyy viiveellä, ja pyöristys mittayksikön tarkkuuteen. Siksi arvio tehdään API:sta tai laskurista, mutta **tarkistetaan Cost analysisistä** muutaman päivän kuluttua.
+
 ---
 
 ## Cost Management -työkalut
@@ -71,6 +103,53 @@ Portal → resurssiryhmä (tai tilaus) → **Cost Management**:
 - **Download** — CSV ulos analyysiä tai AI:ta varten
 
 > **Viive:** kulutusdata **ei ole reaaliaikaista** — se päivittyy tyypillisesti 8–24 tunnin viiveellä. Tänään luotu resurssi näkyy kuluissa aikaisintaan huomenna. Tämä on yleisin hämmennyksen aihe.
+
+### Accumulated, Daily ja kaksi ennustetta
+
+Cost analysisin kaaviolla on kaksi perusmuotoa. **Accumulated** piirtää kuukauden kertymän nousevana viivana — "paljonko tähän mennessä, ja mihin ollaan menossa"; budjetti näkyy samassa kuvassa katkoviivana. **Daily** piirtää jokaisen päivän omana pylväänään — "milloin jokin muuttui": päivä, jona plan skaalattiin tai tietokanta luotiin, erottuu heti, ja `git log` kertoo loput.
+
+Ennusteita on **kaksi erilaista**, ja ne eivät näytä samaa lukua:
+
+| Ennuste | Missä | Miten lasketaan | Milloin näkyy |
+|---------|-------|------------------|---------------|
+| Kaavion *Forecast* | Cost analysis | Mallinnetaan kuukauden trendistä | Vasta kun dataa on useita päiviä — uudessa resurssiryhmässä *"Forecast unavailable"* on normaalia |
+| Budjetin `forecastSpend` | Budgets-lista, budjetin API | Karkeampi arvio nykyisestä päivätasosta | Jo ensimmäisinä päivinä, ennen kuin `currentSpend` edes päivittyy |
+
+**Untagged-kori.** Kun ryhmittelet tagilla, näet usein siivun *Untagged*, vaikka Bicep tagittaa kaiken minkä luot. Syy: Azure luo resursseja *puolestasi* — availability-testin, smart detection -säännön, Portal-wizardin tekemät hälytyssäännöt — eivätkä ne peri tageja. Pienessä ympäristössä harmiton; isossa organisaatiossa syy ottaa käyttöön Azure Policy, joka kieltää tagittomat resurssit.
+
+### Sama data komentoriviltä: Cost Management API ja az rest
+
+Cost analysis on käyttöliittymä **Cost Management query API:lle** — samaa rajapintaa voi kutsua itse, kun tarvitset luvut skriptiin tai kuvakaappaukseen:
+
+```powershell
+$Body = @{
+  type      = "ActualCost"          # toteutunut; "AmortizedCost" jakaa varausten hinnan käyttöpäiville
+  timeframe = "MonthToDate"         # tai Custom + timePeriod
+  dataset   = @{
+    granularity = "None"            # tai "Daily"
+    aggregation = @{ totalCost = @{ name = "Cost"; function = "Sum" } }
+    grouping    = @(@{ type = "Dimension"; name = "ResourceId" })   # tai TagKey + tagin nimi
+  }
+} | ConvertTo-Json -Depth 5 -Compress
+
+az rest --method post `
+  --url "https://management.azure.com$Scope/providers/Microsoft.CostManagement/query?api-version=2023-11-01" `
+  --body $Body --query "properties.rows" --output table
+```
+
+**`az rest`** lähettää allekirjoitetun HTTP-kutsun mihin tahansa Azure Resource Manager -rajapintaan kirjautuneen käyttäjän tokenilla. Sitä tarvitaan, kun CLI-komento puuttuu tai elää preview-laajennuksessa (budjetit, alert processing rules, kustannuskyselyt) — ja sama kutsu on dokumentti siitä, mitä Portal tekee napin takana.
+
+**`--query`** on JMESPath-lauseke, joka suodattaa ja muotoilee vastauksen JSON:n ennen tulostusta. Perusmuodot:
+
+| Lauseke | Tekee |
+|---------|-------|
+| `properties.rows` | Poimii polun |
+| `[].{name:name, state:properties.state}` | Projisoi jokaisesta taulukon alkiosta uuden olion valituilla kentillä |
+| `[?average != null]` | Suodattaa alkiot ehdolla |
+| `value[0].timeseries[0].data` | Indeksit taulukkoon |
+| `--output table` / `tsv` / `json` | Tulostusmuoto; `tsv` sopii muuttujaan tallennukseen |
+
+> **Throttlaus:** kyselyrajapinta vastaa `429 Too many requests`, jos kutsuja tulee enemmän kuin muutama minuutissa samaan scopeen. Odota minuutti (`Retry-After`-otsake kertoo kauanko) äläkä laita kyselyä silmukkaan.
 
 ---
 
@@ -128,6 +207,31 @@ Muista SKU-portaiden **ominaisuuskynnykset**: halvempi porras voi pudottaa pois 
 
 Vastakkainen suunta on yhtä tärkeä: jos mittarit näyttävät jatkuvaa 80 %+ kuormaa tai jonoutumista, SKU on **alimitoitettu** — se maksaa vasteajoissa ja virheinä.
 
+### Todisteet: planin CPU- ja muistimetriikat
+
+Rightsizing-päätöksen luvut ovat **platform-metriikoita**: Azure kerää ne jokaisesta resurssista ilmaiseksi ja ilman SDK:ta. App Servicessä ne luetaan **planin** tasolta (`Microsoft.Web/serverfarms`), koska plan on se, minkä koosta maksat: `CpuPercentage` ja `MemoryPercentage`.
+
+Kaksi aggregaatiota kertovat eri asian: **Avg** on taso, jolla sovellus elää, **Max** on piikit — tyypillisesti deployt ja uudelleenkäynnistykset, eivät käyttäjät. Päätös tehdään keskiarvosta, mutta piikit kertovat, mahtuuko huippu pienempään SKU:hun.
+
+```powershell
+az monitor metrics list `
+  --resource plan-myapp-dev --resource-group $RG --resource-type Microsoft.Web/serverfarms `
+  --metric CpuPercentage --offset 7d --interval PT6H --aggregation Average Maximum `
+  --query "value[0].timeseries[0].data[?average != null].{time:timeStamp, avg:average, max:maximum}" --output table
+# sama --metric MemoryPercentage
+```
+
+`--interval` hyväksyy vain tietyt arvot (`PT1M`, `PT5M`, `PT15M`, `PT30M`, `PT1H`, `PT6H`, `PT12H`, `P1D`); viikon jaksolle `PT6H` tai `P1D` on luettava. Katso **molemmat** mittarit: kurssisovelluksella CPU on yksinumeroinen, mutta muisti voi olla 70 % B1:n 1,75 GB:stä — ja F1 antaa 1 GB. Rightsizing päätetään siitä mittarista, joka on lähimpänä kattoaan.
+
+### Ominaisuuskynnykset: Always On ja F1:n kiintiö
+
+Halvempi porras pudottaa ominaisuuksia, ei vain tehoa. Kaksi App Servicen esimerkkiä, jotka näkyvät vasta kun ne puuttuvat:
+
+- **Always On** (Basic ja ylemmät): App Service pitää prosessin lämpimänä myös ilman liikennettä. Ilman sitä (F1, Shared) sovellus nukahtaa ~20 minuutin hiljaisuuden jälkeen, ja seuraava pyyntö kestää sekunteja — availability-testille se näyttää katkolta, ja hälytykset *läpättävät*. Bicepissä `siteConfig.alwaysOn`; skaalattaessa alaspäin se pitää kytkeä pois **ennen** planin vaihtoa (`az webapp config set --always-on false`), muuten deploy kaatuu `Conflict … AlwaysOn … not allowed in the target compute mode`.
+- **F1:n päiväkiintiö**: 60 CPU-minuuttia vuorokaudessa. Kun se täyttyy, App Service pysäyttää sovelluksen: `/health` vastaa HTML-sivulla *Error 403 - This web app is stopped*, `az webapp show` näyttää `state: QuotaExceeded`, deploy kaatuu `Site Disabled (CODE: 403)`, ja kiintiö nollautuu keskiyöllä UTC. Huomaa, että **monitorointi itse kuluttaa kiintiötä**: viidestä sijainnista viiden minuutin välein käyvä availability-testi on 1 440 kutsua päivässä, jokainen avaa tietokantayhteyden.
+
+Rightsizing-kysymys ei siis ole "riittääkö F1 käyttäjilleni" vaan "riittääkö F1 käyttäjilleni *ja kaikelle muulle, mikä sovellusta kutsuu*".
+
 ---
 
 ## Piilokustannukset
@@ -142,6 +246,7 @@ Erät, jotka eivät näy arkkitehtuurikaaviossa mutta näkyvät laskulla:
 | **Ylimitoitettu tallennus** | Tietokannan levykokoa ei voi pienentää jälkikäteen (kasvattaa voi) | Aloita pienestä |
 | **Varmuuskopiot ja säilytys** | Yli ilmaisrajan menevä backup-tila ja pitkä retention | Tarkista oletukset — älä säilö "ikuisesti" tottumuksesta |
 | **Pysäytetyn resurssin tallennus** | Pysäytetty VM/tietokanta laskuttaa levystä | Poista, jos et oikeasti tarvitse |
+| **Availability-testin suoritukset** | Listahinta per suoritus: 5 sijaintia × 5 min välein ≈ 43 000 suoritusta/kk | Tarkista oma lasku; harvempi väli tai vähemmän sijainteja pudottaa suoraan; poista kurssin päätteeksi |
 
 ---
 
@@ -157,6 +262,27 @@ Karkea järjestys opiskelu-/pienympäristössä — vaikuttavin ensin:
 
 Tuotantomittakaavassa listaan tulevat lisäksi **varaukset** (Reserved Instances / Savings Plan: sitoudut 1–3 vuodeksi, saat 30–60 % alennuksen) ja **skaalaussäännöt** (maksa ruuhkahuipuista vain silloin kun ne ovat käynnissä) — nämä eivät ole opiskelijaympäristön työkaluja, mutta ne kannattaa tuntea.
 
+### Tuotannon hintatekijät: HA, varaukset ja säästösuunnitelmat
+
+Kun sama arkkitehtuuri hinnoitellaan tuotantoon, lasku moninkertaistuu muutamasta syystä, jotka kannattaa osata nimetä:
+
+| Tekijä | Mitä maksat | Miksi |
+|--------|-------------|-------|
+| **PostgreSQL High Availability** | Compute **×2** | HA = *toinen, valmiiksi käynnissä oleva palvelin* (standby) toisessa saatavuusvyöhykkeessä (*zone-redundant*) tai samassa (*same-zone*); failover minuutissa ilman datan menetystä. Yksittäinen kurssipalvelin ei ole HA |
+| **App Service Standard / Premium** | Instanssihinta 5–10× Basic | Deployment slotit, autoscale, useampi instanssi, parempi SLA |
+| **Isommat SKU:t ja useampi instanssi** | Lineaarisesti | Skaalaus ulos kertoo planin hinnan instanssimäärällä |
+
+Vastapainona tuotannolla on **sitoumusalennukset**, joita opiskelijaympäristössä ei ole:
+
+| | **Reserved Instance** | **Savings Plan** |
+|--|----------------------|------------------|
+| Sitoudut | Tiettyyn SKU:hun ja alueeseen 1 tai 3 vuodeksi | Tuntihintaan (esim. 5 €/h compute-kulua) 1 tai 3 vuodeksi |
+| Alennus | Suurin (jopa 60–70 %) | Pienempi (jopa ~65 % laskennallisesti, käytännössä vähemmän) |
+| Joustavuus | Vähäinen — SKU:n vaihto on vaihto-operaatio | Kattaa minkä tahansa SKU:n ja alueen sitoumukseen asti |
+| Kannattaa kun | Peruskuorma on tasainen ja tiedossa vuosiksi | Kuorma on tasainen mutta muoto muuttuu |
+
+Molemmissa luovut siitä, mikä OpEx-mallissa oli etu: kyvystä pienentää tänään. Siksi sitoumus tehdään vasta mitatun peruskuorman mukaan — ei koko kapasiteetille.
+
 ---
 
 ## Automaattinen sammutus
@@ -167,7 +293,54 @@ Ihmismuisti on huono säästömekanismi. Aikataulutettu automaatio ei unohda:
 - **Azure Automation / Logic Apps** — Azure-natiivi vaihtoehto samaan
 - **DevTest Labs auto-shutdown** — VM-ympäristöihin sisäänrakennettu
 
-Muista sivuvaikutus: jos ympäristöä valvotaan (availability-testit, hälytykset), aikataulutettu sammutus **laukaisee hälytykset joka ilta**. Suunniteltu katko tarvitsee **hälytysten vaimennuksen** samalle aikaikkunalle (alert processing rule / maintenance window) — muuten koulutat itsesi ohittamaan hälytykset, ja se on monitoroinnin vaarallisin lopputulos (alert fatigue).
+Muista sivuvaikutus: jos ympäristöä valvotaan (availability-testit, hälytykset), aikataulutettu sammutus **laukaisee hälytykset joka ilta**. Suunniteltu katko tarvitsee **hälytysten vaimennuksen** samalle aikaikkunalle (alert processing rule / maintenance window, ks. alla) — muuten koulutat itsesi ohittamaan hälytykset, ja se on monitoroinnin vaarallisin lopputulos ([alert fatigue](Monitoring-and-Application-Insights.md#hälytysväsymys-alert-fatigue-ja-resolved-ilmoitus)).
+
+### GitHub Actions schedule: cron, UTC ja best effort
+
+```yaml
+on:
+  schedule:
+    - cron: '0 18 * * *'   # minuutti tunti päivä kuukausi viikonpäivä
+  workflow_dispatch:       # manuaalinen ajo: testaus ja todiste
+```
+
+| Kenttä | Arvo | Esimerkkejä |
+|--------|------|-------------|
+| minuutti, tunti | `0 18` | `30 5` = 05:30; `*/15 * * * *` = 15 min välein |
+| päivä, kuukausi | `* *` | `1 *` = joka kuun 1. |
+| viikonpäivä | `*` | `1-5` = ma–pe (0 = sunnuntai) |
+
+Neljä sääntöä, jotka yllättävät:
+
+1. **Cron on aina UTC.** `0 18` on Helsingissä 20:00 talvella ja 21:00 kesällä — kesäaika siirtää kellosi, ei cronia.
+2. **Ajo on best effort.** GitHub käynnistää ajon "joskus slotin jälkeen": ruuhkassa minuuteista tunteihin myöhässä (kurssin testissä 5 h), ja juuri mergetty aikataulu voi ohittaa ensimmäisen slottinsa kokonaan. Minuutilleen tärkeä ajastus kuuluu Azure-natiiville ajastimelle (Logic Apps, Automation).
+3. **Vain oletushaara.** Aikataulu luetaan `main`-haaran tiedostosta — PR-haarassa se ei laukea koskaan.
+4. **60 päivän sääntö.** Jos repositoriossa ei ole aktiivisuutta 60 päivään, GitHub kytkee aikataulut pois.
+
+`workflow_dispatch` samassa tiedostossa antaa *Run workflow* -napin: sillä testataan heti ja todistetaan OIDC-kirjautuminen. Aikataulun todiste on silti vasta ajo, jonka tapahtuma on `schedule` (`gh run list --event schedule`). Tee stop-askeleesta **idempotentti** — tarkista tila ennen komentoa — niin manuaaliajo jo pysäytetyn palvelimen päälle ei kaadu ([idempotenssi](Infrastructure-as-Code.md#idempotenssi)).
+
+### Hälytysten vaimennus: alert processing rule
+
+**Alert processing rule** on Azure Monitorin sääntö, joka muokkaa laukeavien hälytysten käsittelyä scopen (esim. resurssiryhmä) sisällä. Vaimennusmuoto `RemoveAllActionGroups` tarkoittaa: hälytys **laukeaa ja kirjautuu** historiaan normaalisti, mutta Action Groupia ei kutsuta — sähköposti jää tulematta. Totuus säilyy, postilaatikko säästyy. Aikataulu voi olla kertaluonteinen (huoltoikkuna) tai toistuva (Daily, Weekly), ja keskiyön ylittävä ikkuna 20:00 → 08:00 on yksi Daily-toisto.
+
+```powershell
+$Body = @{
+  location   = "Global"
+  properties = @{
+    scopes   = @($Scope)
+    enabled  = $true
+    actions  = @(@{ actionType = "RemoveAllActionGroups" })
+    schedule = @{
+      timeZone    = "FLE Standard Time"
+      recurrences = @(@{ recurrenceType = "Daily"; startTime = "20:00:00"; endTime = "08:00:00" })
+    }
+  }
+} | ConvertTo-Json -Depth 6 -Compress
+az rest --method put --body $Body `
+  --url "https://management.azure.com$Scope/providers/Microsoft.AlertsManagement/actionRules/apr-quiet-hours?api-version=2021-08-08"
+```
+
+**Aikavyöhykkeet** annetaan Windowsin aikavyöhyke-ID:inä, eivät IANA-niminä: Helsinki on `FLE Standard Time` (Finland, Lithuania, Estonia), Keski-Eurooppa `W. Europe Standard Time`, UTC `UTC`. ID kattaa kesäajan automaattisesti — sääntö seuraa seinäkelloa. Cron ei seuraa, joten UTC-aikataulun ja paikallisen ikkunan on katettava toisensa **sekä talvi- että kesäajassa** (18:00 UTC = 20:00 tai 21:00 Helsinki → ikkuna 20:00–08:00 riittää molemmissa). CLI-komento `az monitor alert-processing-rule` on preview-laajennuksessa; REST-kutsu on vakaa ja sama resurssi on kirjoitettavissa Bicepillä (`Microsoft.AlertsManagement/actionRules`).
 
 ---
 
