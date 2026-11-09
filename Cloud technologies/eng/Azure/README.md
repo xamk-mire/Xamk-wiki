@@ -33,6 +33,20 @@ English translations of the Azure pages used in the Cloud technologies course. P
   - Structured logging, PII, KQL
   - Alerts, Action Groups, availability tests, the Azure mobile app
 
+### Identity and secrets
+- [Managed Identity](Managed-Identity.md) - Authentication without passwords
+  - Enable the identity, grant RBAC, DefaultAzureCredential in code
+  - Local development with `az login`, the token flow, System- vs. User-assigned
+- [Azure Key Vault](Key-Vault.md) - Secrets, keys and certificates
+  - RBAC roles, Managed Identity, Key Vault references in App Service
+  - Network configuration, audit logs, managing secrets with the CLI
+
+### Cost
+- [Cost Management](Cost-Management.md) - Tracking and controlling cloud spend
+  - Meters, SKUs and the Retail Prices API; Cost analysis and the query API
+  - Budgets, tags, rightsizing with metrics, hidden costs
+  - Automatic shutdown: cron, alert processing rules; production price factors
+
 ### Related (Development guidelines)
 - [CI/CD](../../../Development-guidelines/eng/CI-CD.md) - GitHub Actions, OIDC login to Azure, quality gates
 
@@ -43,6 +57,9 @@ English translations of the Azure pages used in the Cloud technologies course. P
 3. [Bicep](Bicep.md)
 4. [CI/CD](../../../Development-guidelines/eng/CI-CD.md)
 5. [Azure Monitor and Application Insights](Monitoring-and-Application-Insights.md)
+6. [Cost Management](Cost-Management.md)
+7. [Managed Identity](Managed-Identity.md)
+8. [Azure Key Vault](Key-Vault.md)
 
 ## Not yet translated *(in Finnish)*
 
@@ -50,6 +67,3 @@ English translations of the Azure pages used in the Cloud technologies course. P
 - [Azure App Service](../../Azure/App-Service.md)
 - [Azure Blob Storage](../../Azure/Blob-Storage.md)
 - [Azure Functions](../../Azure/Azure-Functions.md)
-- [Azure Key Vault](../../Azure/Key-Vault.md)
-- [Managed Identity](../../Azure/Managed-Identity.md)
-- [Cost Management](Cost-Management.md)

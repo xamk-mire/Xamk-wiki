@@ -12,8 +12,9 @@
 6. [Connection string](#connection-string)
 7. [Using it from a .NET application (EF Core + Npgsql)](#using-it-from-a-net-application-ef-core--npgsql)
 8. [Microsoft Entra authentication — connecting without a password](#microsoft-entra-authentication--connecting-without-a-password)
-9. [Stop, start and cost management](#stop-start-and-cost-management)
-10. [Best practices](#best-practices)
+9. [Backups and restore (PITR)](#backups-and-restore-pitr)
+10. [Stop, start and cost management](#stop-start-and-cost-management)
+11. [Best practices](#best-practices)
 
 ---
 
@@ -257,11 +258,40 @@ using (var scope = app.Services.CreateScope())
 
 > **Gotcha:** `EnsureCreated()` runs only when the **process starts**. If the database is deleted and recreated while the app keeps running, the tables are not recreated until you restart the app (`az webapp restart`). `/health` may already say the server is reachable while queries still fail with "relation does not exist".
 
+### Migrations in practice: the history table, the baseline and ownership
+
+When you move from `EnsureCreated` to migrations, these concepts come up at once:
+
+| Concept | What it is |
+|---------|------------|
+| **`dotnet-ef`** + `Microsoft.EntityFrameworkCore.Design` | The command-line tool (`dotnet tool install --global dotnet-ef`) and the package that lets it build your application's `DbContext`. `dotnet ef` runs `Program.cs` only far enough to build the DI container — the startup block (seeding, `Migrate()`) does not run |
+| **Migration files** | `Migrations/<timestamp>_<Name>.cs` (`Up()` applies the change, `Down()` reverts it), `.Designer.cs` (metadata) and `<Context>ModelSnapshot.cs` — EF's memory of the model, which the next `migrations add` is diffed against. All of them go into version control |
+| **`__EFMigrationsHistory`** | A table in the database: one row per applied migration (`MigrationId`, `ProductVersion` = the EF version). `Migrate()` compares it with the migrations in the assembly and applies the missing ones in order |
+| **`Migrate()` at startup** | The simplest approach: the application updates the schema before it answers requests. EF Core 9+ takes a database lock first (PostgreSQL: an advisory lock), so two instances do not run the same migration at once — but neither serves traffic until the migration is done |
+| **Migration in the pipeline** | The production pattern: `dotnet ef migrations bundle` produces a self-contained executable that the deploy workflow runs against the database *before* publishing the app. It needs the runner to reach the database (firewall) and a database principal of its own |
+| **`IsRelational()`** | Integration tests use the InMemory provider, which has no migrations — `Migrate()` throws. The branch `if (db.Database.IsRelational()) db.Database.Migrate(); else db.Database.EnsureCreated();` keeps one `Program.cs` for both |
+| **Baseline** | An existing database (built by `EnsureCreated`) has no history table → `Migrate()` would try to create the tables again (`relation "Events" already exists`). The fix: create the history table and insert the first migration's row **by hand** — "the schema matches migration 1" without running it |
+| **Ownership** | Only a table's **owner** may `ALTER TABLE`. If the application signs in with its own principal (Entra) and the admin created the tables, the migration fails with `42501: must be owner of table` — `ALTER TABLE … OWNER TO <app role>` as the admin fixes it. DML grants (`SELECT/INSERT/UPDATE/DELETE`) are not enough for schema changes |
+| **Nullable first** | A new column is added as nullable (or with a default) because rows already exist — `NOT NULL` without a default fails on the first row. Tightening it is its own, later migration (expand → contract) |
+
+### Transient faults: EnableRetryOnFailure
+
+A database connection can drop for a moment without anything being "broken": a failover, a maintenance restart, a network blip of a few seconds. EF Core's **execution strategy** retries the failed operation automatically:
+
+```csharp
+options.UseNpgsql(dataSource, npgsql => npgsql.EnableRetryOnFailure(
+    maxRetryCount: 3,                        // attempts after the first one
+    maxRetryDelay: TimeSpan.FromSeconds(5),  // growing delay, capped at this
+    errorCodesToAdd: null));                 // add your own SQLSTATE codes as transient
+```
+
+Pair it with a shorter connection timeout (`Timeout=5` in the connection string; Npgsql's default is 15 s). Mind the flip side: in a real **outage** (server stopped) the retry makes the answer slower — four attempts × 5 s plus delays ≈ 25 s — and a `/health` endpoint should rather fail *fast* so that monitoring notices the outage. Retry helps with faults of seconds, not minutes. Also, the retrying strategy does not allow manually opened transactions without an `ExecuteAsync` wrapper.
+
 ---
 
 ## Microsoft Entra authentication — connecting without a password
 
-In addition to (or instead of) a password, Flexible Server supports **Microsoft Entra authentication**: you sign in to the database with an Entra identity and a short-lived token. For an application, combined with a [Managed Identity](../../Azure/Managed-Identity.md) *(in Finnish)*, this means that **the connection string contains no password at all**.
+In addition to (or instead of) a password, Flexible Server supports **Microsoft Entra authentication**: you sign in to the database with an Entra identity and a short-lived token. For an application, combined with a [Managed Identity](Managed-Identity.md), this means that **the connection string contains no password at all**.
 
 ### Setting it up in outline
 
@@ -275,6 +305,26 @@ select * from pgaadauth_create_principal('<app-service-name>', false, false);
 
 4. **Grant permissions to the role** in the application's database (`GRANT` as usual)
 5. **The application fetches a token** with the scope `https://ossrdbms-aad.database.windows.net/.default` and uses it as the password — in Npgsql, `NpgsqlDataSourceBuilder.UsePeriodicPasswordProvider` renews the token automatically
+
+### The Entra admin, the database principal and the GRANTs
+
+Three things the outline above names but does not explain:
+
+- **The Entra admin** is a server-level setting (`Microsoft.DBforPostgreSQL/flexibleServers/administrators`), not a database role: it names an Entra object (a user or a group) by objectId and tenantId and gives it superuser-like rights. The admin is the one who creates the other principals. In Bicep it is its own resource with `parent: postgresServer` and the objectId as its name. If the CLI and the subscription are in different tenants the command fails with "Tenant identifier does not match" — pass the tenantId explicitly (REST `PUT …/administrators/{objectId}` with `tenantId` in the body).
+- **`pgaadauth_create_principal(name, isAdmin, isMfa)`** creates a database role named after the Entra object's display name (for a managed identity, the application's name). `isAdmin = false` → an ordinary role, `isMfa = false` → no multi-factor requirement (a service cannot satisfy one). The role **signs in with a token** whose audience is `https://ossrdbms-aad.database.windows.net/.default` (CLI: `--resource-type oss-rdbms`) — a token for another service (Key Vault, ARM) is rejected even though it belongs to the same identity.
+- **The GRANTs are ordinary PostgreSQL.** `GRANT USAGE ON SCHEMA public` allows *seeing* the schema's objects, `CREATE ON SCHEMA` allows creating tables (migrations!), `SELECT, INSERT, UPDATE, DELETE ON ALL TABLES` are the DML rights. Ownership is separate: only a table's **owner** may `ALTER TABLE`, so an application that runs migrations needs `ALTER TABLE … OWNER TO <role>` — DML grants are not enough.
+
+```csharp
+// Npgsql: the token as the password, renewed before it expires
+var credential = new DefaultAzureCredential();
+var dsb = new NpgsqlDataSourceBuilder(connectionString);   // Host=…;Database=…;Username=<app-name>;Ssl Mode=Require — no password
+dsb.UsePeriodicPasswordProvider(
+    async (_, ct) => (await credential.GetTokenAsync(
+        new TokenRequestContext(["https://ossrdbms-aad.database.windows.net/.default"]), ct)).Token,
+    TimeSpan.FromMinutes(45),   // a fresh token well before the ~60 min expiry
+    TimeSpan.FromSeconds(10));  // on failure, retry soon
+builder.Services.AddDbContext<AppDbContext>(o => o.UseNpgsql(dsb.Build()));
+```
 
 ### Signing in with a token in psql (as a developer)
 
@@ -293,6 +343,27 @@ psql "host=<server>.postgres.database.azure.com dbname=postgres user=<your-upn> 
 | Easily shared by all users | Identity-specific — the audit log shows who did what |
 
 Password authentication can eventually be disabled entirely (`passwordAuth: 'Disabled'`), so that no password exists for the server at all.
+
+---
+
+## Backups and restore (PITR)
+
+Flexible Server takes **automatic backups** continuously: a full copy once a day plus the transaction log on top, so a restore can target **any moment** within the retention period (point-in-time restore, PITR). Retention (`backupRetentionDays`) is 7–35 days, 7 by default; backup storage is free up to the size of the provisioned disk.
+
+| Topic | How it works |
+|-------|--------------|
+| Restore point | Any UTC timestamp between `earliestRestoreDate` (`az postgres flexible-server show --query backup.earliestRestoreDate`) and now. A new server's first full backup can take up to a day |
+| A restore creates a **new server** | `az postgres flexible-server restore --name <new> --source-server <source> --restore-time <UTC>` — the source is untouched, so you can compare and back out. The command takes 5–15 min (7 min in the course test) |
+| What is restored | Data and schema as of the restore point (including `__EFMigrationsHistory` — the migrations of that moment), admin settings, the Entra admin, `authConfig`, the SKU |
+| What is **not** restored | **Firewall rules** (the new server has none — the first `psql` gets *Connection refused*), the application's connection string (still points at the old server), tags |
+| Source stopped? | A restore requires a running source server |
+
+Two numbers you cannot know without restoring once:
+
+- **RTO** (Recovery Time Objective): how long the service is down — the restore command + firewall rules + the connection-string change through the pipeline + `/health` green. At course scale 15 minutes when rehearsed, an hour when not.
+- **RPO** (Recovery Point Objective): how much recent data you accept losing — the gap between the restore point and the mistake. With PITR it is as small as your knowledge of when the mistake happened.
+
+**An untested backup is a rumour.** A restore drill — restore, verify the login and the data, measure, delete the new server — is repeated regularly, because the database grows, settings change and people move on.
 
 ---
 

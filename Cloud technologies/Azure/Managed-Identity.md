@@ -1,4 +1,5 @@
 # Azure Managed Identity — Autentikointi ilman salasanoja
+> 🇬🇧 English version: [Managed-Identity.md](../eng/Azure/Managed-Identity.md)
 
 ## Sisällysluettelo
 
@@ -57,6 +58,19 @@ Ei salasanoja, ei API-avaimia. Azure hoitaa tunnistautumisen.
 > **Ydin:** Azure tietää, että tietty App Service -instanssi on se mitä väittääkin olevansa — aivan kuten yrityksen kulunvalvontajärjestelmä tietää, kenen henkilökortti on kenen. Sinun ei tarvitse kertoa salasanaa, kortti itsessään on todiste.
 
 > **Ei vain Key Vaultiin:** tämän sivun esimerkit käyttävät Key Vaultia, mutta sama identiteetti kelpaa suoraan moniin muihinkin palveluihin — mm. Storage, Service Bus ja **Azure Database for PostgreSQL** ([Entra-autentikointi](Azure-Database-PostgreSQL.md#microsoft-entra--autentikointi--yhteys-ilman-salasanaa)). Parhaimmillaan salaisuutta ei tarvita ollenkaan, koska yhteys itsessään on identiteettipohjainen.
+
+### Sanasto: Entra ID, tenant, service principal ja tunnisteet
+
+| Termi | Mikä se on |
+|-------|------------|
+| **Microsoft Entra ID** | Azuren identiteettipalvelu (entinen nimi *Azure Active Directory*, Azure AD). Jokainen käyttäjä, sovellus ja managed identity on olio Entra ID:ssä, ja jokainen Azure-token on Entra ID:n allekirjoittama |
+| **Tenant** (vuokralainen) | Yksi Entra ID -hakemisto: organisaation käyttäjät ja sovellukset. Tunniste `tenantId` (GUID). Tilaus kuuluu aina yhteen tenanttiin; kirjautunut käyttäjä voi olla vieraana useassa |
+| **Käyttäjä** | Ihminen. Tunnisteet: **UPN** (*user principal name*, `etunimi.sukunimi@edu.xamk.fi`) ja **objectId**. Toisen tenantin vieraskäyttäjän UPN näyttää muodolta `nimi_domain.com#EXT#@tenant.onmicrosoft.com` |
+| **Service principal** | Sovelluksen identiteetti tenantissa — "käyttäjätili ohjelmalle". **Managed identity on service principal, jonka salaisuutta Azure hallitsee puolestasi** |
+| **objectId / principalId** | Olion yksilöllinen tunniste Entra ID:ssä. RBAC-roolit sidotaan tähän. Managed identityn `principalId` on sama asia |
+| **clientId / appId** | Sovelluksen julkinen tunniste, jota käytetään *kirjautumiseen* (esim. OIDC-putki `AZURE_CLIENT_ID`). Ei salaisuus — mutta eri GUID kuin objectId |
+
+Kolme GUIDia sekoittuvat helposti: `tenantId` kertoo *missä hakemistossa*, `clientId` *mikä sovellus kirjautuu*, `objectId`/`principalId` *mille oliolle oikeus myönnetään*. Rooli myönnetään aina objectId:lle.
 
 ---
 
@@ -171,12 +185,13 @@ $KV_ID = az keyvault show \
 
 # 2. Myönnä Key Vault Secrets User -rooli App Servicen identiteetille
 az role assignment create \
-  --assignee $IDENTITY_ID \
+  --assignee-object-id $IDENTITY_ID \
+  --assignee-principal-type ServicePrincipal \
   --role "Key Vault Secrets User" \
   --scope $KV_ID
 ```
 
-`--scope $KV_ID` tarkoittaa: oikeus myönnetään **vain tähän Key Vaultiin**, ei muihin resursseihin.
+`--scope $KV_ID` tarkoittaa: oikeus myönnetään **vain tähän Key Vaultiin**, ei muihin resursseihin. `--assignee-object-id` + `--assignee-principal-type` kertovat tyypin suoraan, jolloin komento ei tarvitse Graph-hakua (ks. alla).
 
 ### Vaihtoehto B: Azure Portal
 
@@ -194,7 +209,28 @@ az role assignment create \
    - Valitse listasta oma App Servicesi → **Select**
 6. Klikkaa **Review + assign** → **Review + assign**
 
-> **Huom:** Roolimuutos ei tule heti voimaan. Odota **1–5 minuuttia** ennen kuin testaat sovellusta.
+> **Huom:** Roolimuutos ei tule heti voimaan. Odota **1–6 minuuttia** ennen kuin testaat sovellusta (kurssin testiajossa Key Vaultin data plane hyväksyi roolin noin kuuden minuutin kuluttua).
+
+### Roolimääritys: kuka, mikä rooli, mihin — ja kaksi tasoa
+
+**Roolimääritys** (role assignment) on aina kolmikko: *principal* (objectId) + *roolimääritelmä* (role definition, esim. `Key Vault Secrets User`) + *scope* (resurssi, resurssiryhmä tai tilaus). Scope **periytyy alaspäin**: tilaustason Owner on Owner myös jokaisessa resurssiryhmässä ja resurssissa — siksi `az role assignment list --resource-group` ei näytä tilaustason rooleja eikä yksittäisen vaultin scopeen tehtyjä; koko kuvan antaa `az role assignment list --all` scope-suodattimella.
+
+Roolit jakautuvat kahteen tasoon:
+
+| Taso | Mitä hallitsee | Esimerkkirooleja | Huomaa |
+|------|----------------|------------------|--------|
+| **Control plane** (hallintataso) | Resurssit itsessään: luonti, asetukset, poisto — `management.azure.com` | Owner, Contributor, Reader | Contributor voi luoda Key Vaultin, mutta **ei** myöntää rooleja (`roleAssignments/write` puuttuu) eikä lukea salaisuuksia |
+| **Data plane** (datataso) | Resurssin *sisältö*: salaisuuden arvo, blobin tavut, kannan rivit — resurssin oma päätepiste | Key Vault Secrets User/Officer, Storage Blob Data Contributor | **Owner ei automaattisesti pääse dataan** — tilauksen omistaja saa `Forbidden` salaisuutta lukiessaan, kunnes hänellä on data plane -rooli |
+
+Tästä seuraa kurssin toistuva kuvio: putken identiteetti on Contributor ja rakentaa kaiken, mutta roolien myöntäminen ja data plane -oikeudet ovat erillinen **access session**, jonka tekee ihminen Owner- tai *User Access Administrator* -roolissa.
+
+**CLI-muoto, joka toimii aina.** `--assignee <guid>` yrittää ensin selvittää Graph-rajapinnasta, onko GUID käyttäjä vai sovellus — ja epäonnistuu, kun kirjautuneella ei ole Graph-oikeutta (putket, vierastenantit). Kerro tyyppi itse:
+
+```bash
+az role assignment create   --assignee-object-id $IDENTITY_ID   --assignee-principal-type ServicePrincipal   --role "Key Vault Secrets User"   --scope $KV_ID
+```
+
+Käyttäjälle `--assignee-principal-type User`. Sama rivi toimii skriptissä, putkessa ja Portalin sijaan.
 
 ---
 
@@ -327,10 +363,13 @@ $MY_ID = az ad signed-in-user show --query id --output tsv
 
 # Myönnä Key Vault Secrets User -rooli omalle tilillesi
 az role assignment create \
-  --assignee $MY_ID \
+  --assignee-object-id $MY_ID \
+  --assignee-principal-type User \
   --role "Key Vault Secrets User" \
   --scope $KV_ID
 ```
+
+> **Monta tenanttia?** `az ad signed-in-user show` vastaa CLI:n *oletustenantista*. Jos tilaus on toisessa tenantissa (esim. henkilökohtainen tili vieraana), hae objectId Graphista tilauksen tokenilla tai Portalista (Entra ID → Users → oma tili → Object ID).
 
 ### 3. Aseta Key Vault URL User Secretsiin
 
@@ -473,7 +512,7 @@ Identiteetti on itsenäinen Azure-resurssi, jonka voi liittää useampaan sovell
 
 - Älä tallenna `client_id` + `client_secret` -pareja ympäristömuuttujiin Key Vault -yhteyttä varten — Managed Identity on juuri tätä varten olemassa
 - Älä myönnä laajoja rooleja kuten `Owner` tai `Contributor` sovellukselle — rajoita oikeudet täsmälleen tarvittavaan resurssiin
-- Älä unohda odottaa 1–5 minuuttia RBAC-muutosten jälkeen ennen testaamista
+- Älä unohda odottaa 1–6 minuuttia RBAC-muutosten jälkeen ennen testaamista
 
 ---
 

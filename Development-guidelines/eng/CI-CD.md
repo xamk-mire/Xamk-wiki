@@ -187,6 +187,44 @@ on:
   workflow_dispatch:           # Manual start from GitHub
 ```
 
+`workflow_dispatch` can take **inputs** (`inputs:` — `boolean`, `choice`, `string`) that appear on the *Run workflow* form and are read as `${{ inputs.name }}`. The form always shows the **default branch's** version of the file — a new checkbox appears only after the merge.
+
+### Reusable workflows: workflow_call, secrets: inherit and concurrency
+
+When the same release chain has to run against several environments, the steps are not copied. A **reusable workflow** (`on: workflow_call`) defines the steps once and takes the differences as `inputs`; a **caller workflow** runs it as a job:
+
+```yaml
+# .github/workflows/deploy-env.yml — the steps, once
+on:
+  workflow_call:
+    inputs:
+      environment: { type: string, required: true }
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}   # vars./secrets. resolve from THIS environment
+    steps: [ ... ]
+
+# .github/workflows/deploy.yml — the caller
+jobs:
+  dev:
+    uses: ./.github/workflows/deploy-env.yml
+    with: { environment: dev }
+    secrets: inherit                          # the called workflow sees secrets only this way
+  test:
+    needs: dev
+    uses: ./.github/workflows/deploy-env.yml
+    with: { environment: test }
+    secrets: inherit
+```
+
+| Keyword | Meaning |
+|---------|---------|
+| `uses: ./.github/workflows/x.yml` | The job *is* a call to another workflow; its jobs appear nested |
+| `secrets: inherit` | A called workflow sees **no** secrets by default; `inherit` passes every secret of the caller (and of the job's environment). The alternative is listing them by name — more precise when the workflow is shared between repositories |
+| `needs:` + `if:` | Order and condition: `if: ${{ !cancelled() && needs.infra.result != 'failure' }}` runs the job even when the previous one was *skipped* on purpose |
+| `concurrency: { group: deploy, cancel-in-progress: false }` | Only one run per group at a time; the next one queues (`false`) or cancels the previous (`true`). For deploys, queue — a half-finished release is worse than a wait |
+
 ---
 
 ## Practical example: .NET CI/CD
@@ -323,6 +361,18 @@ jobs:
 
 ---
 
+### Expand-contract: a risky change in two PRs
+
+When a change touches both infrastructure and code (a new authentication method, a new column, a new dependency), one big PR is dangerous: if the second half fails, the first is already in production. **Expand-contract** splits the change into phases, each of which is safe on its own:
+
+| Phase | What you do | Principle |
+|-------|-------------|-----------|
+| **Expand** | Add the new next to the old without breaking it: managed identity *and* password, a nullable column, Key Vault *and* the old app setting | The old code keeps working; what-if shows only `+` and `~` |
+| **Cutover** | Switch the code to the new path | The first PR whose smoke test can reveal a gap — and at that point the old path still exists |
+| **Contract** | Remove the old: the password, the old column, the old setting | Only once the new is proven in use; `-` rows in what-if |
+
+The same rhythm applies to database migrations (add nullable → backfill → tighten) and to API versioning (new field alongside → clients move → old one removed). For the pipeline the benefit is that every PR can be reverted on its own.
+
 ## Secrets and environment variables
 
 ### GitHub Actions Secrets
@@ -361,6 +411,27 @@ jobs:
       - name: Build
         run: dotnet build --configuration ${{ env.CONFIGURATION }}
 ```
+
+### GitHub Environments: variables, secrets and approval
+
+Repository-level secrets and variables are the same for every run. A **GitHub Environment** (Settings → Environments) is a named target — `dev`, `test`, `production` — with **its own** variables and secrets *under the same names* and its own protection rules:
+
+```yaml
+jobs:
+  deploy:
+    environment: test                        # ← without this line vars.RESOURCE_GROUP is empty
+    env:
+      RESOURCE_GROUP: ${{ vars.RESOURCE_GROUP }}   # the test environment's value
+```
+
+| Topic | Repository level | Environment level |
+|-------|------------------|-------------------|
+| Variables (`vars.X`) | One value for everyone | The same *name*, a different value per environment — the YAML does not know which environment it deploys to |
+| Secrets (`secrets.X`) | Available at once | Released to the job only after the environment's **protection rules** have passed |
+| Protection rules | — | *Required reviewers* (the run stops at *Waiting for review*), branch restrictions, a wait timer — Continuous Delivery with one setting |
+| OIDC subject | `…:ref:refs/heads/main` | `…:environment:<name>` — every environment needs its own federated credential ([subject format](#githubs-subject-format--mind-the-ids)) |
+
+The most common mistake: the variable was created at repository level, or the job lacks `environment:` — then `vars.X` is empty and the command fails on a missing parameter.
 
 ---
 
@@ -512,6 +583,30 @@ Developer ──► feature branch ──► Pull Request ──► main ──�
 ### AI review as a gate
 
 Alongside human review (or, in a study project, instead of it) you can attach **AI code review** — e.g. GitHub Copilot code review — which comments on the PR's changes automatically. AI review finds mechanical problems (suspected bugs, naming, forgotten error handling) but **does not understand context**: its remarks are suggestions that a human accepts or rejects with a reason. Good practice: react to every AI comment — either a fix or a short justification for not fixing.
+
+### The supply-chain gate: vulnerable packages and Dependabot
+
+The **software supply chain** is all the code you did not write but that ends up in your release: NuGet packages, their **transitive dependencies** (packages your packages need — you never typed their names) and the actions in your workflows. A vulnerability in them is your vulnerability.
+
+```yaml
+- name: Vulnerable packages (supply-chain gate)
+  run: |
+    dotnet list package --vulnerable --include-transitive | tee vulnerable.txt
+    if grep -q "has the following vulnerable packages" vulnerable.txt; then
+      echo "::error::Vulnerable packages found — update them before merging."
+      exit 1
+    fi
+```
+
+| Piece | Meaning |
+|-------|---------|
+| `--vulnerable` | Compares the packages against the **GitHub Advisory Database** (the same source Dependabot uses) |
+| `--include-transitive` | Without it only direct packages are checked; the dangerous ones are the ones you never saw |
+| `grep` + `exit 1` | The command's exit code varies between SDK versions, the text does not — a gate must fail deterministically |
+| NuGetAudit `NU1901`–`NU1904` | The same data already at `dotnet restore` as warnings: NU1901 low, NU1902 moderate, NU1903 high, NU1904 critical. A warning does not fail the build; the gate does |
+| `NU1605` | A different thing: a *package downgrade* — two dependencies demand different versions and restore fails before the gate is reached |
+
+**Dependabot** is the gate's partner: `.github/dependabot.yml` lists the ecosystems (`nuget`, `github-actions`, …) and a schedule, and GitHub opens **update PRs** automatically — the first ones within minutes of the file being merged, then on schedule (`open-pull-requests-limit` caps how many are open). *Version updates* bump versions in general; *security updates* (Settings → Code security) open a PR only because of a vulnerability. Every PR goes through the same gates — but green means "it builds and the tests pass", not "nothing changed": a **major-version** bump (SemVer `6.x → 10.x`) can carry breaking changes the tests do not cover. The bot proposes, a human merges.
 
 ---
 
