@@ -13,6 +13,8 @@ Arjen esimerkki: kassan näyttö ja näppäimistö. Ohjelma kirjoittaa kysymykse
 | `Console.WriteLine("teksti")` | Tulostaa tekstin ja siirtyy seuraavalle riville | Kyllä |
 | `Console.Write("teksti")` | Tulostaa tekstin ja jättää kursorin samalle riville | Ei |
 | `Console.ReadLine()` | Lukee käyttäjän kirjoittaman rivin **tekstinä** (`string`) | — |
+| `Console.ReadKey(true)` | Lukee yhden näppäimen ilman Enteriä (myöhemmin tällä sivulla) | — |
+| `Console.KeyAvailable` | `true`, jos näppäintä on painettu; ei odota | — |
 
 ```csharp
 Console.WriteLine("=== Elokuvateatteri Tähti ===");
@@ -77,6 +79,22 @@ Console.WriteLine($"Maksettavaa: {total:F2} €");
 
 Suomalaisessa Windowsissa desimaalierotin on **pilkku** konsolissa. Koodissa käytetään aina **pistettä**: `12.50m`.
 
+`:F2` pyöristää vain **tulostuksen** — muuttujan arvo ei muutu. Jos arvo pitää pyöristää oikeasti (tallennus, yhteenlasku), käytä `Math.Round` — katso [Math-luokka](Math.md).
+
+### Erikoismerkit
+
+Kenoviiva aloittaa merkin, jota ei voi kirjoittaa suoraan:
+
+| Merkki | Mitä tekee |
+|--------|------------|
+| `\n` | Rivinvaihto |
+| `\t` | Sarkain (tabulaattori) |
+| `\r` | Kohdistin rivin alkuun, rivi ei vaihdu |
+| `\"` | Lainausmerkki merkkijonon sisällä |
+| `\\` | Kenoviiva itse (polut: `"C:\\temp"`) |
+
+`Console.WriteLine($"Nimi:\t{name}")` tasaa sarakkeet. `\r` on hyödyllinen laskurissa — katso alla.
+
 ## Tyhjä syöte ja merkkijonovertailu
 
 Alennuskoodi on valinnainen — tyhjä rivi tarkoittaa "ei koodia":
@@ -111,11 +129,63 @@ if (answer == "k")
 
 Hyväksy vain `k` tai `e` [while-silmukalla](Control-Structures.md) — muuten vastaus `x` tulkitaan helposti "ei".
 
+## Sama rivi uudelleen: \r
+
+Laskuri, joka päivittyy paikallaan sen sijaan, että konsoli täyttyisi sadoista riveistä:
+
+```csharp
+for (int percent = 0; percent <= 100; percent += 5)
+{
+    Console.Write($"\rLadataan... {percent} %");
+    Thread.Sleep(100);
+}
+
+Console.WriteLine();   // vasta lopuksi uudelle riville
+```
+
+`\r` siirtää kohdistimen rivin alkuun vaihtamatta riviä. `Write` ei vaihda riviä, toisin kuin `WriteLine`. Yhdessä ne kirjoittavat uuden tekstin vanhan päälle. `WriteLine` silmukan sisällä tekisi joka kierroksesta uuden rivin. Tauko: [Thread.Sleep](Thread-Sleep.md).
+
+`\r` **ei tyhjennä riviä**. Jos uusi teksti on lyhyempi kuin edellinen, vanhan rivin häntä jää näkyviin: `Ladataan... 100 %` ja sen päälle `Ladataan... 5 %` näyttää `Ladataan... 5 % %`. Korjaus on tasata teksti samanmittaiseksi:
+
+```csharp
+Console.Write($"\rKierros {round}, voitot {wins} €".PadRight(30));
+```
+
+`PadRight(30)` täyttää lopun välilyönneillä 30 merkkiin asti, jolloin vanha teksti peittyy kokonaan.
+
+## Näppäin ilman Enteriä: ReadKey ja KeyAvailable
+
+`ReadLine` pysähtyy odottamaan Enteriä. Jatkuva peli tai sekuntikello ei voi pysähtyä joka kierroksella, joten näppäin tarkistetaan odottamatta:
+
+```csharp
+bool stop = false;
+
+while (!stop)
+{
+    // yksi kierros: tulosta aika tai arvo, pieni tauko
+
+    if (Console.KeyAvailable)                        // onko näppäintä painettu? ei odota
+    {
+        ConsoleKeyInfo key = Console.ReadKey(true);  // true = merkkiä ei tulosteta
+        if (key.Key == ConsoleKey.Q)
+        {
+            stop = true;
+        }
+    }
+}
+```
+
+`Console.KeyAvailable` on `true`, jos näppäimistöpuskurissa on painallus. Se ei jää odottamaan. `ReadKey(true)` ottaa painalluksen pois puskurista ja palauttaa `ConsoleKeyInfo`-arvon. `key.Key` on näppäin (`ConsoleKey.Q`, `ConsoleKey.Enter`), `key.KeyChar` on sama merkkinä (`'q'`).
+
+Helpompi, myös sallittu tapa: kysy `Console.ReadLine()` jokaisen kierroksen jälkeen ja lopeta, jos vastaus on `x`. Silloin ohjelma pysähtyy odottamaan Enteriä joka kierroksella.
+
 ## Yhteenveto
 
 - `WriteLine` tulostaa rivin, `Write` jättää kursorin samalle riville, `ReadLine` lukee tekstin
 - Syöte on aina `string` — luvuksi tarvitaan `Convert.ToInt32` tai vastaava
 - `$"...{muuttuja:F2}..."` upottaa arvot ja muotoilee desimaalit
 - Merkkijonoja verrataan `==`-operaattorilla; kirjainkoko merkitsee
+- `Console.Write($"\r...")` päivittää saman rivin; `PadRight` peittää vanhan hännän
+- `Console.KeyAvailable` + `ReadKey(true)` lukee näppäimen ilman Enteriä ja odottamatta
 
 Seuraavaksi: [Muuttujat](Variables.md) · [Tyyppimuunnokset](Casting.md) · [Ohjausrakenteet](Control-Structures.md)

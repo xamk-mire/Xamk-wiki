@@ -18,6 +18,7 @@ Tervetuloa C#-ohjelmoinnin perusteisiin. Tämä osio käsittelee C#-ohjelmoinnin
 - [Funktiot ja metodit](Functions-and-Methods.md) — määrittely vs kutsu, parametri, `return`, `void`, kuormitus
 - [Näkyvyysalueet](Scopes.md) — Mainin muuttuja ei näy toiselle metodille, `do-while`-ehto
 - [Staattiset luokat ja metodit](Static-Classes-and-Methods.md) — `static` ennen olioita, `const` yhteinen hinta
+- [Math-luokka](Math.md) — `Math.Round` pyöristää arvon (`:F2` vain näytön), pankkiiripyöristys, `Ceiling`, `Floor`, `Max`
 
 ### Kokoelmat
 - [Tietorakenteet](Data-Structures.md) — taulukko, List, Dictionary, indeksi nollasta

@@ -14,7 +14,7 @@ Aloita kolmesta: **taulukko**, **List** ja **Dictionary**. HashSet, jono ja pino
 |----------|------|--------|-----------|
 | Taulukko `string[]` | Kiinteä — päätetään luodessa | Tunnettu, muuttumaton joukko | Päivän elokuvat |
 | `List<decimal>` | Kasvaa `Add`-kutsuilla | Kertyvä data, jonka määrää ei tiedetä | Päivän ostokset |
-| `Dictionary<string, decimal>` | Kasvaa | Avain → arvo | Alennuskoodi → prosentti |
+| `Dictionary<string, int>` | Kasvaa | Avain → arvo | Alennuskoodi → prosentti |
 
 Silmukat: [Ohjausrakenteet](Control-Structures.md).
 
@@ -63,6 +63,8 @@ for (int i = 0; i < movies.Length; i++)
 
 Tyhjä taulukko tietylle koolle: `int[] numbers = new int[5];` — viisi paikkaa, arvot nollia kunnes asetat ne.
 
+Taulukon saa usein valmiina: `line.Split(';')` palauttaa rivin osat `string[]`-taulukkona ja `File.ReadAllLines` tiedoston rivit — katso [tiedostot](File-IO.md#rivien-lukeminen-taulukkoon). Osat ovat tekstiä, luvuksi tarvitaan `int.TryParse`.
+
 Kaksiulotteinen taulukko (`int[,]`) on ruudukko. Alussa yksi rivi riittää. Sisäkkäiset silmukat: [ohjausrakenteet](Control-Structures.md#sisäkkäiset-silmukat).
 
 ## Rinnakkainen taulukko
@@ -96,11 +98,19 @@ Console.WriteLine(sales.Count);  // 3
 `List<decimal>` luetaan: "lista desimaalilukuja". Hakasulkeiden väliin tulee alkion tyyppi.
 
 ```csharp
-List<string> names = new List<string> { "Matti", "Liisa", "Pekka" };
+List<int> numbers = new List<int> { 12, 3, 40 };
 
-names.Remove("Liisa");
-bool exists = names.Contains("Matti");
+if (!numbers.Contains(3))              // onko jo listassa? estää duplikaatin (lotto)
+{
+    numbers.Add(3);
+}
+
+numbers.Remove(40);                     // poistaa ensimmäisen 40:n
+numbers.Sort();                         // järjestää listan paikallaan: 3, 12
+Console.WriteLine(string.Join(", ", numbers));   // "3, 12" ilman silmukkaa
 ```
+
+`Sort()` muuttaa listan itsensä eikä palauta uutta. Tekstit menevät aakkosiin, luvut pienin ensin. `string.Join(erotin, lista)` liittää alkiot yhdeksi merkkijonoksi, joten tulostukseen ei tarvita `foreach`-silmukkaa.
 
 Tarvitset `using System.Collections.Generic;` tiedoston alkuun, jos Visual Studio ei lisää sitä itse. **Ctrl+.** ehdottaa korjausta.
 
@@ -112,13 +122,13 @@ Kokoelma, jonka pitää kertyä kierrosten yli, luodaan silmukan **ulkopuolella*
 
 ## Dictionary — avain avaa arvon
 
-Sanakirja etsii **avaimella**, ei järjestyksellä. Alennuskoodi `LEFFA10` avaa prosentin `0.10`. If-ketju jokaiseen koodiin ei skaalaudu. Uusi koodi on yksi rivi.
+Sanakirja etsii **avaimella**, ei järjestyksellä. Alennuskoodi `LEFFA10` avaa prosentin `10`. If-ketju jokaiseen koodiin ei skaalaudu. Uusi koodi on yksi rivi.
 
 ```csharp
-Dictionary<string, decimal> discounts = new Dictionary<string, decimal>
+Dictionary<string, int> discounts = new Dictionary<string, int>
 {
-    { "LEFFA10", 0.10m },
-    { "KESA20", 0.20m }
+    { "LEFFA10", 10 },
+    { "KESA20", 20 }
 };
 
 string code = "leffa10";
@@ -126,15 +136,17 @@ string key = code.ToUpper();
 
 if (discounts.ContainsKey(key))
 {
-    decimal percent = discounts[key];
-    decimal discount = subtotal * percent;
+    int percent = discounts[key];
+    decimal discount = subtotal * percent / 100m;   // 10 → 0.10
 }
 ```
+
+Prosentti on kokonaisluku `10`, ei `0.10m`. Tiedostosta luettu `10` on helpompi: `int.TryParse` lukee sen turvallisesti, kun taas `0.10` kaatuu suomalaisella koneella pisteen takia. Jako `/ 100m` tehdään vasta laskussa; ilman `m`-päätettä `10 / 100` olisi kokonaislukujako ja antaisi `0`.
 
 Ilman `ContainsKey`-tarkistusta tuntematon avain kaataa ohjelman (`KeyNotFoundException`). Sama turvallisesti: `TryGetValue`.
 
 ```csharp
-if (discounts.TryGetValue(key, out decimal percent))
+if (discounts.TryGetValue(key, out int percent))
 {
     Console.WriteLine(percent);
 }
@@ -191,6 +203,10 @@ Käyttäjän `1` ei ole `movies[1]` (toinen elokuva). Vähennä yksi.
 
 `discounts["TUNTEMATON"]` kaatuu. Tarkista avain ensin.
 
+**5. `Sort()` sijoitetaan muuttujaan**
+
+`var sorted = list.Sort();` ei käänny: `Sort` ei palauta mitään (`void`) vaan järjestää listan paikallaan. Kirjoita `list.Sort();` ja käytä sen jälkeen samaa listaa. Teksti- ja lukulistalla sama kutsu toimii.
+
 ## HashSet, jono ja pino — myöhemmin
 
 | Rakenne | Idea | Milloin |
@@ -206,7 +222,9 @@ Aloita taulukosta, Listasta ja Dictionarysta. Big O -ajat ovat [omalla sivullaan
 - Yksi muuttuja, monta arvoa. Indeksi alkaa nollasta.
 - Taulukko: kiinteä koko, `Length`. Rinnakkainen taulukko luodaan muodossa `new int[toinen.Length]`.
 - List: `Add`, `Count`, koko kasvaa. Luo lista silmukan ulkopuolelle, jos sen pitää kertyä. Ei `Remove`-kutsua `foreach`-silmukan sisällä.
-- Dictionary: avain → arvo, tarkista `ContainsKey`. Avain huomioi kirjainkoon.
+- `Contains` ennen `Add` estää duplikaatin. `Sort()` järjestää paikallaan eikä palauta mitään. `string.Join(", ", list)` tulostaa ilman silmukkaa.
+- `Split` ja `File.ReadAllLines` palauttavat `string[]`-taulukon.
+- Dictionary: avain → arvo, tarkista `ContainsKey`. Avain huomioi kirjainkoon. Prosentti kokonaislukuna, jako `/ 100m` laskussa.
 - `foreach` lukee. `for` kun tarvitset indeksin tai kirjoitat lokeroon.
 - Pienimmän arvon haku alkaa ensimmäisestä alkiosta, ei nollasta.
 

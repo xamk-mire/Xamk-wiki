@@ -1,166 +1,92 @@
-# Thread.Sleep
+# Thread.Sleep — tauko ohjelmaan
 
-`Thread.Sleep`-metodi pausettaa nykyisen säikeen (thread) suorituksen määritellyksi ajaksi.
+**`Thread.Sleep(ms)`** pysäyttää ohjelman annetuksi ajaksi millisekunteina. `Thread.Sleep(1000)` on sekunnin tauko. `Thread` on nimiavaruudessa `System.Threading`, joka on .NET 8 -projektipohjassa valmiina käytössä (implicit usings).
 
-## Peruskäyttö
+Arjen esimerkki: latauspalkki. Ilman taukoa 0–100 % vilahtaa ohi ennen kuin ehdit nähdä. Pieni tauko joka askeleella tekee siitä seurattavan.
 
-### Syntaksi
+Tyypillinen tilanne: jatkuva peli, jossa kierroslaskuri päivittyy samalle riville ja käyttäjä lopettaa näppäimellä. Tauko kierrosten välissä on 10–100 ms, ei sekuntia.
+
+**Microsoft:** [Thread.Sleep](https://learn.microsoft.com/fi-fi/dotnet/api/system.threading.thread.sleep)
+
+## Kartta
+
+| Asia | Yksi lause |
+|------|------------|
+| `Thread.Sleep(1000)` | Sekunnin tauko; ohjelma ei tee tauon aikana mitään |
+| `Thread.Sleep(10)` … `Thread.Sleep(100)` | Sopiva tauko jatkuvan silmukan kierrosten väliin |
+| `Thread.Sleep(random.Next(1000, 5001))` | Satunnainen odotus 1–5 s |
+| `Console.Write($"\r...")` + `Sleep` | Laskuri, joka päivittyy samalle riville |
+
+## Ohjelma seisoo tauon ajan
 
 ```csharp
-Thread.Sleep(millisekuntia);
+Console.WriteLine("Arvotaan...");
+Thread.Sleep(2000);                 // 2 sekuntia: mitään ei tapahdu
+Console.WriteLine("Valmis.");
 ```
 
-### Esimerkki
+Tauon aikana ohjelma **ei lue näppäimistöä eikä tulosta** mitään. Painallus jää puskuriin ja huomataan vasta tauon jälkeen. Siksi jatkuvassa silmukassa tauko on lyhyt, 10–100 ms: silmukka ehtii tarkistaa näppäimen monta kertaa sekunnissa, eikä peli tunnu jumilta.
 
 ```csharp
-using System.Threading;
-
-Console.WriteLine("Aloitus");
-Thread.Sleep(2000);  // Odota 2 sekuntia (2000 millisekuntia)
-Console.WriteLine("2 sekuntia myöhemmin");
-```
-
-## Yleisiä käyttökohteita
-
-### 1. Simuloidaan viivettä
-
-```csharp
-Console.WriteLine("Lataa...");
-Thread.Sleep(1000);
-Console.WriteLine("Valmis!");
-```
-
-### 2. Animaatiot ja visuaaliset efektit
-
-```csharp
-for (int i = 0; i < 10; i++)
+while (!stop)
 {
-    Console.Write(".");
-    Thread.Sleep(200);  // 200ms viive pisteiden välillä
-}
-Console.WriteLine();
-```
-
-### 3. Retry-logiikka
-
-```csharp
-int maxRetries = 3;
-int retryCount = 0;
-
-while (retryCount < maxRetries)
-{
-    try
-    {
-        // Yritä tehdä jotain
-        DoSomething();
-        break;  // Onnistui, poistu silmukasta
-    }
-    catch (Exception)
-    {
-        retryCount++;
-        if (retryCount < maxRetries)
-        {
-            Console.WriteLine($"Yritetään uudelleen {retryCount}/{maxRetries}...");
-            Thread.Sleep(1000);  // Odota 1 sekunti ennen uutta yritystä
-        }
-    }
+    // yksi kierros: arvonta, tulostus, näppäimen tarkistus
+    Thread.Sleep(50);               // ei 1000
 }
 ```
 
-### 4. Rate limiting
+Näppäimen tarkistus ilman odotusta: [KeyAvailable ja ReadKey](Console-IO.md#näppäin-ilman-enteriä-readkey-ja-keyavailable).
+
+## Laskuri samalla rivillä
 
 ```csharp
-for (int i = 0; i < 100; i++)
+for (int percent = 0; percent <= 100; percent += 5)
 {
-    ProcessItem(i);
-    Thread.Sleep(100);  // Rajoita käsittelynopeutta (10 kpl/sekunti)
+    Console.Write($"\rLadataan... {percent} %");
+    Thread.Sleep(100);
 }
+
+Console.WriteLine();                // uusi rivi vasta lopuksi
 ```
 
-## Aikayksiköt
+`\r` siirtää kohdistimen rivin alkuun, `Write` kirjoittaa vanhan päälle, ja `Sleep` antaa silmälle aikaa nähdä välivaiheet. Ilman `Sleep`-kutsua näkyisi vain `100 %`. Katso [sama rivi uudelleen](Console-IO.md#sama-rivi-uudelleen-r).
 
-### Millisekunnit
+## Satunnainen odotus pelissä
 
 ```csharp
-Thread.Sleep(1000);  // 1 sekunti
-Thread.Sleep(500);   // 0.5 sekuntia
-Thread.Sleep(100);   // 0.1 sekuntia
+static Random random = new Random();
+
+Console.WriteLine("Odota...");
+Thread.Sleep(random.Next(1000, 5001));   // 1–5 s
+Console.WriteLine("Nyt!");
 ```
 
-### TimeSpan (Suositeltu tapa)
+Reaktiopeli tai arvonta tuntuu aidommalta, kun odotus vaihtelee. `Next(1000, 5001)` antaa 1000–5000 ms — katso [Random](Random.md).
 
-```csharp
-using System;
+## Myöhemmin
 
-// Selkeämpi tapa
-Thread.Sleep(TimeSpan.FromSeconds(2));      // 2 sekuntia
-Thread.Sleep(TimeSpan.FromMilliseconds(500)); // 0.5 sekuntia
-Thread.Sleep(TimeSpan.FromMinutes(1));     // 1 minuutti
-```
+`Thread.Sleep` pysäyttää koko ohjelman. Ohjelmissa, joiden pitää tehdä useaa asiaa samaan aikaan (verkko, käyttöliittymä), käytetään `Task.Delay`-metodia ja `async`-koodia. Ne tulevat jatkokurssilla. `Sleep` hyväksyy myös `TimeSpan`-arvon (`TimeSpan.FromSeconds(2)`), mutta tällä kurssilla millisekunnit riittävät.
 
-## Tärkeät huomiot
+## Yleisiä virheitä
 
-### 1. Thread.Sleep pausettaa koko säikeen
+**1. Pitkä `Sleep` jatkuvassa pelissä**
 
-```csharp
-// ❌ HUOMIO: Pausettaa koko ohjelman
-Console.WriteLine("Ennen");
-Thread.Sleep(2000);
-Console.WriteLine("Jälkeen");
-```
+`Thread.Sleep(1000)` joka kierroksella: peli tuntuu jumilta, ja näppäinpainallus huomataan sekunnin myöhässä. Pidä tauko 10–100 ms.
 
-### 2. Async/await on parempi vaihtoehto
+**2. `Sleep` ei odota näppäintä**
 
-```csharp
-// ✅ HYVÄ: Ei pauseta koko säiettä
-using System.Threading.Tasks;
+`Sleep` odottaa vain aikaa. Jos haluat odottaa, että käyttäjä painaa jotain, käytä `Console.ReadLine()` tai `Console.ReadKey()`.
 
-public async Task DoSomethingAsync()
-{
-    Console.WriteLine("Ennen");
-    await Task.Delay(2000);  // Ei pauseta koko säiettä
-    Console.WriteLine("Jälkeen");
-}
-```
+**3. `Sleep` silmukassa ilman tulostusta**
 
-### 3. Thread.Sleep(0) antaa muille säikeille tilaa
-
-```csharp
-// Antaa muille säikeille mahdollisuuden suorittua
-Thread.Sleep(0);
-```
-
-## Esimerkki: Laskuri viiveellä
-
-```csharp
-Console.WriteLine("Laskuri alkaa:");
-for (int i = 10; i > 0; i--)
-{
-    Console.WriteLine(i);
-    Thread.Sleep(1000);  // Odota 1 sekunti
-}
-Console.WriteLine("Valmis!");
-```
-
-## Esimerkki: Progress bar
-
-```csharp
-Console.Write("Lataa: [");
-for (int i = 0; i < 20; i++)
-{
-    Console.Write("#");
-    Thread.Sleep(100);  // 100ms viive
-}
-Console.WriteLine("] Valmis!");
-```
+Jos silmukka nukkuu eikä tulosta mitään, käyttäjä näkee tyhjän ruudun ja luulee ohjelman kaatuneen. Tulosta jotain joka kierroksella, vaikka samalle riville.
 
 ## Yhteenveto
 
-- `Thread.Sleep` pausettaa säikeen suorituksen
-- Parametri on millisekunteina
-- Käytä `TimeSpan`-luokkaa selkeämpään koodiin
-- Async/await on parempi vaihtoehto modernissa koodissa
-- Hyödyllinen simulointiin, animaatioihin ja retry-logiikkaan
+- `Thread.Sleep(ms)` pysäyttää ohjelman millisekunneiksi. Tauon aikana ei lueta näppäimistöä eikä tulosteta.
+- Jatkuvassa silmukassa tauko on 10–100 ms, ei sekuntia.
+- Laskuri samalle riville: `Console.Write($"\r...")` + `Sleep`, `WriteLine()` kerran lopuksi.
+- Satunnainen odotus: `Thread.Sleep(random.Next(1000, 5001))`.
+- `Task.Delay` ja `async` ovat jatkokurssin asiaa.
 
-**Huomio**: Tuotannossa harkitse `Task.Delay`-metodia async-koodissa sen sijaan, että käytät `Thread.Sleep`-metodia.
-
+Seuraavaksi: [Konsolin syöte ja tulostus](Console-IO.md) · [Random](Random.md) · [StopWatch](StopWatch.md)

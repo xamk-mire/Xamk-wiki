@@ -1,196 +1,137 @@
-# Random (Satunnaislukujen generointi)
+# Satunnaisluvut (Random)
 
-`Random`-luokka C#-kielessä mahdollistaa satunnaislukujen generoinnin.
+**`Random`** on luokka, jonka olio antaa satunnaislukuja. Olio luodaan **kerran**, ja samaa oliota käytetään kaikissa arvonnoissa. Luvun pyytää `Next`-metodi.
 
-## Random-luokan käyttö
+Arjen esimerkki: noppa. Heität saman nopan uudestaan ja uudestaan. Et hae jokaista heittoa varten uutta noppaa kaupasta.
 
-### Peruskäyttö
+Tyypillinen tilanne: lottorivi, jossa seitsemän eri numeroa väliltä 1–40. `Next(1, 41)` antaa yhden numeron, lista pitää kirjaa jo arvotuista, ja silmukka jatkuu, kunnes listassa on seitsemän.
 
-```csharp
-Random random = new Random();
+**Microsoft:** [Random class](https://learn.microsoft.com/fi-fi/dotnet/api/system.random) — kaikki metodit; tämä sivu kattaa ne, joita tarvitset alussa.
 
-// Generoi satunnaisen kokonaisluvun 0 ja int.MaxValue välillä
-int number = random.Next();
-Console.WriteLine(number);
+## Kartta
 
-// Generoi satunnaisen kokonaisluvun 0 ja 10 välillä (10 ei sisälly)
-int number1 = random.Next(10);
-Console.WriteLine(number1);  // 0-9
+| Asia | Yksi lause |
+|------|------------|
+| `static Random random = new Random();` | Luodaan kerran luokan tasolla, käytetään kaikkialla |
+| `random.Next()` | Kokonaisluku nollasta ylöspäin, raja ei ole käytännössä kiinnostava |
+| `random.Next(max)` | Kokonaisluku `0` … `max - 1` |
+| `random.Next(min, max)` | Kokonaisluku `min` … `max - 1`; **yläraja ei kuulu mukaan** |
+| `random.NextDouble()` | Desimaaliluku `0.0` … `1.0` (1.0 ei kuulu mukaan) |
+| `list.Contains(n)` ennen `Add` | Uniikit luvut: hylätty numero ei lisää mitään |
+| `letters[random.Next(letters.Length)]` | Satunnainen alkio kokoelmasta |
 
-// Generoi satunnaisen kokonaisluvun määritellyllä välillä
-int number2 = random.Next(1, 11);
-Console.WriteLine(number2);  // 1-10
-
-// Generoi satunnaisen desimaaliluvun 0.0 ja 1.0 välillä
-double doubleValue = random.NextDouble();
-Console.WriteLine(doubleValue);  // 0.0 - 1.0
-```
-
-## Yleisiä käyttökohteita
-
-### Satunnaisen luvun generointi välillä
+## Luo kerran, käytä monta kertaa
 
 ```csharp
-Random random = new Random();
-
-// Luku 1-100 välillä
-int number = random.Next(1, 101);
-
-// Luku 0-50 välillä
-int number2 = random.Next(0, 51);
-```
-
-### Satunnaisen desimaaliluvun generointi välillä
-
-```csharp
-Random random = new Random();
-
-// Desimaaliluku 0.0 - 100.0 välillä
-double value = random.NextDouble() * 100;
-
-// Desimaaliluku 10.0 - 20.0 välillä
-double value2 = 10 + (random.NextDouble() * 10);
-```
-
-### Satunnaisen totuusarvon generointi
-
-```csharp
-Random random = new Random();
-
-bool randomBool = random.Next(2) == 0;  // true tai false
-// Tai
-bool randomBool2 = random.NextDouble() < 0.5;
-```
-
-### Satunnaisen merkin generointi
-
-```csharp
-Random random = new Random();
-
-// Satunnainen iso kirjain A-Z
-char randomChar = (char)random.Next('A', 'Z' + 1);
-
-// Satunnainen pieni kirjain a-z
-char randomLower = (char)random.Next('a', 'z' + 1);
-```
-
-### Satunnaisen merkkijonon generointi
-
-```csharp
-Random random = new Random();
-string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-int length = 10;
-
-string randomString = new string(
-    Enumerable.Repeat(chars, length)
-              .Select(s => s[random.Next(s.Length)])
-              .ToArray()
-);
-
-Console.WriteLine(randomString);  // Esim. "A3B7C2D9E1"
-```
-
-### Satunnaisen värin generointi
-
-```csharp
-Random random = new Random();
-
-// RGB-väri
-int red = random.Next(0, 256);
-int green = random.Next(0, 256);
-int blue = random.Next(0, 256);
-
-Console.WriteLine($"RGB({red}, {green}, {blue})");
-```
-
-## Satunnaisen elementin valinta taulukosta
-
-```csharp
-Random random = new Random();
-string[] names = { "Matti", "Liisa", "Pekka", "Anna", "Jukka" };
-
-// Valitse satunnainen nimi
-string randomName = names[random.Next(names.Length)];
-Console.WriteLine(randomName);
-```
-
-## Satunnaisen elementin valinta listasta
-
-```csharp
-Random random = new Random();
-List<int> numbers = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-
-// Valitse satunnainen numero
-int randomNumber = numbers[random.Next(numbers.Count)];
-Console.WriteLine(randomNumber);
-```
-
-## Satunnaisen järjestyksen luominen (Shuffle)
-
-```csharp
-Random random = new Random();
-List<int> numbers = new List<int> { 1, 2, 3, 4, 5 };
-
-// Sekoita lista
-for (int i = numbers.Count - 1; i > 0; i--)
+class Program
 {
-    int j = random.Next(i + 1);
-    int temp = numbers[i];
-    numbers[i] = numbers[j];
-    numbers[j] = temp;
+    static Random random = new Random();   // yksi olio koko ohjelmalle
+
+    static void Main(string[] args)
+    {
+        int first = random.Next(1, 7);
+        int second = random.Next(1, 7);
+    }
+}
+```
+
+Luokan tason kenttä näkyy kaikille metodeille — katso [näkyvyysalueet](Scopes.md#luokan-taso--jaettu-tieto). Toinen hyvä paikka on `Main`-metodin alku, jos arvonta tehdään vain siellä.
+
+Miksi kerran? Arvonta on yhdessä paikassa, ja sitä on helppo muuttaa. `new Random()` silmukan sisällä luo joka kierroksella uuden olion turhaan ja hämärtää koodia: lukija kysyy, miksi noppa vaihtuu joka heitolla. Vanhassa .NET Frameworkissa silmukassa luodut oliot antoivat vielä samat luvut peräkkäin. Nykyisessä .NETissä niin ei käy, mutta tapa on silti huono.
+
+## Next — yläraja ei kuulu mukaan
+
+```csharp
+int die = random.Next(1, 7);       // 1, 2, 3, 4, 5 tai 6 — ei koskaan 7
+int index = random.Next(10);       // 0 … 9
+int lotto = random.Next(1, 41);    // 1 … 40
+```
+
+`Next(min, max)` palauttaa luvun, joka on vähintään `min` ja **pienempi kuin** `max`. Kun haluat luvun 1–6, kirjoitat `Next(1, 7)`. Sääntö on sama kuin `for`-silmukan ehdossa `i < 6`: yläraja on raja, ei viimeinen arvo.
+
+`NextDouble()` antaa desimaaliluvun väliltä `0.0`–`1.0`. Sitä tarvitaan harvemmin; kokonaisluvut riittävät pitkälle.
+
+## Arvonta omassa metodissa
+
+```csharp
+static int SpinReel()
+{
+    return random.Next(1, 7);      // yksikätisen rosvon rulla 1–6
 }
 
-// numbers on nyt sekoitettu
+static int DrawNumber()
+{
+    return random.Next(1, 41);     // lottonumero 1–40
+}
 ```
 
-## Seed-arvo (Alkuarvo)
+Metodi kertoo nimellään, mitä arvotaan. Rajat ovat yhdessä paikassa: jos lotto muuttuu 1–39:ksi, muutat yhden rivin. Katso [funktiot ja metodit](Functions-and-Methods.md).
 
-Random-luokka käyttää oletuksena kellonaikaa seed-arvona. Voit antaa oman seed-arvon:
+## Uniikit luvut — while, ei for
 
 ```csharp
-// Sama seed tuottaa samat satunnaisluvut
-Random random1 = new Random(12345);
-Random random2 = new Random(12345);
+List<int> numbers = new List<int>();
 
-int num1 = random1.Next(100);
-int num2 = random2.Next(100);
+while (numbers.Count < 7)
+{
+    int n = random.Next(1, 41);
 
-Console.WriteLine(num1 == num2);  // true - samat luvut!
+    if (!numbers.Contains(n))
+    {
+        numbers.Add(n);
+    }
+}
 ```
 
-**Huomio**: Sama seed-arvo on hyödyllinen testauksessa, mutta tuotannossa käytä oletusarvoa.
+Silmukka jatkuu, kunnes listassa on **seitsemän** lukua. Jos arvottu numero on jo listassa, kierros ei lisää mitään, ja silmukka arpoo uuden.
+
+`for (int i = 0; i < 7; i++)` on tässä väärä työkalu. Se tekee tasan seitsemän kierrosta. Jos kaksi arvontaa osuu samaan numeroon ja duplikaatti hylätään, listaan jää kuusi lukua. Kierrosten määrä ei ole sama kuin lukujen määrä. Katso [Contains](Data-Structures.md#list--koko-kasvaa).
+
+## Satunnainen alkio kokoelmasta
+
+```csharp
+string[] letters = { "A", "B", "C", "D" };
+string letter = letters[random.Next(letters.Length)];   // indeksi 0 … 3
+
+List<string> names = new List<string> { "Matti", "Liisa", "Pekka" };
+string name = names[random.Next(names.Count)];
+```
+
+`Next(letters.Length)` antaa `0` … `Length - 1`, eli juuri lailliset indeksit. Taulukolla `Length`, listalla `Count` — katso [indeksi alkaa nollasta](Data-Structures.md#indeksi-alkaa-nollasta).
+
+## Satunnainen odotus
+
+```csharp
+int waitMs = random.Next(1000, 5001);   // 1000 … 5000 ms eli 1–5 s
+Thread.Sleep(waitMs);
+```
+
+Pelissä satunnainen tauko tuntuu luonnollisemmalta kuin aina sama. `Thread.Sleep` pysäyttää ohjelman millisekunneiksi — katso [Thread.Sleep](Thread-Sleep.md).
 
 ## Yleisiä virheitä
 
-### ❌ Luodaan uusi Random-olio liian usein
+**1. `Next(1, 20)` ei koskaan anna lukua 20**
 
-```csharp
-// ❌ HUONO: Uusi Random-olio jokaisella kutsulla
-for (int i = 0; i < 10; i++)
-{
-    Random random = new Random();  // Sama seed → samat luvut!
-    Console.WriteLine(random.Next(100));
-}
-```
+Yläraja ei kuulu mukaan. Luku 1–20 on `Next(1, 21)`.
 
-### ✅ Luodaan Random-olio kerran
+**2. `new Random()` silmukan sisällä**
 
-```csharp
-// ✅ HYVÄ: Yksi Random-olio
-Random random = new Random();
-for (int i = 0; i < 10; i++)
-{
-    Console.WriteLine(random.Next(100));
-}
-```
+Luo olio kerran luokan tasolla tai `Main`-metodin alussa. Silmukassa luominen on turhaa ja tekee koodista vaikeamman lukea.
+
+**3. `for` seitsemän kertaa ja duplikaatit hylätään**
+
+Listaan jää vähemmän kuin seitsemän lukua. Käytä `while (numbers.Count < 7)`.
+
+**4. `Next(0, 1)` on aina 0**
+
+Väli `0` … `1 - 1` sisältää vain nollan. Kolikonheitto on `Next(0, 2)` tai `Next(2)`.
 
 ## Yhteenveto
 
-- `Random`-luokka generoi satunnaislukuja
-- `Next()` generoi kokonaislukuja
-- `NextDouble()` generoi desimaalilukuja
-- Luodaan yleensä yksi Random-olio ja käytetään sitä useita kertoja
-- Seed-arvo määrittää satunnaislukujen sekvenssin
+- `Random` on luokka. Luo olio kerran (`static Random random = new Random();`) ja käytä samaa kaikissa arvonnoissa.
+- `Next(min, max)`: yläraja ei kuulu mukaan. Noppa on `Next(1, 7)`.
+- Arvonta omassa metodissa (`DrawNumber`), rajat yhdessä paikassa.
+- Uniikit luvut: `while (list.Count < n)` + `Contains` ennen `Add`. `for` kiinteällä määrällä ei toimi.
+- Satunnainen alkio: `items[random.Next(items.Length)]`.
 
-Seuraavaksi: [Tietorakenteet](Data-Structures.md)
-
+Seuraavaksi: [Thread.Sleep](Thread-Sleep.md) · [Tietorakenteet](Data-Structures.md) · [Ohjausrakenteet](Control-Structures.md)
