@@ -401,7 +401,7 @@ Kolme lukua määräävät metric alertin käytöksen: **kynnys** (`> 0`), **ikk
 
 1. **Kynnys** normaalin liikenteen mukaan (esim. 5xx-osuus > 2 % eikä absoluuttinen määrä)
 2. **Ikkuna** niin pitkä, että hetkellinen piikki ei laukaise (5 → 15 min)
-3. **Alert processing rule** suunniteltuihin katkoihin — yöllinen pysäytys ei ole häiriö (ks. [Cost Management](Cost-Management.md#automaattinen-sammutus))
+3. **Alert processing rule** suunniteltuihin katkoihin — yöllinen pysäytys ei ole häiriö (ks. [Cost Management](Cost-Management.md#hälytysten-vaimennus-alert-processing-rule))
 
 Ja jokaisella hälytyksellä pitää olla **reaktio**: jos kukaan ei tee mitään sen lauetessa, se on dashboardin paikka, ei hälytys.
 

@@ -24,6 +24,7 @@ Arjen esimerkki: aamu. Nouset sängystä (peräkkäin). Jos sataa, otat sateenva
 | Ehto | Kyllä/ei-kysymys, tulos on `true` tai `false` | [Mikä on ehto](#mikä-on-ehto) |
 | `if` / `else` | Valitse yksi polku | [Valinta](#valinta--jos-näin-tee-näin) |
 | `else if` | Useita vaihtoehtoja, ensimmäinen tosi voittaa | [Useita vaihtoehtoja](#useita-vaihtoehtoja-if--else-if--else) |
+| `switch` | Yksi muuttuja, monta tarkkaa arvoa — valikko; `break` pakollinen, `default` ottaa loput | [switch](#switch--yksi-muuttuja-monta-tarkkaa-arvoa) |
 | `while` | Toista **niin kauan kuin** ehto on tosi | [while](#while--toista-niin-kauan-kuin) |
 | `do-while` | Kuten `while`, mutta runko ajetaan **ainakin kerran** | [do-while](#do-while--tee-ensin-kysy-sitten) |
 | `for` | Toista **tiedetty määrä** kertoja | [for](#for--tiedetty-määrä-kertoja) |
@@ -280,11 +281,37 @@ switch (weekDay)
 
 Merkkijonoja voi käyttää samalla tavalla (`case "LEFFA10":`). Kirjainkoko ratkaisee: `"k"` ja `"K"` ovat eri arvoja.
 
-Alussa `if` / `else if` riittää. Ota `switch` käyttöön, kun vaihtoehtoja on paljon ja jokainen on tarkka arvo.
+Tyypillisin käyttö on konsolivalikko. Metodikutsut pysyvät samoina kuin `if`-ketjussa, vain haarautuminen muuttuu:
 
-### Switch-lauseke (C# 8+)
+```csharp
+int choice = ReadInt("Valinta: ", 0, 2);
 
-Lyhyempi kirjoitustapa, joka **palauttaa arvon**. Opettele ensin tavallinen `switch` tai `if`.
+switch (choice)
+{
+    case 1:
+        SellTickets();
+        break;
+    case 2:
+        PrintReport();
+        break;
+    case 0:
+        running = false;
+        break;
+    default:
+        Console.WriteLine("Tuntematon valinta.");
+        break;
+}
+```
+
+`break` on pakollinen. Jos haarasta puuttuu `break`, käännös pysähtyy virheeseen **CS0163** (*Control cannot fall through from one case label to another*) — C# ei anna haaran valua seuraavaan. Myös `return` päättää haaran: metodissa, joka palauttaa arvon, `case 1: return 10.00m;` riittää ilman `break`-riviä.
+
+**Miksi `default`, kun `ReadInt(…, 0, 2)` jo rajaa arvot?** Tänään se ei aja koskaan. Mutta kun valikkoon lisätään kohta 3 ja `ReadInt`-kutsun yläraja nostetaan ennen kuin `case 3:` on kirjoitettu, valinta 3 ei tekisi mitään — eikä kertoisi siitä. `default` on puolustavaa koodia: se ottaa kiinni tulevat arvot ja sanoo ääneen, että jotain puuttuu. Sama syy pätee [enumin `switch`-lauseeseen](Enum.md#switch-sopii-enumille): kääntäjä ei varoita puuttuvasta haarasta, kun enumiin lisätään uusi arvo. `switch` ilman `default`-haaraa on `if` ilman `else` — joskus oikein, mutta päätä se tietoisesti.
+
+**`switch` vai `if`?** `switch`, kun vertaat **yhtä** muuttujaa **tarkkoihin** arvoihin: valikon numero, enumin arvo, alennuskoodi. `if` / `else if`, kun ehdot ovat erilaisia tai välejä: `age < 12`, `price > 100 && code == "X"`. Valikko on `switch`, ikäluokka on `if`.
+
+### Switch-lauseke (C# 8+) — myöhemmin
+
+Lyhyempi kirjoitustapa, joka **palauttaa arvon**. Opettele ensin tavallinen `switch` tai `if`; tähän palataan myöhemmin.
 
 ```csharp
 string kind = weekDay switch

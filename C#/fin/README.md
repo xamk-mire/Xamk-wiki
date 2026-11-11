@@ -17,6 +17,7 @@ Sisällysluettelo: [00-Basics/README](00-Basics/README.md).
 - [Funktiot ja metodit](00-Basics/Functions-and-Methods.md)
 - [Näkyvyysalueet](00-Basics/Scopes.md)
 - [Staattiset luokat ja metodit](00-Basics/Static-Classes-and-Methods.md)
+- [Math-luokka](00-Basics/Math.md) — pyöristys arvoon, `Ceiling`, `Floor`, `Max`
 - [Tietorakenteet](00-Basics/Data-Structures.md)
 - [Koodauskäytännöt](00-Basics/Coding-Conventions.md)
 - [Enum](00-Basics/Enum.md)

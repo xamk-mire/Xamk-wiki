@@ -187,6 +187,44 @@ on:
   workflow_dispatch:           # Manuaalinen käynnistys GitHubista
 ```
 
+`workflow_dispatch` voi ottaa **syötteitä** (`inputs:` — `boolean`, `choice`, `string`), jotka näkyvät *Run workflow* -lomakkeessa ja luetaan `${{ inputs.nimi }}`. Lomake näyttää aina **oletushaaran** version tiedostosta — uusi valintaruutu ilmestyy vasta mergen jälkeen.
+
+### Uudelleenkäytettävät workflow't: workflow_call, secrets: inherit ja concurrency
+
+Kun sama julkaisuketju pitää ajaa useaan ympäristöön, askeleita ei kopioida. **Uudelleenkäytettävä workflow** (`on: workflow_call`) määrittelee askeleet kerran ja ottaa erot `inputs`-parametreina; **kutsuva workflow** ajaa sen jobina:
+
+```yaml
+# .github/workflows/deploy-env.yml — askeleet kerran
+on:
+  workflow_call:
+    inputs:
+      environment: { type: string, required: true }
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}   # vars./secrets. ratkeavat TÄSTÄ ympäristöstä
+    steps: [ ... ]
+
+# .github/workflows/deploy.yml — kutsuja
+jobs:
+  dev:
+    uses: ./.github/workflows/deploy-env.yml
+    with: { environment: dev }
+    secrets: inherit                          # kutsuttu näkee salaisuudet vain näin
+  test:
+    needs: dev
+    uses: ./.github/workflows/deploy-env.yml
+    with: { environment: test }
+    secrets: inherit
+```
+
+| Avainsana | Merkitys |
+|-----------|----------|
+| `uses: ./.github/workflows/x.yml` | Job *on* kutsu toiseen workflow'hun; sen jobit näkyvät sisäkkäisinä |
+| `secrets: inherit` | Kutsuttu workflow ei näe **mitään** salaisuuksia oletuksena; `inherit` välittää kaikki kutsujan (ja jobin ympäristön) salaisuudet. Vaihtoehto on luetella ne nimeltä — tarkempi, kun workflow jaetaan repositorioiden välillä |
+| `needs:` + `if:` | Järjestys ja ehto: `if: ${{ !cancelled() && needs.infra.result != 'failure' }}` ajaa jobin myös silloin, kun edellinen *ohitettiin* tarkoituksella |
+| `concurrency: { group: deploy, cancel-in-progress: false }` | Vain yksi ajo ryhmää kohti kerrallaan; seuraava jonottaa (`false`) tai keskeyttää edellisen (`true`). Deployssa jonotus — kesken jäänyt julkaisu on pahempi kuin odotus |
+
 ---
 
 ## Käytännön esimerkki: .NET CI/CD
@@ -323,6 +361,18 @@ jobs:
 
 ---
 
+### Expand-contract: riskialtis muutos kahdessa PR:ssä
+
+Kun muutos koskee sekä infraa että koodia (uusi autentikointitapa, uusi sarake, uusi riippuvuus), yksi iso PR on vaarallinen: jos jälkimmäinen puoli kaatuu, edellinen on jo tuotannossa. **Expand-contract** jakaa muutoksen kahteen vaiheeseen, joista kumpikin on turvallinen yksinään:
+
+| Vaihe | Mitä tehdään | Periaate |
+|-------|--------------|----------|
+| **Expand** (laajenna) | Lisää uusi rinnalle vanhaa rikkomatta: managed identity *ja* salasana, nullable-sarake, Key Vault *ja* vanha app setting | Vanha koodi toimii edelleen; what-if näyttää vain `+` ja `~` |
+| **Cutover** (siirry) | Vaihda koodi käyttämään uutta | Ensimmäinen PR, jonka smoke test voi paljastaa puutteen — ja silloin vanha polku on vielä olemassa |
+| **Contract** (supista) | Poista vanha: salasana, vanha sarake, vanha asetus | Vasta kun uusi on todistetusti käytössä; `-`-rivit what-ifissä |
+
+Sama rytmi on tietokantamigraatioissa (lisää nullable → täytä → tiukenna) ja API-versioinnissa (uusi kenttä rinnalle → asiakkaat siirtyvät → vanha pois). Putken kannalta hyöty on, että jokainen PR on peruutettavissa yksinään.
+
 ## Secrets ja ympäristömuuttujat
 
 ### GitHub Actions Secrets
@@ -361,6 +411,27 @@ jobs:
       - name: Build
         run: dotnet build --configuration ${{ env.CONFIGURATION }}
 ```
+
+### GitHub Environments: muuttujat, salaisuudet ja hyväksyntä
+
+Repositoriotason salaisuudet ja muuttujat ovat samat jokaiselle ajolle. **GitHub Environment** (Settings → Environments) on nimetty kohde — `dev`, `test`, `production` — jolla on **omat** muuttujansa ja salaisuutensa *samoilla nimillä* ja omat suojaussääntönsä:
+
+```yaml
+jobs:
+  deploy:
+    environment: test                        # ← ilman tätä riviä vars.RESOURCE_GROUP on tyhjä
+    env:
+      RESOURCE_GROUP: ${{ vars.RESOURCE_GROUP }}   # test-ympäristön arvo
+```
+
+| Asia | Repositoriotaso | Environment-taso |
+|------|-----------------|------------------|
+| Muuttujat (`vars.X`) | Sama arvo kaikille | Sama *nimi*, eri arvo per ympäristö — YAML ei tiedä, mihin ympäristöön se julkaisee |
+| Salaisuudet (`secrets.X`) | Saatavilla heti | Vapautetaan jobille vasta kun ympäristön **suojaussäännöt** ovat läpi |
+| Suojaussäännöt | — | *Required reviewers* (ajo pysähtyy *Waiting for review*), haararajaus, odotusaika — Continuous Delivery yhdellä asetuksella |
+| OIDC-subject | `…:ref:refs/heads/main` | `…:environment:<nimi>` — jokainen ympäristö tarvitsee oman federated credentialin ([subject-muoto](#githubin-subject-muoto--huomaa-idt)) |
+
+Yleisin virhe: muuttuja luotiin repositoriotasolle tai jobilta puuttuu `environment:` — silloin `vars.X` on tyhjä ja komento kaatuu puuttuvaan parametriin.
 
 ---
 
@@ -512,6 +583,30 @@ Kehittäjä ──► feature-haara ──► Pull Request ──► main ──
 ### AI-katselmointi porttina
 
 Ihmiskatselmoinnin rinnalle (tai opiskeluprojektissa sen sijaan) voi kytkeä **AI-koodikatselmoinnin** — esim. GitHub Copilot code review — joka kommentoi PR:n muutokset automaattisesti. AI-katselmointi löytää mekaanisia ongelmia (bugiepäilyt, nimeäminen, unohtunut virheenkäsittely), mutta **ei ymmärrä kontekstia**: sen huomautukset ovat ehdotuksia, jotka ihminen hyväksyy tai perustellusti hylkää. Hyvä käytäntö: jokaiseen AI-kommenttiin reagoidaan — joko korjaus tai lyhyt perustelu, miksi ei korjata.
+
+### Toimitusketjun portti: haavoittuvat paketit ja Dependabot
+
+**Toimitusketju** (software supply chain) on kaikki koodi, jota et itse kirjoittanut mutta joka päätyy julkaisuusi: NuGet-paketit, niiden **transitiiviset riippuvuudet** (paketit, joita pakettisi tarvitsevat — et koskaan kirjoittanut niiden nimeä), ja workflow'n actionit. Haavoittuvuus niissä on sinun haavoittuvuutesi.
+
+```yaml
+- name: Vulnerable packages (supply-chain gate)
+  run: |
+    dotnet list package --vulnerable --include-transitive | tee vulnerable.txt
+    if grep -q "has the following vulnerable packages" vulnerable.txt; then
+      echo "::error::Vulnerable packages found — update them before merging."
+      exit 1
+    fi
+```
+
+| Palanen | Merkitys |
+|---------|----------|
+| `--vulnerable` | Vertaa paketteja **GitHub Advisory Database** -tietokantaan (sama lähde kuin Dependabotilla) |
+| `--include-transitive` | Ilman tätä vain suorat paketit tarkistetaan; vaaralliset ovat ne, joita et nähnyt |
+| `grep` + `exit 1` | Komennon paluuarvo vaihtelee SDK-versioittain, teksti ei — portin pitää kaatua deterministisesti |
+| NuGetAudit `NU1901`–`NU1904` | Sama tieto jo `dotnet restore`-vaiheessa varoituksina: NU1901 low, NU1902 moderate, NU1903 high, NU1904 critical. Varoitus ei kaada buildia; portti kaataa |
+| `NU1605` | Eri asia: *package downgrade* — kaksi riippuvuutta vaativat eri versiot, restore kaatuu jo ennen porttia |
+
+**Dependabot** on portin pari: `.github/dependabot.yml` listaa ekosysteemit (`nuget`, `github-actions`, …) ja aikataulun, ja GitHub avaa **päivitys-PR:t** automaattisesti — ensimmäiset minuuteissa tiedoston merge-hetkestä, sitten aikataulun mukaan (`open-pull-requests-limit` rajaa auki olevien määrän). *Version updates* nostaa versioita yleisesti; *security updates* (Settings → Code security) avaa PR:n vain haavoittuvuuden vuoksi. Jokainen PR kulkee samat portit — mutta vihreä tarkoittaa "kääntyy ja testit menevät läpi", ei "mikään ei muuttunut": **major-version** nosto (SemVer `6.x → 10.x`) voi sisältää rikkovia muutoksia, jotka testit eivät kata. Botti ehdottaa, ihminen mergeää.
 
 ---
 

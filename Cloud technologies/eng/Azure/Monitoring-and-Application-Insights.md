@@ -401,7 +401,7 @@ Three numbers define a metric alert's behaviour: the **threshold** (`> 0`), the 
 
 1. **Threshold** based on normal traffic (for example a 5xx *ratio* above 2 %, not an absolute count)
 2. **Window** long enough that a momentary spike does not fire (5 → 15 minutes)
-3. **Alert processing rule** for planned outages — a nightly stop is not an incident (see [Cost Management](../../Azure/Cost-Management.md#automaattinen-sammutus), in Finnish)
+3. **Alert processing rule** for planned outages — a nightly stop is not an incident (see [Cost Management](Cost-Management.md#alert-suppression-the-alert-processing-rule))
 
 And every alert needs a **reaction**: if nobody does anything when it fires, it belongs on a dashboard, not in an alert rule.
 

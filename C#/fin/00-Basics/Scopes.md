@@ -16,6 +16,8 @@ Tyypillinen tilanne: `Main`issä esitelty `childPrice` ei näy `GetUnitPrice`-me
 | `if` / `for` / `do`-lohkon sisällä | Vain sen lohkon sisällä | `int price` `if`-suluissa |
 | Luokan tasolla (`const` / kenttä) | Kaikissa luokan metodeissa | `const decimal ChildPrice` |
 | `do`-lohkon sisällä | **Ei** näy `while`-ehdossa | `continueAnswer` pitää esitellä ennen `do` |
+| `try`-lohkon sisällä | **Ei** näy `catch`-lohkossa eikä rakenteen jälkeen | `codes` pitää esitellä ennen `try` |
+| Property oliossa | Kaikissa olion metodeissa, ulkoa `movie.Title` | `public string Title { get; set; }` |
 
 `public` ja `private` ovat eri asia. Ne kertovat, kuka **luokan ulkopuolella** saa koskea jäseneen. Katso [käyttöoikeudet](Access-Modifiers.md).
 
@@ -129,6 +131,45 @@ while (continueAnswer == "k");
 
 Jos `string? continueAnswer` on `do`-lohkon sisällä, `while` ei näe sitä. Virhe: *The name 'continueAnswer' does not exist*. Sama idea [ohjausrakenteissa](Control-Structures.md#do-while--tee-ensin-kysy-sitten).
 
+## try ja catch ovat lohkoja
+
+`try { }` ja `catch { }` ovat lohkoja siinä missä `if` ja `do`. Muuttuja, jonka esittelet `try`-lohkon sisällä, ei näy `catch`-lohkossa eikä rakenteen jälkeen. Virhe on CS0103: *The name 'codes' does not exist in the current context*.
+
+```csharp
+Dictionary<string, decimal> codes = new Dictionary<string, decimal>();   // ennen try
+
+try
+{
+    // täytä codes tiedoston riveistä
+}
+catch (FileNotFoundException)
+{
+    Console.WriteLine("Koodilistaa ei löydy.");
+}
+
+return codes;   // OK — esiteltiin try-lohkon ulkopuolella
+```
+
+Jos `codes` olisi `try`-lohkon sisällä, `return codes` ei kääntyisi. Esittele muuttuja ennen `try`-sanaa, samoin kuin `continueAnswer` ennen `do`-sanaa. Itse rakenne: [poikkeusten käsittely](Exception-Handling.md#try-catch--kun-virhe-on-odottamaton).
+
+## Property vs paikallinen muuttuja
+
+```csharp
+class Movie
+{
+    public string Title { get; set; }   // property: elää oliossa
+}
+
+static void Main(string[] args)
+{
+    string title = "Dune";              // paikallinen: elää vain Mainin ajon
+    Movie movie = new Movie();
+    movie.Title = title;                // kopio olioon
+}
+```
+
+Property `Title` elää niin kauan kuin olio. Se näkyy kaikille olion metodeille ja luokan ulkopuolelle muodossa `movie.Title`. Paikallinen muuttuja `title` elää vain `Main`-metodin ajon ja näkyy vain siellä. Kun `Main` päättyy, `title` katoaa; `movie.Title` säilyy niin kauan kuin joku viittaa olioon. Katso [propertyt](Properties.md).
+
 ## Namespace ja projekti — myöhemmin
 
 Luokat voidaan ryhmitellä `namespace`-lohkoon. Toisen projektin luokat eivät näy ilman viittausta. `internal` rajoittaa näkyvyyden samaan projektiin.
@@ -139,7 +180,8 @@ Alussa yksi `Program`-luokka riittää. Älä opettele assembly-rajoja ennen kui
 
 - Muuttuja näkyy siinä lohkossa, jossa se syntyi — ei naapurimetodissa.
 - Jaettu arvo (hinnat): `const` luokan tasolle.
-- `do-while`-ehdon muuttuja esitellään ennen `do`-sanaa.
+- `do-while`-ehdon muuttuja esitellään ennen `do`-sanaa. Sama `try`-lohkolle: esittele ennen `try`, muuten `catch` ja rakenteen jälkeiset rivit eivät näe sitä.
+- Property elää oliossa ja näkyy olion kaikille metodeille; paikallinen muuttuja elää vain metodin ajon.
 - `public` / `private` on käyttöoikeus, ei sama asia kuin scope.
 
 Seuraavaksi: [Funktiot ja metodit](Functions-and-Methods.md) · [Staattiset luokat ja metodit](Static-Classes-and-Methods.md) · [Käyttöoikeudet](Access-Modifiers.md)

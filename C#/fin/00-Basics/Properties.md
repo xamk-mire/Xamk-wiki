@@ -15,8 +15,9 @@ Luokat ensin: [Luokat, oliot ja konstruktorit](../02-OOP-Concepts/Classes-and-Ob
 | `{ get; set; }` | Autoproperty — C# luo piilokentän |
 | `get` | Arvon luku |
 | `set` | Arvon asetus. Uusi arvo on `value` |
-| `{ get; private set; }` | Ulkoa voi lukea, vain luokka voi muuttaa |
+| `{ get; private set; }` | Ulkoa voi lukea, vain luokka voi muuttaa — ulkoa asetus on CS0272 |
 | Vain `get` | Laskettu tai lukittu arvo, ei asetusta |
+| `public int Count { get { return tickets.Count; } }` | Laskettu property: ei omaa kenttää, arvo lasketaan joka luvulla |
 
 ## Autoproperty — aloita tästä
 
@@ -79,29 +80,50 @@ public class Rectangle
 
 `Area` vain luetaan. `rect.Area = 10` ei käänny.
 
-## private set — ulkoa ei saa muuttaa
-
-Saldoa ei aseteta suoraan. Talletus ja nosto muuttavat sitä metodeilla.
+Sama idea listan koolle. `TicketOrder` pitää liput `private`-listassa, ja `Count` kertoo määrän:
 
 ```csharp
-public class BankAccount
+public class TicketOrder
 {
-    public decimal Balance { get; private set; }
+    private List<Ticket> tickets = new List<Ticket>();
 
-    public void Deposit(decimal amount)
+    public int Count
     {
-        if (amount > 0)
+        get { return tickets.Count; }
+    }
+}
+```
+
+`Count` ei ole oma kenttä, jota pitäisi muistaa päivittää — arvo lasketaan listasta joka kerta, kun joku lukee `order.Count`. Ulkoa ei voi asettaa: `order.Count = 3` ei käänny. Listan suojaamisesta lisää: [käyttöoikeudet](Access-Modifiers.md#luokka-joka-omistaa-listan).
+
+## private set — ulkoa ei saa muuttaa
+
+Myytyjen lippujen määrää ei aseteta suoraan. Myynti muuttaa sitä metodilla, joka tarkistaa määrän.
+
+```csharp
+public class Movie
+{
+    public string Title { get; set; }
+    public int TicketsSold { get; private set; }
+
+    public void Sell(int count)
+    {
+        if (count > 0)
         {
-            Balance += amount;
+            TicketsSold += count;
         }
     }
 }
 
-BankAccount account = new BankAccount();
-account.Deposit(100);
-Console.WriteLine(account.Balance);   // 100
-// account.Balance = 1_000_000;       // ei käänny
+Movie movie = new Movie();
+movie.Sell(3);
+Console.WriteLine(movie.TicketsSold);   // 3
+// movie.TicketsSold = 100;             // CS0272: set accessor is inaccessible
 ```
+
+`get` on julkinen, `set` yksityinen. Luokan sisällä `TicketsSold += count` toimii; luokan ulkopuolella `movie.TicketsSold = 100` pysähtyy käännösvirheeseen **CS0272**. Se on hyvä uutinen: kääntäjä estää virheen, jota et ajossa huomaisi.
+
+Jos `set` olisi julkinen, `Main` voisi kirjoittaa `movie.TicketsSold = -5` tai myydä ohi salin koon, eikä kukaan huomaisi. `Sell` on ainoa reitti, ja tarkistus on yhdessä paikassa — ei jokaisessa viidessätoista kutsukohdassa.
 
 ## Oletusarvo
 
@@ -120,6 +142,7 @@ public class Settings
 - Property on ovi kenttään: `get` lukee, `set` asettaa.
 - Autoproperty `{ get; set; }` on oletus.
 - Tarkistus kirjoitetaan setteriin. Uusi arvo on `value`.
-- `private set` estää muutoksen luokan ulkopuolelta.
+- `private set` estää muutoksen luokan ulkopuolelta (CS0272). Muutos kulkee metodin kautta, jossa tarkistus on.
+- Laskettu property (`Count`) ei tarvitse kenttää: arvo lasketaan joka luvulla.
 
 Seuraavaksi: [Luokat ja oliot](../02-OOP-Concepts/Classes-and-Objects.md) · [Kapselointi](../02-OOP-Concepts/Encapsulation.md) · [Käyttöoikeudet](Access-Modifiers.md)

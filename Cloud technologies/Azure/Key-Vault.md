@@ -1,4 +1,5 @@
 # Azure Key Vault
+> 🇬🇧 English version: [Key-Vault.md](../eng/Azure/Key-Vault.md)
 
 ## Sisällysluettelo
 
@@ -76,6 +77,12 @@ TLS/SSL-sertifikaattien hallinta, mukaan lukien automaattinen uusinta.
 - Koodiallekirjoitus
 - Autentikointi
 
+### Nimi, versio ja soft delete
+
+- **Vaultin nimi on globaalisti uniikki** ja osa DNS-nimeä (`https://<nimi>.vault.azure.net/`): 3–24 merkkiä, kirjaimia, numeroita ja väliviivoja, alkaa kirjaimella. Kurssin `kv-cloud26-<nimi>-dev` mahtuu rajaan vain, jos `<nimi>` on lyhyt.
+- **Jokainen `secret set` luo uuden version.** Salaisuuden URI ilman versiota (`.../secrets/AdminApiKey/`) tarkoittaa aina uusinta — siksi Key Vault -referenssit kirjoitetaan ilman versiota, ja kierrätys ei vaadi konfiguraatiomuutosta.
+- **Soft delete on aina päällä.** Poistettu salaisuus tai koko vault säilyy palautettavana 7–90 päivää (`--soft-delete-retention-days`). Sivuvaikutus: poistetun vaultin **nimi pysyy varattuna** koko ajan — `az keyvault create` samalla nimellä epäonnistuu, kunnes vault palautetaan (`az keyvault recover`) tai tuhotaan lopullisesti (`az keyvault purge`). *Purge protection* estää jälkimmäisen kokonaan; tuotannossa se kannattaa, kurssilla ei.
+
 ---
 
 ## Hinnoittelu
@@ -110,16 +117,18 @@ Key Vault tukee kahta pääsynhallintamallia. **RBAC on suositeltu.**
 ```
 RBAC (suositeltu):
 ──────────────────
-Azure AD → RBAC-rooli → Key Vault -resurssi
+Entra ID → RBAC-rooli → Key Vault -resurssi
                 ↓
     Sama malli kuin muissa Azure-palveluissa
 
 Access Policy (legacy):
 ───────────────────────
-Azure AD → Key Vault Access Policy → Key Vault
+Entra ID → Key Vault Access Policy → Key Vault
                     ↓
     Key Vault-kohtainen, ei yhdenmukainen
 ```
+
+> **Kaksi tasoa:** Key Vaultin *hallinta* (luonti, verkkoasetukset, poisto) on control plane -oikeus, jonka Owner ja Contributor saavat automaattisesti. Salaisuuksien *arvot* ovat data plane -oikeus, jota **mikään control plane -rooli ei anna** — tilauksen Owner saa `Forbidden`, kunnes hänellä on `Key Vault Secrets User` tai `Officer`. Ks. [roolimääritys ja kaksi tasoa](Managed-Identity.md#roolimääritys-kuka-mikä-rooli-mihin--ja-kaksi-tasoa).
 
 ### Key Vault RBAC -roolit
 
@@ -159,7 +168,7 @@ PERINTEINEN TAPA (❌):
 MANAGED IDENTITY (✅):
 ┌──────────────┐  Managed Identity   ┌──────────────┐
 │  App Service │ ──────────────────→ │  Key Vault   │
-└──────────────┘  (Azure AD hoitaa)  └──────────────┘
+└──────────────┘  (Entra ID hoitaa) └──────────────┘
   Ei salasanoja missään!
 ```
 
@@ -207,7 +216,25 @@ Huomaa: **Bicep asettaa vain osoittimen** — salaisuuden arvo ei ole templatess
 
 ### Vianetsintä
 
-Portal → App Service → **Environment variables**: jokaisen Key Vault -referenssin vieressä näkyy tila (vihreä ✓ / punainen ✗). Punainen tarkoittaa lähes aina, että Managed Identity puuttuu tai roolia ei ole myönnetty — ja roolimuutos voi kestää 1–5 minuuttia.
+Portal → App Service → **Environment variables**: jokaisen Key Vault -referenssin vieressä näkyy tila (vihreä ✓ / punainen ✗). Punainen tarkoittaa lähes aina, että Managed Identity puuttuu tai roolia ei ole myönnetty — ja roolimuutos voi kestää 1–6 minuuttia.
+
+Sama tila komentoriviltä, kun haluat sen skriptiin tai kuvakaappaukseen (`az webapp config appsettings list` näyttää vain raa'an `@Microsoft.KeyVault(...)`-merkkijonon, ei tilaa):
+
+```powershell
+$AppId = az webapp show --resource-group $RG --name $APP --query id --output tsv
+az rest --method get `
+  --url "https://management.azure.com$AppId/config/configreferences/appsettings?api-version=2023-12-01" `
+  --query "value[].{setting:name, status:properties.status, details:properties.details}" --output table
+```
+
+| `status` | Tarkoittaa |
+|----------|------------|
+| `Resolved` | Arvo haettu; sovellus näkee sen tavallisena asetuksena |
+| `AccessToKeyVaultDenied` | Identiteetillä ei ole data plane -roolia (tai se ei ole vielä voimassa) |
+| `SecretNotFound` / `VaultNotFound` | Kirjoitusvirhe URI:ssa tai salaisuutta ei ole asetettu |
+| `MSINotEnabled` | Sovelluksella ei ole managed identityä |
+
+App Service hakee referenssin arvon käynnistyksessä ja päivittää sitä taustalla noin vuorokauden välein — uuden version saa heti käyttöön käynnistämällä sovelluksen uudelleen.
 
 ### SecretClient vs. Key Vault -referenssi
 
@@ -306,12 +333,13 @@ az keyvault create \
   --location northeurope \
   --enable-rbac-authorization true \
   --enable-soft-delete true \
-  --soft-delete-retention-days 90
+  --soft-delete-retention-days 90     # 7–90; lyhyt kurssille, pitkä tuotantoon
 
-# 2. Myönnä itsellesi oikeudet
+# 2. Myönnä itsellesi oikeudet (data plane -rooli — Owner ei riitä salaisuuksien lukemiseen)
 az role assignment create \
   --role "Key Vault Administrator" \
-  --assignee $(az ad signed-in-user show --query id --output tsv) \
+  --assignee-object-id $(az ad signed-in-user show --query id --output tsv) \
+  --assignee-principal-type User \
   --scope $(az keyvault show --name myapp-kv --query id --output tsv)
 ```
 

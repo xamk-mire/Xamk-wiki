@@ -1,176 +1,260 @@
 # GitHub (Git)
 
-## Mikä on Git?
+**Git** on versionhallintatyökalu omalla koneellasi. Se tallentaa koodin historian **commit** kerrallaan, ja voit palata mihin tahansa aiempaan versioon. **GitHub** on palvelu verkossa, joka säilyttää repon kopion ja jonka kautta jaat koodin. Git ei ole GitHub: työkalu toimii ilman palvelua, palvelu on vain kopio.
 
-Git on järjestelmä, joka tallentaa tiedostojen muutoshistorian. Sitä käytetään pääasiassa koodin versionhallintaan, mutta sitä voidaan käyttää minkä tahansa tekstipohjaisen tiedoston, kuten dokumenttien tai konfiguraatiotiedostojen, hallintaan.
+Arjen esimerkki: commit on tallennettu pelitila, jolla on nimilappu. Push vie pelitilan pilveen, josta sen saa toiselle koneelle.
 
-## Mihin Git:iä käytetään?
+Tällä kurssilla Gitiä käytetään Visual Studio Communityn (2022 tai 2026) **Git**-valikosta ja **Git Changes** -ikkunasta. Koko kurssin solution on yhdessä Private-repossa, esimerkiksi `csharp-perusteet`.
 
-### 1. Versionhallinta
+**Microsoft:** [Version control with Git in Visual Studio](https://learn.microsoft.com/en-us/visualstudio/version-control/git-with-visual-studio) · **GitHub:** [Hello World](https://docs.github.com/en/get-started/start-your-journey/hello-world) — tämä sivu riittää alkuun.
 
-Voit tallentaa projektisi eri versiot ja palata tarvittaessa aiempaan versioon. Tämä on hyödyllistä esimerkiksi silloin, kun uusi koodimuutos aiheuttaa odottamattomia ongelmia.
+## Kartta
 
-### 2. Yhteistyö
+| Käsite | Yhdellä lauseella |
+|--------|-------------------|
+| **Repositorio** (repo) | Kansio, jonka koko muutoshistorian Git muistaa |
+| **Commit** | Tallennettu versio kaikista tiedostoista + viesti, joka kertoo mitä muuttui |
+| **Push** | Vie paikalliset commitit GitHubiin |
+| **Pull** | Hakee GitHubin uudet commitit paikalliseen repoon |
+| **Clone** | Repon kopio GitHubista toiselle koneelle, historia mukana |
+| **Branch** (haara) | Erillinen kehityslinja; kurssilla käytössä vain oletushaara `main` |
+| **Remote** / `origin` | Paikallisen repon tietämä verkko-osoite; `origin` on sen vakionimi |
+| **`.gitignore`** | Tekstitiedosto repon juuressa: lista siitä, mitä Git ei ota mukaan |
+| **Private** | Repo, jonka näkevät vain sinä ja kutsumasi henkilöt |
 
-Git mahdollistaa sen, että useat kehittäjät voivat työskennellä samassa projektissa samanaikaisesti. Kukin kehittäjä voi tehdä muutoksia omassa paikallisessa kopiossaan ja yhdistää ne myöhemmin yhteiseen päähaaraan.
+Haarat, pull requestit ja merge-konfliktit tulevat jatkokurssilla. Et törmää niihin, kun olet reposi ainoa kirjoittaja.
 
-### 3. Haarautuminen ja yhdistäminen
+## Kolme paikkaa
 
-Voit luoda haarautumia (branches) koodissasi, mikä mahdollistaa erilaisten ominaisuuksien tai korjausten kehittämisen erillään pääkoodista. Kun olet valmis, voit yhdistää (merge) haaran takaisin päähaaraan.
+Koodi on kolmessa paikassa, ja sinä päätät, milloin se siirtyy eteenpäin:
 
-## Mikä on Gitin hyöty aloittelijalle?
+```
+  Työkansio                 Paikallinen repo              GitHub
+  (tiedostot levyllä)       (historia omalla koneella)    (kopio verkossa)
+ ┌──────────────────┐      ┌──────────────────┐         ┌──────────────────┐
+ │ Program.cs  (M)  │      │ commit 3: Lisää… │         │ commit 3         │
+ │ Movie.cs    (A)  │ ───► │ commit 2: Korjaa…│  ────►  │ commit 2         │
+ │ ...              │commit│ commit 1: Alku   │  push   │ commit 1         │
+ └──────────────────┘      └──────────────────┘         └──────────────────┘
+          ◄──────────── undo                    ◄──────── pull
+```
 
-### 1. Turvallisuus
+| Toiminto | Mihin vaikuttaa | Mikä on tallessa, jos kone hajoaa |
+|----------|-----------------|-----------------------------------|
+| **Tallennus** (Ctrl+S) | Vain työkansioon | Ei mikään |
+| **Commit** | Paikalliseen repoon (historia) | Ei mikään — historia on samalla levyllä |
+| **Push** | GitHubiin | Kaikki pushatut commitit |
 
-Voit kokeilla uusia ideoita ja tehdä muutoksia koodiin tietäen, että voit aina palata toimivaan versioon, jos jokin menee pieleen.
+Tärkein asia: **tallennus ei ole commit, eikä commit ole push.** Vain push suojaa koneen hajoamiselta. Takaisinpäin: **Undo Changes** palauttaa työkansion viimeisimpään committiin, **pull** tuo GitHubin commitit paikalliseen repoon.
 
-### 2. Oppiminen
-
-Versionhallinta on olennainen taito ohjelmistokehityksessä, ja Git on alan standardi. Sen oppiminen antaa sinulle tärkeän taidon ja tekee yhteistyöstä muiden kanssa helpompaa.
-
-### 3. Yhteistyö
-
-Jos aiot työskennellä muiden kanssa tai osallistua avoimen lähdekoodin projekteihin, Gitin tunteminen on välttämätöntä.
-
-### 4. Historian seuraaminen
-
-Voit nähdä, mitä muutoksia olet tehnyt, milloin ja miksi. Tämä auttaa ymmärtämään projektisi kehityskaarta ja oppimaan omista virheistäsi.
-
-### 5. Portfolio
-
-GitHubin ja muiden Git-pohjaisten palveluiden avulla voit näyttää projektisi mahdollisille työnantajille tai tiimikavereille.
-
-## Terminologia
-
-Gitin sanasto voi tuntua monimutkaiselta aloittelijalle, mutta kun ymmärtää peruskäsitteet, Gitin käyttö alkaa tuntua loogisemmalta. Tässä on lista yleisimmistä Git-käsitteistä:
-
-### Tärkeimmät aluksi (kohdat 1, 2, 5, 7, 8)
-
-1. **Repository (Repositorio)**: Tämä on perusyksikkö Gitissä ja se tarkoittaa koodivarastoa, joka sisältää kaikki tiedostosi sekä koko muutoshistoriasi.
-
-2. **Commit**: Yksittäinen muutos tai joukko muutoksia, jotka olet tallentanut repositorioosi. Jokaisella commitilla on yksilöllinen tunniste ja viesti, joka kuvaa tehdyt muutokset.
-
-3. **Branch (Haara)**: Versio projektistasi. Voit tehdä uusia haarautumia, jotta voit kehittää uusia ominaisuuksia erillään pääkoodistasi. "Master" tai nykyään usein "Main" on usein oletushaara.
-
-4. **Merge (Yhdistäminen)**: Prosessi, jossa yhdistät yhden haaran muutokset toiseen haaraan.
-
-5. **Clone**: Kopio repositoriosta, yleensä paikalliselle koneelle.
-
-6. **Fork**: Kopio toisen käyttäjän repositoriosta omaan tilillesi, yleensä käytetty avoimen lähdekoodin projekteissa.
-
-7. **Pull**: Toiminto, jolla haet ja yhdistät muutokset etä-repositoriosta paikalliseen versioosi.
-
-8. **Push**: Toiminto, jolla lähetät paikalliset commitisi etä-repositorioon.
-
-9. **Pull Request (PR)**: Ehdotus muutoksista, jotka olet tehnyt forkatussa repositoriossa, ja haluaisit yhdistää ne alkuperäiseen repositorioon. Yleinen käytäntö avoimen lähdekoodin projekteissa.
-
-10. **Remote**: Viittaa etä-repositorioon, yleensä internetissä sijaitsevaan palveluun kuten GitHub, GitLab tai Bitbucket.
-
-11. **Staging Area (Lavastusalue)**: Paikka, jossa valmistellaan muutoksia ennen niiden commitoimista. Täällä määrität, mitkä muutokset haluat sisällyttää seuraavaan commitiisi.
-
-12. **Checkout**: Toiminto, jolla voit siirtyä eri committien, tagien tai haarautumien välillä.
-
-13. **Tag**: Merkki, joka viittaa tiettyyn commitiin, yleensä käytetty versioiden merkitsemiseen.
-
-14. **Stash**: Toiminto, jolla voit tilapäisesti tallentaa muutokset, jotka et ole vielä commitoinut, jotta voit siirtyä toiseen tehtävään.
-
-## Gitin käyttö Visual Studiossa
-
-### Kuinka laittaa koodit GitHubiin?
-
-Visual Studion oikeasta alareunasta löytyy kohta **Add to Source Control**
-
-Tai työkaluvalikosta löytyy Git ja sieltä voi valita **Create Git Repository**
-
-Tämän jälkeen tulee ikkuna, jossa voit valita:
-- **Mihin koodi ollaan laittamassa**: Valitse **GitHub** tai valitse **Local only**, jos haluat vain tallentaa omalle tietokoneellesi
-- **Mikä on repositoryn nimi**: Anna repositorylle nimi
-- **Haluatko, että repository on kaikille nähtävissä vai vain itsellesi**: **HUOM!** Jos olet koodaamassa koulutehtävää, sen täytyy olla **Private!!!!!**
-- **Luo repository**: Painamalla tätä, ohjelma luo uuden repositoryn tilillesi ja laittaa koodit sinne
-
-### Git Changes -ikkuna
-
-**Commit-viesti**: Viesti jossa kerrotaan, että mitä muutoksia tehtiin tässä commitissa. Commit-viestissä kannattaa aina kertoa tarkasti, että mitä on tehnyt, jotta muut kehittäjät tietävät commitin syyn ja se on myös itsellesi hyödyllinen, jos joskus kuukausien päästä joudut jostain syystä katsomaan commit-historiaa.
-
-**Commit**: Tämän avulla voit commitoida muutokset. Nuolta painamalla avautuu valikko, josta voit tehdä lisätoimintoja.
-
-### git commit
-
-Kun olet tehnyt muutoksia paikallisessa työtilassasi, sinun täytyy "commitoida" nämä muutokset, jotta ne kirjataan Git-historiaan. Commitilla on viesti, joka kuvailee tehdyt muutokset.
-
-Esimerkki: `"Korjasin bugi X:n"`
-
-Commit-toiminto tallentaa muutokset vain **paikallisesti**, eli ne eivät ole vielä siirretty etävarastoon (esim. GitHubiin tai GitLabiin).
-
-### git push
-
-Kun olet tehnyt yhden tai useamman commitin paikallisesti ja haluat siirtää (tai "pushata") nämä muutokset etävarastoon, käytät `git push`-komentoa.
-
-Esimerkki: `git push origin master`, missä "origin" on oletusetävaraston nimi ja "master" on haaran nimi (nykyään monissa projekteissa käytetään termiä "main" päähaaralle).
-
-### Muutosten näkeminen
-
-**Muutokset**: Tässä kohdassa näet kaikki muutokset, joita olet tehnyt. Tiedostot merkitään:
-- **M** (Modified) - Muokattu tiedosto
-- **A** (Added) - Lisätty tiedosto
-- **D** (Deleted) - Poistettu tiedosto (yliviivattu)
-
-### Muutosten kumoaminen
-
-Voit kumota muutoksia viemällä hiiren halutun muutoksen kohdalle ja painamalla kumoa-nuolta tai painamalla tiedoston kohdalta oikeaa hiiren nappia ja valitsemalla **Undo Changes**.
-
-**HUOM!** Uutta lisättyä tiedostoa ei voi kumota, koska siinä ei ole mitään muutoksia joita kumota. Tämän muutoksen saa pois valitsemalla delete.
-
-## Git History
-
-Kun projekti on liitetty johonkin repositoryyn, voit sen jälkeen tarkastella sen historiaa, eli mitä muutoksia milloinkin on tehty siihen repositoryyn.
-
-Saat historian näkyviin menemällä Git-valikkoon ja valitsemalla sieltä **View Branch History**.
-
-Voit halutessasi tarkastella commitin yksityiskohtia painamalla oikeaa hiiren nappia halutun commitin kohdalla ja valitsemalla **View Commit Details**.
+Git ei ole OneDrive: muutokset eivät siirry itsestään. Siksi historiassa on vain nimettyjä, toimivia versioita.
 
 ## Tilin yhdistäminen
 
-Jotta voit käyttää GitHubia ja gittiä Visual Studiosta suoraan, täytyy sinun ensin linkittää tili. Se tapahtuu seuraavanlaisesti:
+Visual Studio tekee repon GitHubiin puolestasi, mutta sen pitää ensin tietää, kuka olet. Kaksi asetusta, kerran per kone:
 
-1. Paina oikeasta yläkulmasta löytyvää ikonia
-2. Valitse Account Settings
-3. Paina Add ja valitse GitHub
-4. Valitse Authorize
+1. **GitHub-tili Visual Studioon:** oikean yläkulman profiilikuvake → **Account settings…** → **All Accounts: Add → GitHub** → kirjaudu selaimessa ja paina **Authorize**. Sen jälkeen push ja pull toimivat ilman salasanoja.
+2. **Nimi ja sähköposti commiteille:** **Git → Settings** → **Git Global Settings** (uudemmassa versiossa **Source Control → Git Settings → Git Global Config**) → **User Name** ja **Email**. Käytä samaa sähköpostia kuin GitHub-tilissä, niin commitit yhdistyvät profiiliisi.
 
-## Muutokset ja niiden tallentaminen (Commit)
+Nämä ovat eri asiat: tili antaa oikeuden pushata, nimi ja sähköposti leimataan jokaiseen committiin.
 
-Visual Studio sisältää sisäänrakennetun tuen Git-versionhallinnalle, mikä tekee siitä helppoa seurata, tehdä ja kumota muutoksia suoraan IDE:ssa.
+Jos **Git**-valikkoa ei ole yläpalkissa, Git for Windows puuttuu: Visual Studio Installer → Modify → Individual components → **Git for Windows**.
 
-### Miten Git seuraa muutoksia Visual Studiossa?
+## Gitin käyttö Visual Studiossa
 
-Kun olet kloonannut Git-repositorion tai aloittanut uuden Git-repositorion Visual Studiossa, Visual Studio alkaa automaattisesti seurata tiedostomuutoksia.
+Repo luodaan **kerran** koko solutionille: **Git → Create Git Repository…** (sama löytyy oikeasta alareunasta **Add to Source Control**). Ikkunassa:
 
-Pääset näkemään, että mitä muutoksia olet tehnyt painamalla keltaisella ympyröityä kynää, joka löytyy oikeasta alareunasta. Tai sitten menemällä **Git Changes** -välilehdelle (sinisellä ympyröity).
+- vasemmalta **GitHub**
+- **Local path:** solutionin kansio (Visual Studio ehdottaa valmiiksi)
+- **.gitignore template: Default (VisualStudio)** — pitää `bin/`, `obj/` ja `.vs/` poissa
+- **Repository name:** esimerkiksi `csharp-perusteet`
+- **Visibility: Private** — koulutehtävässä aina
+- **Create and Push**
 
-Vihreällä ympyröidyt tiedostot ovat tiedostoja, joihin on tullut muutoksia edelliseen versioon verrattuna.
+Yksi nappi tekee paikallisen repon, `.gitignore`-tiedoston, ensimmäisen commitin (`Add project files.`) ja Private-repon GitHubiin. Oikeassa alareunassa näkyy nyt repon nimi ja haara `main`.
 
-### Miten muutokset voidaan laittaa?
+Tarkista selaimessa `https://github.com/tunnuksesi/csharp-perusteet`: tiedostot ovat siellä, nimen vieressä lukee **Private**, eikä `bin/`-kansiota ole.
 
-1. Avaa "Team Explorer" (joukkueentutkija) -näkymä Visual Studiossa
-2. Valitse "Changes" (muutokset) -välilehti. Tässä näkyy kaikki tekemäsi muutokset
-3. Syötä commit-viesti, joka kuvailee tekemäsi muutokset
-4. Paina "Commit" (tallenna) -painiketta tallentaaksesi muutokset paikallisesti
-5. Jos haluat lähettää muutokset etärepositorioon (kuten GitHubiin), valitse "Sync" (synkronoi) ja sitten "Push" (lähetä)
+### Git Changes -ikkuna
 
-### Miten muutokset voidaan kumota?
+**View → Git Changes** (Ctrl+0, Ctrl+G). Tämä on arjen työkalu, jonka rakenne ylhäältä alas on: nuolet, viestikenttä, **Commit All** -nappi ja **Changes**-lista.
 
-- Jos haluat kumota tekemäsi muutokset ennen niiden tallentamista (commit), voit valita "Undo" (kumoa) "Changes"-näkymässä tietylle tiedostolle
-- Jos olet jo tehnyt commitin ja haluat kumota sen, siirry "History" (historia) -välilehteen, löydä haluamasi commit ja valitse "Revert" (palauta) kumotaksesi sen muutokset
+| Merkki | Tarkoittaa | Milloin |
+|--------|------------|---------|
+| **M** | Modified — tiedostoa on muokattu | Muutit olemassa olevaa tiedostoa |
+| **A** | Added — uusi tiedosto, jota ei vielä ole historiassa | Lisäsit projektin tai luokkatiedoston |
+| **D** | Deleted — tiedosto on poistettu | Poistit tiedoston |
+
+Kaksoisklikkaus tiedostolla näyttää rinnakkain, mitä oli ennen ja mitä nyt. Vihreä rivi on lisätty, punainen poistettu.
+
+Rutiini, jonka toistat kymmeniä kertoja viikossa:
+
+1. Muokkaa ja tallenna. Tiedosto ilmestyy **Changes**-listaan.
+2. Kirjoita viestikenttään, mitä teit (esimerkiksi `Lisää Movie-luokka`).
+3. **Commit All**. Ilmoitus `Commit … created locally` — commit on vain koneellasi.
+4. **Nuoli ylös** on push. Sen vieressä lukee **1 outgoing**: yksi commit odottaa viemistä. Pushin jälkeen laskuri on 0.
+
+**Nuoli alas** on pull. Jos sen vieressä lukee **incoming**, GitHubissa on commiteja, joita koneellasi ei ole. Keskimmäinen nuoli on *fetch*: se tarkistaa tilanteen hakematta vielä mitään.
+
+### Muutosten kumoaminen
+
+Oikea nappi tiedostolla **Changes**-listassa → **Undo Changes**. Tiedosto palaa **viimeisimmän commitin** tilaan, ja kaikki sen jälkeen tehdyt muutokset katoavat — myös ne, jotka olisit halunnut pitää.
+
+Siksi commit usein on turvaverkko: kun jokin toimii, committaa, niin Undo palauttaa juuri siihen. Jos commiteja on yksi, Undo palauttaa aamuun.
+
+Kaksi rajoitusta:
+
+- Uudella tiedostolla (**A**) Undo ei ole valittavissa, koska aiempaa versiota ei ole. Poista tiedosto tavallisesti.
+- Undo ei tee mitään **jo commitatulle** muutokselle. Commitatun muutoksen peruminen on **Revert** Branch Historyssa (oikea nappi commitilla). Se tekee uuden commitin, joka kumoaa vanhan; historia säilyy. Et tarvitse sitä vielä.
+
+## Git History
+
+**Git → View Branch History** listaa commitit uusin ylinnä: viesti, tekijä, aika ja tunniste. Alimpana on Visual Studion tekemä ensimmäinen commit.
+
+Oikea nappi commitilla → **View Commit Details** näyttää, mitkä tiedostot muuttuivat. Tiedostoa klikkaamalla näet tarkat rivit rinnakkain.
+
+Historia on hyödyllinen vain, jos viestit kertovat jotain. Lista `päivitys`, `päivitys`, `korjaus` ei auta ketään — ei sinua kahden viikon päästä eikä opettajaa palautuksessa.
+
+## Milloin committaat ja millainen on hyvä viesti
+
+**Yksi toimiva osio = yksi commit.** Hyvä hetki on, kun ohjelma kääntyy ja tekee sen, mitä osio pyysi, ja seuraava osio alkaa uudella asialla. Älä committaa rikkinäistä koodia "varmuuden vuoksi": silloin Undo palauttaa rikkinäiseen. Älä myöskään odota koko päivää.
+
+Viesti kertoo **mitä** muuttui ja tarvittaessa **miksi**. Käytäntö: imperatiivi (Lisää, Korjaa, Siirrä, Poista), alle 70 merkkiä, sama kieli koko repossa.
+
+| Huono | Hyvä | Miksi |
+|-------|------|-------|
+| `päivitys` | `Lisää Movie-luokka ja korvaa string[] movies` | Kertoo *mitä* tehtiin ilman, että pitää avata koodia |
+| `korjaus` | `Korjaa alennuksen pyöristys sentteihin` | Kertoo *mikä* korjattiin |
+| `Korjasin bugi X:n` | `Korjaa tyhjän alennuskoodin kaatuminen` | Imperatiivi ja nimetty ongelma, ei "bugi X" |
+| `asdf` | — | Ei koskaan |
+
+Kenelle hyvästä viestistä on hyötyä:
+
+- **Sinulle kahden viikon päästä**, kun etsit, missä commitissa alennus meni rikki.
+- **Opettajalle**, joka näkee historiasta, missä järjestyksessä työ syntyi.
+- **Tiimille** jatkokurssilla, kun joku muu lukee muutoksesi ennen yhdistämistä.
+
+## .gitignore — mitä repoon ei laiteta
+
+Repoon kuuluu **lähdekoodi** ja se, mitä ohjelma tarvitsee toimiakseen. Siihen **ei** kuulu se, mitä käännös tai ajo tuottaa — ne syntyvät uudestaan jokaisella koneella.
+
+| Kuuluu repoon | Ei kuulu repoon | Miksi |
+|---------------|-----------------|-------|
+| `.cs`-tiedostot, `.csproj`, `.sln` / `.slnx` | `bin/`, `obj/` | Käännöksen tulos: `.exe`, `.dll`, välimuistit. Syntyvät uudestaan Ctrl+F5:llä |
+| Ohjelman lukemat datatiedostot projektikansiossa (esim. `alennuskoodit.txt`) | `.vs/` | Visual Studion omat asetukset ja välimuistit, eri joka koneella |
+| `README.md`, `.gitignore` | Ohjelman ajossa luomat tiedostot (`kuitit.txt` ajokansiossa) | Tuotettu tulos, ei lähde |
+| | Salasanat, avaimet, `.env`, `appsettings.Development.json` | Historiasta ei saa pois; Private-repo ei suojaa collaboratoreilta |
+
+**`.gitignore`** on tekstitiedosto repon juuressa. Jokainen rivi on polku tai kuvio, jonka Git ohittaa kokonaan:
+
+```
+[Bb]in/
+[Oo]bj/
+.vs/
+```
+
+Hakasulkeet tarkoittavat "iso tai pieni kirjain". Loppukauttaviiva tarkoittaa kansiota.
+
+Visual Studio luo tiedoston valmiiksi, kun pohjaksi valitaan *VisualStudio* repoa luodessa. Tiedosto on pitkä, koska sama pohja kattaa kaikki projektityypit — sinulle tärkeät ovat nuo kolme riviä.
+
+Jos `.gitignore` puuttuu tai siitä puuttuu rivejä, Git Changes -ikkuna näyttää satoja `.dll`-, `.exe`- ja `.json`-tiedostoja `bin\`- ja `obj\`-poluista. Lisää rivit **ennen** committia. Jos kansiot ehtivät jo historiaan, ne pitää poistaa erikseen (`git rm -r --cached bin obj` komentoriviltä) — kysy apua.
+
+Sääntö: **ohjelman tarvitsema syöte kuuluu repoon, ohjelman tuottama tulos ei.** Salaisuuksien käsittely: [Secrets Management](../../../Development-guidelines/Secrets-Management/README.md).
+
+## Clone ja pull — sama repo kahdella koneella
+
+**Clone** tekee repon kopion toiselle koneelle, historia mukana:
+
+1. GitHubissa repon sivulla vihreä **Code**-nappi → **HTTPS** → kopioi osoite (`https://github.com/tunnus/repo.git`).
+2. Visual Studiossa **Git → Clone Repository…** (tai aloitusikkunan *Clone a repository*).
+3. **Repository location**: liitä osoite. **Path**: kansio, johon kopio tulee. **Clone**.
+
+Kloonattu repo on täysi repo: sama historia, samat tiedostot. `bin/`- ja `obj/`-kansiot puuttuvat — ne syntyvät, kun käännät.
+
+**Pull** hakee GitHubista commitit, joita koneellasi ei vielä ole: **Git → Pull** tai Git Changes -ikkunan **nuoli alas**. Jos nuolen vieressä lukee *incoming*, GitHubissa on jotain uutta.
+
+Kun työskentelet kahdella koneella (koulu ja koti), rutiini on sama molemmilla:
+
+```
+pull → työtä → commit → push
+```
+
+Jos unohdat pullata ja yrität pushata, GitHub hylkää pushin (*rejected*): siellä on commiteja, joita sinulla ei ole. Ratkaisu: pull ensin, sitten push. Git yhdistää commitit automaattisesti, jos eri rivejä muutettiin. Jos **sama rivi** muutettiin molemmilla koneilla, syntyy *merge-konflikti*, jossa valitset kumpi versio jää. Vältä se pullaamalla aina ennen työn aloitusta.
+
+## Private vai Public ja collaborator
+
+Repo on joko **Public** (kuka tahansa näkee) tai **Private** (vain sinä ja kutsumasi). Koulutehtävä on aina **Private**, koska
+
+- koodi on keskeneräistä ja sisältää kokeiluja, joita ei ole tarkoitettu julkaistaviksi
+- tehtävien ratkaisut eivät saa levitä muille opiskelijoille
+- portfolio julkaistaan valmiina — kun projekti on kunnossa, näkyvyyden voi vaihtaa.
+
+Jos rasti jäi pois, korjaa GitHubissa: repo → **Settings** → **Danger Zone** → **Change repository visibility** → Private.
+
+Private-repoon annetaan pääsy toiselle lisäämällä hänet **collaboratoriksi**: repo → **Settings** → **Collaborators** → **Add people** → GitHub-tunnus. Hän saa kutsun sähköpostiin.
+
+| Collaborator voi | Collaborator ei voi |
+|------------------|---------------------|
+| Lukea repon ja historian | Muuttaa näkyvyyttä (Private/Public) |
+| Committata ja pushata | Poistaa repoa |
+| | Lisätä muita collaboratoreita |
+
+Tällä kurssilla opettajaa **ei** lisätä collaboratoriksi. Opettaja kertoo Learnissa, miten Private-repon sisältö tarkistetaan. Jokainen kutsu lähettää sähköpostin, joten tee lisäys vasta, kun kurssin ohje erikseen pyytää.
+
+## Komentorivi — sama asia terminaalissa
+
+Kurssilla käytetään Visual Studiota. Komennot ovat se, mitä näet ohjeissa, Stack Overflow'ssa ja työpaikalla, ja ne muokkaavat samaa `.git`-kansiota kuin napit. Tämä taulukko on kartta, ei opeteltava lista.
+
+| Visual Studio | Komentorivi |
+|---------------|-------------|
+| Git → Settings (nimi, sähköposti) | `git config --global user.name "…"` ja `user.email` |
+| Git → Create Git Repository | `git init`, `dotnet new gitignore`, `git remote add origin …`, `git push -u origin main` |
+| Git Changes -lista (M / A / D) | `git status` |
+| Kaksoisklikkaus tiedostolla (vertailu) | `git diff` |
+| Commit All | `git add .` ja `git commit -m "viesti"` |
+| Nuoli ylös (push) | `git push` |
+| View Branch History | `git log --oneline` |
+| View Commit Details | `git show <tunniste>` |
+| Undo Changes | `git restore <tiedosto>` |
+| Clone a repository | `git clone <osoite>` |
+| Nuoli alas (pull) | `git pull` |
+| Fetch-nuoli | `git fetch` |
+
+Terminaali avautuu Visual Studiossa **View → Terminal** solutionin kansioon. Arjen rutiini on neljä riviä: `git status`, `git add .`, `git commit -m "Mitä tein"`, `git push`. Laajemmin: [Git and GitHub Usage Guidelines](../../../Development-guidelines/Git-and-Github.md) (englanniksi).
+
+## Yleisiä virheitä
+
+| Virhe | Mitä tapahtuu | Korjaus |
+|-------|---------------|---------|
+| Commit ilman pushia, kone hajoaa | Commit oli vain paikallisessa repossa — se on poissa | Pushaa aina työrupeaman lopuksi; **outgoing**-laskuri pitää olla 0 |
+| `bin/` tai `obj/` repossa | Satoja tiedostoja Git Changes -ikkunassa, jokainen käännös tekee "muutoksen" | `.gitignore`-rivit `[Bb]in/`, `[Oo]bj/`, `.vs/` ennen committia; jo commitatut poistetaan erikseen |
+| Viesti `päivitys` | Historia ei kerro mitään | Imperatiivi + mitä muuttui: `Lisää Movie-luokka` |
+| File → New → Project uudelle viikolle | Syntyy uusi solution ja uusi repo | Lisää projekti olemassa olevaan solutioniin: Solution → **Add → New Project** |
+| Push ennen pullia toisella koneella | Push hylätään (*rejected*) | Pull ensin, sitten push |
+| Opettaja lisätty collaboratoriksi vahingossa | Opettaja saa sähköpostin, pääsy jää voimaan | Settings → Collaborators → poista; tällä kurssilla ei lisätä |
 
 ## Yhteenveto
 
-Vaikka Gitin oppimiskäyrä voi tuntua jyrkältä aluksi, sen hallitseminen on palkitsevaa. Se ei ainoastaan tee koodaamisesta ja yhteistyöstä muiden kanssa helpompaa, vaan se myös avaa ovia moniin mahdollisuuksiin ohjelmistokehityksen maailmassa.
+- Git on työkalu koneellasi, GitHub on kopio verkossa.
+- Tallennus (Ctrl+S) ei ole commit, commit ei ole push. Vain push suojaa koneen hajoamiselta.
+- Yksi toimiva osio = yksi commit. Viesti imperatiivissa ja kertoo, mitä muuttui.
+- Undo Changes palauttaa viimeisimpään committiin — committaa usein, niin turvaverkko on lähellä.
+- `.gitignore` pitää `bin/`, `obj/` ja `.vs/` poissa reposta. Datatiedosto, jonka ohjelma lukee, kuuluu repoon.
+- Kahdella koneella: pull → työtä → commit → push.
+- Koulutehtävät ovat **Private**. Opettajaa ei lisätä collaboratoriksi, ellei kurssin ohje pyydä.
 
-**Tärkeimmät komennot:**
-- `git commit` - Tallenna muutokset paikallisesti
-- `git push` - Lähetä muutokset etärepositorioon
-- `git pull` - Hae muutokset etärepositoriosta
+Seuraavaksi: [IDE](IDE.md) · [Markdown](Markdown.md) (repon `README.md`) · [Git and GitHub Usage Guidelines](../../../Development-guidelines/Git-and-Github.md) (komentorivi, englanniksi)
 
-Seuraavaksi: [IDE](IDE.md)
+## Hyödyllisiä linkkejä
 
+- [Microsoft: Create a Git repository from Visual Studio](https://learn.microsoft.com/en-us/visualstudio/version-control/git-create-repository) — Create Git Repository -ikkuna kuvineen
+- [Microsoft: Make a commit](https://learn.microsoft.com/en-us/visualstudio/version-control/git-make-commit) — Git Changes -ikkuna, staged vs kaikki muutokset
+- [Microsoft: Fetch, pull, push and sync](https://learn.microsoft.com/en-us/visualstudio/version-control/git-fetch-pull-sync) — nuolet ja outgoing/incoming
+- [Microsoft: Clone a repository](https://learn.microsoft.com/en-us/visualstudio/version-control/git-clone-repository) — Clone-ikkuna kuvineen
+- [Microsoft: Browse repository history](https://learn.microsoft.com/en-us/visualstudio/version-control/git-browse-repository) — Branch History ja Commit Details
+- [GitHub Docs: Hello World](https://docs.github.com/en/get-started/start-your-journey/hello-world) — GitHubin oma aloitusopas
+- [GitHub Docs: Inviting collaborators](https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-personal-account-on-github/managing-access-to-your-personal-repositories/inviting-collaborators-to-a-personal-repository) — mistä collaborator lisätään ja poistetaan (tällä kurssilla vain tiedoksi)
+- [GitHub: gitignore-pohjat](https://github.com/github/gitignore) — `VisualStudio.gitignore` on sama, jonka Visual Studio luo
+- [Git-komentojen pikaopas (GitHub, PDF)](https://education.github.com/git-cheat-sheet-education.pdf) — yhden sivun lunttilappu komentoriville
+- [Pro Git -kirja](https://git-scm.com/book/en/v2) — ilmainen, luvut 1–2 riittävät pitkälle; myös [suomeksi](https://git-scm.com/book/fi/v2) (osittain)
+- [Learn Git Branching](https://learngitbranching.js.org/) — selaimessa pelattava harjoitus haaroista, kun ne tulevat ajankohtaisiksi

@@ -10,11 +10,12 @@ Arjen esimerkki: kassalla ikä kysytään kirjoittamalla. Näppäimistö antaa m
 
 | Tilanne | Mitä käytät |
 |---------|-------------|
-| Käyttäjä kirjoitti iän tai lippumäärän | `Convert.ToInt32(...)` |
-| Käyttäjä kirjoitti rahasumman | `Convert.ToDecimal(...)` |
+| Käyttäjä kirjoitti iän tai lippumäärän | [`int.TryParse`](#tryparse--kysy-uudelleen) ensisijaisesti — palauttaa `bool`, kysy uudelleen |
+| Syöte on varmasti luku (tai kaatuminen saa opetella) | `Convert.ToInt32(...)` / `int.Parse(...)` — heittää `FormatException` |
+| Käyttäjä kirjoitti rahasumman | `decimal.TryParse`; `Convert.ToDecimal` vain varmalle syötteelle |
 | `int` kerrotaan `decimal`-hinnalla | Ei muunnosta — C# tekee sen itse |
 | Desimaalit pois (`3.9` → `3`) | `(int)arvo` — tieto katoaa |
-| Syöte voi olla mitä tahansa tekstiä | [`int.TryParse`](#tryparse--kysy-uudelleen) — palauttaa `bool`, kysy uudelleen |
+| Enum ↔ numero | `(int)Size.Large` → `1`, `(Size)1` → `Size.Large` |
 
 ## Konsolin syöte on aina tekstiä
 
@@ -37,12 +38,12 @@ int age = Convert.ToInt32(Console.ReadLine());
 |--------|--------|
 | `Convert.ToInt32(teksti)` | Kokonaisluku: ikä, lippumäärä, valikon numero |
 | `Convert.ToDecimal(teksti)` | Rahasumma, jos käyttäjä syöttää hinnan |
-| `int.Parse` / `decimal.Parse` | Sama idea, hieman tiukempi `null`-käsittely |
-| `int.TryParse` | Ei kaada ohjelmaa — palauttaa `false`, jos teksti ei ole luku |
+| `int.Parse` / `decimal.Parse` | Sama idea, hieman tiukempi `null`-käsittely — heittää `FormatException`, kun teksti ei ole luku |
+| `int.TryParse` | Ei kaada ohjelmaa — palauttaa `false`, jos teksti ei ole luku. **Kurssilla syötteelle aina tämä** |
 
 Väärä teksti (`"abc"`) → `FormatException`. Liian iso luku (`9999999999`) → `OverflowException`. Lue virheilmoituksesta **tyyppi** ja **oman koodin rivi** — [poikkeusten käsittely](Exception-Handling.md#virheilmoituksen-lukeminen).
 
-`Convert.ToInt32` on lyhyempi kirjoittaa, mutta se kaatuu väärästä tekstistä. `TryParse` ei kaadu. Molemmat ovat oikein, kunhan tiedät eron.
+`Convert.ToInt32` ja `int.Parse` ovat lyhyempiä kirjoittaa, mutta ne kaatuvat väärästä tekstistä `FormatException`-poikkeukseen. `TryParse` ei kaadu — se palauttaa `false`, ja käyttäjä saa uuden yrityksen. Kurssilla käyttäjän syötteelle käytetään aina `TryParse`-metodia. `Convert` ja `Parse` käyvät, kun syöte on varmasti luku — tai kun kaatuminen on hyväksyttävää opetellessa.
 
 ## TryParse — kysy uudelleen
 
@@ -107,7 +108,7 @@ double measure = 3.9;
 int whole = (int)measure;   // 3 — desimaalit katkaistaan, ei pyöristetä
 ```
 
-`3.9` ei ole `4`. Cast katkaisee. Jos tarvitset pyöristyksen, käytä `Math.Round`.
+`3.9` ei ole `4`. Cast katkaisee. Jos tarvitset pyöristyksen, käytä `Math.Round` — katso [Math-luokka](Math.md).
 
 Rahasta kokonaislukuun tarvitaan tietoinen muunnos, koska sentit katoaisivat:
 
@@ -143,6 +144,12 @@ double right = (double)a / b;   // 3.5
 
 Koodissa desimaali on piste: `12.50m`. Konsolissa suomalainen Windows odottaa usein pilkkua. Jos käyttäjä kirjoittaa `12.50` suomalaisessa koneessa, muunnos voi kaatua. Tämä on kulttuuriasetus, ei C#:n bugi.
 
+Sama ongelma tiedostossa: `decimal.Parse("2.50")` ei anna suomalaisella koneella `2,50`, vaan `250` tai `FormatException`. Kurssin sääntö: tallenna tiedostoon **kokonaisluku** (`10`) ja laske ohjelmassa `percent / 100m`. Katso [tiedostot](File-IO.md#rivi-osiin-split).
+
+**4. Enum ja numero**
+
+Enum on taustalla kokonaisluku. `(int)Size.Large` antaa `1`, ja `(Size)1` antaa `Size.Large`. Cast toimii molempiin suuntiin, mutta `(Size)7` ei kaadu, vaikka arvoa ei ole — tarkista valikon numero ennen castia. Katso [enum](Enum.md#numero-taustalla).
+
 ## `as` ja `is` — myöhemmin
 
 Kun käsittelet olioita, `is` kysyy tyyppiä ja `as` yrittää muuntaa ilman kaatumista (`null` jos ei onnistu). Näitä ei tarvita konsoliohjelman alussa. Niihin palataan olio-ohjelmoinnissa.
@@ -151,8 +158,10 @@ Kun käsittelet olioita, `is` kysyy tyyppiä ja `as` yrittää muuntaa ilman kaa
 
 ## Yhteenveto
 
-- Syöte on `string`. Luvuksi: `Convert.ToInt32` tai `Convert.ToDecimal`.
-- `Convert.ToInt32("abc")` kaataa ohjelman. `TryParse` palauttaa `false`, ja `while (!ok)` -silmukka kysyy uudelleen.
+- Syöte on `string`. Luvuksi kurssilla aina `int.TryParse` / `decimal.TryParse`.
+- `Convert.ToInt32("abc")` ja `int.Parse("abc")` heittävät `FormatException`. `TryParse` palauttaa `false`, ja `while (!ok)` -silmukka kysyy uudelleen.
+- Tiedostoon kokonaisluku, ei `2.50` — `decimal.Parse` ja pilkku/piste eivät sovi yhteen.
+- Enum ↔ numero: `(int)Size.Large` → `1`, `(Size)1` → `Size.Large`.
 - `int` × `decimal` toimii ilman erillistä muunnosta.
 - `(int)3.9` on `3`. Tieto katoaa tahallaan.
 - Raha pysyy `decimal`-tyypissä.
