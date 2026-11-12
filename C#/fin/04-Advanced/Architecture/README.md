@@ -83,6 +83,11 @@ Ohjelmistoarkkitehtuuri määrittelee sovelluksen rakenteen, komponenttien väli
    - MVVM: Model-View-ViewModel (WPF, MAUI)
    - Sopii: Web- ja desktop-sovellukset
 
+9. **[Frontend-arkkitehtuuri](Frontend-Architecture.md)**
+   - Selainsovelluksen kerrokset: komponentti, hook, API-client
+   - Backend on totuus, frontend näyttää ja kysyy
+   - Sopii: SPA (React, Vue, Angular) Web API:n päällä
+
 ## Arkkitehtuurien vertailu
 
 | Arkkitehtuuri | Kompleksisuus | Testattavuus | Skaalautuvuus | Sopii... |
