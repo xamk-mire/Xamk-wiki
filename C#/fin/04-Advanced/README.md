@@ -29,6 +29,7 @@ Tervetuloa C#-ohjelmoinnin edistyneisiin aiheisiin! Tämä osio käsittelee kehi
 - [Clean Architecture](Architecture/Clean-Architecture.md) - Domain-keskinen, riippuvuudet sisäänpäin
 - [Hexagonal Architecture](Architecture/Hexagonal-Architecture.md) - Portit ja adapterit -malli
 - [CQRS](Architecture/CQRS.md) - Command Query Responsibility Segregation, luku- ja kirjoitusoperaatioiden erottaminen
+- [Frontend-arkkitehtuuri](Architecture/Frontend-Architecture.md) - Selainsovelluksen kerrokset, API-client, DTO sopimuksena, säännöt backendissä
 
 ### Docker
 - [Docker C#/.NET-kehityksessä](Docker/) - Docker .NET-sovellusten kehityksessä ja käyttöönotossa
