@@ -10,13 +10,17 @@
 6. [Mapping-strategiat](#mapping-strategiat)
 7. [Best Practices](#best-practices)
 8. [Anti-patterns](#anti-patterns)
-9. [Yhteenveto](#yhteenveto)
+9. [Muotovirhe ja sääntövirhe](#muotovirhe-ja-sääntövirhe)
+10. [Milloin DTO:ta ei tarvita](#milloin-dtota-ei-tarvita)
+11. [Yhteenveto](#yhteenveto)
 
 ---
 
 ## Johdanto
 
 **DTO (Data Transfer Object)** on yksinkertainen olio, jonka ainoa tehtävä on siirtää dataa ohjelmiston kerrosten välillä. DTOs:t ovat keskeinen osa hyvin arkkitehtoitua sovellusta.
+
+Sama aihe Web API:n näkökulmasta, käytännön mapping-esimerkkien kanssa: [DTO:t ja Mapping](../WebAPI/DTOs-and-Mapping.md#miksi-entiteetti-ei-kelpaa-apin-rajapinnaksi).
 
 ---
 
@@ -28,7 +32,7 @@
 - Yksinkertainen data-container
 - Ei liiketoimintalogiikkaa
 - Käytetään datan siirtämiseen kerrosten välillä
-- Tyypillisesti POJOs (Plain Old C# Objects)
+- Tyypillisesti POCO (Plain Old CLR Object) eli tavallinen C#-luokka ilman kehyksen kantaluokkia
 
 ### Esimerkki
 
@@ -48,6 +52,14 @@ public class User
     public string Username { get; private set; } = string.Empty;
     public string Email { get; private set; } = string.Empty;
     public string PasswordHash { get; private set; } = string.Empty;
+    public bool IsAdmin { get; private set; }
+
+    public User(string username, string email, string passwordHash)
+    {
+        Username = username;
+        Email = email;
+        PasswordHash = passwordHash;
+    }
     
     // Business logic
     public void ChangeEmail(string newEmail)
@@ -67,9 +79,32 @@ public class User
 
 ## Miksi DTO:ita käytetään?
 
+DTO ratkaisee kolme ongelmaa, jotka syntyvät, kun entiteetti kulkee sellaisenaan rajapinnan läpi.
+
+**Tietovuoto.** Kun API palauttaa entiteetin, vastauksessa ovat kaikki sen kentät. Mukana on myös kenttiä, joita ei ollut tarkoitus näyttää, kuten `PasswordHash` tai sisäiset muistiinpanot. Jos entiteettiin lisätään myöhemmin uusi kenttä, se näkyy ulospäin heti, eikä kukaan tehnyt siitä päätöstä.
+
+**Kytkentä.** Jos vastauksen muoto on sama kuin sisäinen malli, jokainen sisäinen muutos muuttaa myös rajapintaa. Kentän uudelleennimeäminen tai tyypin vaihtaminen rikkoo silloin asiakasohjelmat, esimerkiksi selainsovelluksen. DTO on rajapinnan oma muoto, joka pysyy samana, vaikka sisäinen malli muuttuu.
+
+**Over-posting.** Kun API ottaa entiteetin vastaan sellaisenaan, käyttäjä voi lähettää myös kenttiä, joita hänen ei kuulu hallita, kuten `id` tai `isAdmin`. Sisään tuleva DTO sisältää vain ne kentät, jotka käyttäjä saa antaa. Muut kentät asettaa järjestelmä.
+
+Alla sama asia esimerkkien kanssa.
+
 ### 1. Turvallisuus: Estää Over-posting
 
 **Ongelma ilman DTO:ta:**
+
+Moni entiteetti on kirjoitettu julkisilla settereillä. Oletetaan, että `User` näyttää tältä:
+
+```csharp
+public class User
+{
+    public int Id { get; set; }
+    public string Username { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string PasswordHash { get; set; } = string.Empty;
+    public bool IsAdmin { get; set; }
+}
+```
 
 ```csharp
 // API ottaa vastaan Domain-entiteetin
@@ -87,11 +122,13 @@ public IActionResult Create([FromBody] User user) // ❌
 {
   "username": "hacker",
   "email": "hacker@evil.com",
-  "password": "123",
+  "passwordHash": "abc",
   "id": 999,              // ← Käyttäjä asettaa ID:n!
   "isAdmin": true         // ← Käyttäjä asettaa admin-oikeudet!
 }
 ```
+
+Private setterit suojaavat tältä osittain, mutta entiteetti on silti väärä tyyppi rajapinnalle: sen muoto on sisäinen asia, ei lupaus asiakkaalle.
 
 **Ratkaisu DTO:lla:**
 
@@ -100,13 +137,9 @@ public IActionResult Create([FromBody] User user) // ❌
 [HttpPost]
 public IActionResult Create([FromBody] CreateUserDto dto) // ✅
 {
-    var user = new User
-    {
-        Username = dto.Username,
-        Email = dto.Email,
-        PasswordHash = HashPassword(dto.Password)
-        // Id ja IsAdmin asetetaan järjestelmän toimesta!
-    };
+    // Entiteetti luodaan konstruktorilla (ks. User-luokka sivun alussa).
+    // DTO:ssa ei ole Id- eikä IsAdmin-kenttää, joten käyttäjä ei voi asettaa niitä.
+    var user = new User(dto.Username, dto.Email, HashPassword(dto.Password));
     _context.Users.Add(user);
     _context.SaveChanges();
     return Ok();
@@ -220,7 +253,7 @@ public class UpdateBookingDto
 **Piirteet:**
 - Vain muokattavat kentät
 - Ei järjestelmän luomia kenttiä (Id, CreatedAt, jne.)
-- Validointi (käytetään FluentValidation:ia)
+- Muodon validointi rajalla (esim. Data Annotations tai FluentValidation). Liiketoimintasäännöt eivät kuulu tänne, ks. [Muotovirhe ja sääntövirhe](#muotovirhe-ja-sääntövirhe)
 
 ### Output DTOs (Response DTOs)
 
@@ -245,11 +278,15 @@ public class BookingResponseDto
 - Voi sisältää johdettua dataa (esim. ResourceName)
 - Enum:it usein stringeinä
 
+Ulos lähtevä DTO muotoillaan **näkymää varten**: siinä on se, mitä yksi sivu tai lista tarvitsee, ei entiteetin koko sisältöä. Siksi samasta entiteetistä voi olla useita lukumalleja, esimerkiksi kevyt listarivi ja tarkempi yksityiskohtanäkymä.
+
 ---
 
 ## DTOs Clean Architecturessa
 
 ### Sijoittaminen
+
+DTO:t kuuluvat **Application-kerrokseen** tai pienessä projektissa **API-kerrokseen**. Tiimit tekevät tämän eri tavoin, ja molemmat ovat käytössä. Yksi sääntö on sama kaikissa: **Domain ei tunne DTO:ita.** Entiteetissä ei ole `ToDto()`-metodia eikä viittausta DTO-luokkiin, koska silloin sisin kerros riippuisi rajapinnan muodosta. Muunnos tehdään Applicationissa tai API:ssa.
 
 **Vaihtoehto 1: Application Layer** ← **Suositeltu**
 
@@ -413,7 +450,9 @@ var dto = _mapper.Map<BookingResponseDto>(booking);
 
 **Suositus:**
 - Pienissä projekteissa: Manuaalinen tai Extension methods
-- Suurissa projekteissa: AutoMapper (jos tarvitaan)
+- Suurissa projekteissa: mapping-kirjasto, jos käsin kirjoitettu mapping käy työlääksi
+
+> **Lisenssi:** AutoMapper oli pitkään MIT-lisensoitu. Versiosta 15 (2025) alkaen se julkaistaan kaksoislisenssillä (RPL-1.5 tai kaupallinen lisenssi) ja vaatii lisenssiavaimen. Tarkista kirjaston voimassa olevat lisenssiehdot ennen käyttöönottoa.
 
 ---
 
@@ -460,6 +499,8 @@ public class CreateUserDto
 
 ### 3. Käytä Data Annotations tai FluentValidation
 
+DTO:n validaattori tarkistaa vain **muodon**: onko kenttä annettu ja onko se oikean muotoinen.
+
 ```csharp
 // Option 1: Data Annotations
 public class CreateBookingDto
@@ -479,10 +520,13 @@ public class CreateBookingDtoValidator : AbstractValidator<CreateBookingDto>
     {
         RuleFor(x => x.ResourceId).GreaterThan(0);
         RuleFor(x => x.BookedBy).NotEmpty().MinimumLength(2);
-        RuleFor(x => x.EndTime).GreaterThan(x => x.StartTime);
+        RuleFor(x => x.StartTime).NotEmpty();   // Kenttä on annettu
+        RuleFor(x => x.EndTime).NotEmpty();     // Kenttä on annettu
     }
 }
 ```
+
+Sääntö "loppuaika on alkuajan jälkeen" ei kuulu validaattoriin. Se on varauksen oma sääntö, joten se tarkistetaan domainissa: entiteetissä tai aikaväliä kuvaavassa value objectissa. Jos sääntö on vain validaattorissa, sen voi ohittaa luomalla varauksen muuta reittiä. Katso [Muotovirhe ja sääntövirhe](#muotovirhe-ja-sääntövirhe).
 
 ### 4. Älä paljasta sisäisiä rakenteita
 
@@ -571,7 +615,48 @@ public class BookingDto
 }
 ```
 
-**Ratkaisu:** Validointi Domain:ssa tai FluentValidation:ssa
+**Ratkaisu:** Erota kaksi eri tarkistusta:
+
+- **Muototarkistus** (kenttä puuttuu, väärä tyyppi) tehdään rajalla, esimerkiksi Data Annotations- tai FluentValidation-validaattorissa.
+- **Sääntötarkistus** (`EndTime > StartTime`, kesto enintään 8 tuntia) tehdään domainissa.
+
+DTO:ssa itsessään ei ole kumpaakaan.
+
+---
+
+## Muotovirhe ja sääntövirhe
+
+Syötteessä voi olla kahdenlaisia virheitä. Ne tarkistetaan eri paikoissa ja niihin vastataan eri statuskoodilla.
+
+| | Muotovirhe | Sääntövirhe |
+|---|-----------|-------------|
+| **Mikä se on** | Syötteen muoto on väärä: kenttä puuttuu, tyyppi on väärä, päivämäärää ei voi lukea | Syöte on muodoltaan kunnossa, mutta se rikkoo liiketoimintasäännön |
+| **Esimerkki** | `startTime` puuttuu | Tila on jo varattu samalle ajalle |
+| **Missä tarkistetaan** | Rajalla (API): mallin sidonta ja DTO:n validaattori | Domainissa: entiteetti, value object tai use case |
+| **Statuskoodi** | `400 Bad Request` | `409 Conflict` tai `422 Unprocessable Content` |
+
+Miksi ero on tärkeä? Muototarkistus ei tarvitse tietoa järjestelmän tilasta, joten se voidaan tehdä heti rajalla. Sääntö kuuluu domainiin, koska sen pitää päteä aina, tuli pyyntö mistä tahansa: toisesta reitistä, taustatyöstä tai testistä.
+
+**DTO:n validaattorissa ei saa olla liiketoimintasääntöjä.** Jos sääntö on vain validaattorissa, se on voimassa vain sillä yhdellä reitillä.
+
+Valinnasta 409:n ja 422:n välillä ja siitä, miten sääntövirhe kulkee paluuarvona rajalle, kerrotaan sivulla [Result Pattern](../Patterns/Result-Pattern.md#missä-virhe-syntyy-ja-mikä-statuskoodi).
+
+---
+
+## Milloin DTO:ta ei tarvita
+
+DTO on lisää koodia: luokka ja muunnos jokaiselle suunnalle. Joskus se ei maksa itseään takaisin.
+
+- **Hyvin pieni sisäinen työkalu.** Käyttäjiä on muutama, rajapinnalla on yksi asiakas ja sama tiimi muuttaa molempia yhtä aikaa.
+- **DTO olisi entiteetin tarkka kopio pysyvästi.** Jos luokassa ei ole piilotettavia kenttiä eikä sääntöjä, kopio ei suojaa miltään.
+
+Oikotiellä on hinta, ja se kannattaa tietää etukäteen:
+
+- Jokainen entiteettiin lisätty kenttä näkyy heti ulospäin.
+- Sisäisen mallin muutos on samalla rajapinnan muutos.
+- DTO:n lisääminen myöhemmin muuttaa rajapintaa, ja asiakkaat pitää päivittää samalla.
+
+Jos rajapinnalla on ulkopuolisia käyttäjiä tai entiteetissä on yksikin kenttä, jota ei saa näyttää tai jota käyttäjä ei saa asettaa, käytä DTO:ta alusta asti.
 
 ---
 
@@ -593,8 +678,9 @@ public class BookingDto
 **Best Practices:**
 - Nimeä selkeästi (Create/Update/Response)
 - Pidä yksinkertaisina
-- Käytä FluentValidation:ia
+- Tarkista muoto rajalla (Data Annotations tai FluentValidation), säännöt domainissa
 - Erilliset DTOs eri käyttötapauksille
+- Domain ei tunne DTO:ita
 
 **Anti-patterns:**
 - Älä käytä yhtä DTO:ta kaikkeen
@@ -604,7 +690,8 @@ public class BookingDto
 ### Seuraavat askeleet
 
 - Tutustu [Clean Architecture](Clean-Architecture.md)
-- Kokeile [AutoMapper:ia](https://automapper.org/)
+- Lue [DTO:t ja Mapping](../WebAPI/DTOs-and-Mapping.md) - sama aihe Web API:n näkökulmasta
+- Tutustu [AutoMapper:iin](https://automapper.io/) (tarkista lisenssi ennen käyttöönottoa)
 - Opi [FluentValidation](https://fluentvalidation.net/)
 
 ---

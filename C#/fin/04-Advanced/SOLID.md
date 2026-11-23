@@ -131,6 +131,46 @@ Nyt jokaisella luokalla on **yksi selkeä vastuu**:
 
 Kysy itseltäsi: *"Jos vaatimus X muuttuu, pitääkö minun muuttaa tätä luokkaa?"* Jos useampi eri vaatimus aiheuttaa muutoksen samaan luokkaan, luokalla on liian monta vastuuta.
 
+### SRP ei tarkoita, että oliossa ei saa olla toimintaa
+
+Yllä `Employee` jäi pelkäksi tietomalliksi, koska siitä siirrettiin pois tallennus, raportointi ja sähköposti. Ne ovat eri vastuita. Tästä ei pidä päätellä, että entiteetissä saisi olla vain `get; set;` -ominaisuuksia.
+
+Säännöt, jotka koskevat **olion omaa dataa**, kuuluvat olioon itseensä. Ne ovat osa samaa vastuuta: olio huolehtii siitä, että sen tila on kelvollinen.
+
+```csharp
+public class Employee
+{
+    public string Name { get; private set; }
+    public decimal Salary { get; private set; }
+
+    public Employee(string name, decimal salary)
+    {
+        if (salary < 0)
+            throw new ArgumentException("Palkka ei voi olla negatiivinen");
+
+        Name = name;
+        Salary = salary;
+    }
+
+    // Sääntö koskee vain olion omaa dataa -> kuuluu olioon
+    public void RaiseSalary(decimal percentage)
+    {
+        if (percentage <= 0)
+            throw new ArgumentException("Korotuksen pitää olla positiivinen");
+
+        Salary += Salary * percentage / 100;
+    }
+}
+```
+
+| Kuuluu olioon | Ei kuulu olioon |
+|---|---|
+| Palkka ei ole negatiivinen | Tallennus tietokantaan |
+| Korotus on positiivinen | Sähköpostin lähetys |
+| | Raportin muotoilu |
+
+Lisää: [Aneeminen ja rikas malli](Architecture/Domain-Driven-Design.md#aneeminen-ja-rikas-malli) ja [Mihin sääntö kuuluu?](Architecture/Domain-Driven-Design.md#mihin-sääntö-kuuluu-nyrkkisääntö)
+
 ---
 
 ## O - Open/Closed Principle (OCP)
@@ -652,7 +692,9 @@ Jos rajapintaa toteuttava luokka jättää metodeja tyhjiksi tai heittää `NotS
 
 > *"Ylemmän tason moduulit eivät saa riippua alemman tason moduuleista. Molempien tulee riippua abstraktioista."*
 
-Tämä periaate tarkoittaa, että luokat eivät saa luoda suoraan riippuvuuksiaan, vaan ne saavat ne ulkopuolelta (rajapintojen kautta). Tämä tekee koodista testattavan ja joustavan.
+Tämä periaate kertoo, **mihin suuntaan riippuvuus osoittaa**. Ylemmän tason koodi (liiketoimintalogiikka) määrittelee abstraktion eli rajapinnan, jota se tarvitsee, ja omistaa sen. Alemman tason yksityiskohta (tietokanta, sähköposti) toteuttaa tämän rajapinnan. Riippuvuus kääntyy: yksityiskohta riippuu liiketoimintalogiikan rajapinnasta, ei toisin päin. Tämä tekee koodista testattavan ja joustavan.
+
+**DIP ja DI ovat eri asioita.** DIP kertoo riippuvuuden *suunnan*: ylempi taso riippuu rajapinnasta, jonka se itse omistaa. [Dependency Injection](Dependency-Injection.md) (DI) kertoo, *miten* olio saa riippuvuutensa: se ei luo sitä itse `new`-sanalla, vaan saa sen ulkopuolelta, yleensä konstruktorin parametrina.
 
 ### Huono esimerkki
 
@@ -763,7 +805,7 @@ public class OrderService
 
 ### Käyttö ASP.NET Core:ssa (Dependency Injection)
 
-DIP toteutetaan käytännössä **Dependency Injection** -mekanismilla. ASP.NET Core:ssa tämä tapahtuu `Program.cs`-tiedostossa:
+DIP:n mukaiset rajapinnat kytketään toteutuksiin käytännössä **Dependency Injection** -mekanismilla. ASP.NET Core:ssa tämä tapahtuu `Program.cs`-tiedostossa:
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
@@ -780,10 +822,10 @@ Nyt `OrderService` saa automaattisesti oikeat toteutukset konstruktorin kautta, 
 
 ### Yksikkötestaus DIP:n avulla
 
-DIP:n suurin käytännön hyöty on testattavuus:
+DIP:n suurin käytännön hyöty on testattavuus. Alla olevat luokat ovat **fakeja**: käsin kirjoitettuja, yksinkertaisia toteutuksia, jotka pitävät datan muistissa. Ne eivät ole mockeja. Mock on kirjaston luoma olio. Ero selitetään kohdassa [Testikaksoset: fake, mock ja oikea riippuvuus](UnitTesting/Unit-Testing.md#testikaksoset-fake-mock-ja-oikea-riippuvuus).
 
 ```csharp
-// Testeissä voidaan käyttää mock-toteutuksia
+// Testeissä voidaan käyttää fake-toteutuksia
 public class FakeDatabase : IDatabase
 {
     public List<string> SavedItems { get; } = new();
@@ -954,7 +996,7 @@ public class OrderService
 | Open/Closed | **O** | Avoin laajennuksille, suljettu muutoksille |
 | Liskov Substitution | **L** | Aliluokka korvaa yläluokan ilman ongelmia |
 | Interface Segregation | **I** | Pienet, kohdennetut rajapinnat |
-| Dependency Inversion | **D** | Riippu abstraktioista, ei toteutuksista |
+| Dependency Inversion | **D** | Riipu abstraktioista, ei toteutuksista |
 
 ### Milloin soveltaa SOLID-periaatteita?
 

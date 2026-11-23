@@ -8,13 +8,15 @@
 4. [ASP.NET Core SignalR](#aspnet-core-signalr)
 5. [Hub-luokat](#hub-luokat)
 6. [Client-Server kommunikaatio](#client-server-kommunikaatio)
-7. [Ryhmät (Groups)](#ryhmät-groups)
-8. [Strongly Typed Hubs](#strongly-typed-hubs)
-9. [Autentikointi ja auktorisointi](#autentikointi-ja-auktorisointi)
-10. [Käyttöesimerkkejä](#käyttöesimerkkejä)
-11. [Azure SignalR Service](#azure-signalr-service)
-12. [Best Practices](#best-practices)
-13. [Yhteenveto](#yhteenveto)
+7. [SignalR Clean Architecturessa](#signalr-clean-architecturessa)
+8. [Ryhmät (Groups)](#ryhmät-groups)
+9. [Strongly Typed Hubs](#strongly-typed-hubs)
+10. [Autentikointi ja auktorisointi](#autentikointi-ja-auktorisointi)
+11. [Käyttöesimerkkejä](#käyttöesimerkkejä)
+12. [Azure SignalR Service](#azure-signalr-service)
+13. [Milloin SignalR:ää ei tarvita](#milloin-signalrää-ei-tarvita)
+14. [Best Practices](#best-practices)
+15. [Yhteenveto](#yhteenveto)
 
 ---
 
@@ -107,10 +109,10 @@ Client → "Kiitos!"
 
 | Menetelmä | Suunta | Latenssi | Overhead | Yhteensopivuus |
 |-----------|--------|---------|---------|---------------|
-| **Polling** | Client → Server | Korkea (väli) | Korkea | Kaikki |
-| **Long Polling** | Server → Client | Keskiverto | Keskiverto | Kaikki |
-| **SSE** | Server → Client | Matala | Matala | Modernit selaimet |
-| **WebSocket** | Kaksisuuntainen | Matala | Matala | Modernit selaimet |
+| **Polling** | Asiakas kysyy toistuvasti | Korkea (väli) | Korkea | Kaikki |
+| **Long Polling** | Asiakas kysyy, palvelin pidättää vastausta kunnes dataa on | Keskiverto | Keskiverto | Kaikki |
+| **SSE** | Palvelin → asiakas | Matala | Matala | Modernit selaimet |
+| **WebSocket** | Molempiin suuntiin | Matala | Matala | Modernit selaimet |
 
 **SignalR valitsee automaattisesti parhaan menetelmän** asiakkaan ja palvelimen tuekemista vaihtoehdoista: WebSocket → SSE → Long Polling.
 
@@ -209,7 +211,7 @@ await connection.InvokeAsync("SendMessage", "Bot", "Hei!");
 
 ## Hub-luokat
 
-**Hub** on SignalR:n keskeinen konsepti. Se on palvelinpuolen luokka, joka käsittelee asiakkaiden kutsuja ja lähettää viestejä takaisin.
+**Hub** on palvelimen päätepiste, johon selaimet pitävät yhteyden auki. Se on SignalR:n keskeinen käsite: palvelinpuolen luokka, joka ottaa vastaan asiakkaiden kutsuja ja jonka kautta palvelin lähettää viestejä yhdistetyille asiakkaille.
 
 ### Perus-Hub
 
@@ -355,6 +357,100 @@ public class OrderService
 }
 ```
 
+> **Huom:** Tässä esimerkissä viestin mukana lähetetään dataa (asiakkaan nimi ja summa). Silloin selaimella on kaksi lähdettä samalle tiedolle: HTTP-rajapinta ja SignalR-viesti. Ne voivat poiketa toisistaan. Usein on turvallisempaa lähettää vain tunniste ja antaa selaimen hakea tuore data tavallisella kyselyllä. Lisäksi palvelu riippuu tässä suoraan SignalR:stä. Molemmat asiat käsitellään seuraavassa luvussa.
+
+---
+
+## SignalR Clean Architecturessa
+
+Yllä olevissa esimerkeissä palvelu saa `IHubContext`in suoraan konstruktoriinsa. Kerrosarkkitehtuurissa se on ongelma: Application-kerroksen koodi riippuisi SignalR-kirjastosta, joka on ulkokehän tekniikkaa. Ratkaisu on sama kuin tietokannan kanssa.
+
+| | Tietokanta | Reaaliaikainen ilmoitus |
+|---|---|---|
+| **Rajapinta (Application)** | `IMatchRepository` | `IStandingsNotifier` |
+| **Toteutus (ulompi kerros)** | EF Core -repository (Infrastructure) | SignalR-toteutus, joka käyttää `IHubContext`ia (API) |
+
+Handler tuntee vain rajapinnan. Se tietää, että "sarjataulukko muuttui" pitää ilmoittaa, mutta ei sitä, että ilmoitus kulkee SignalR:llä.
+
+### Rajapinta ja toteutus
+
+Esimerkki sarjataulukkosovelluksesta:
+
+```csharp
+// Application: rajapinta, ei viittausta SignalR:ään
+public interface IStandingsNotifier
+{
+    Task StandingsChangedAsync(int leagueId, CancellationToken ct);
+}
+```
+
+```csharp
+// API: toteutus, ainoa luokka joka tuntee IHubContextin
+public class SignalRStandingsNotifier : IStandingsNotifier
+{
+    private readonly IHubContext<LeagueHub> _hub;
+
+    public SignalRStandingsNotifier(IHubContext<LeagueHub> hub)
+    {
+        _hub = hub;
+    }
+
+    public Task StandingsChangedAsync(int leagueId, CancellationToken ct)
+    {
+        // Viestissä kulkee vain tunniste, ei sarjataulukkoa
+        return _hub.Clients.Group($"league-{leagueId}")
+            .SendAsync("StandingsChanged", leagueId, ct);
+    }
+}
+
+// Program.cs
+builder.Services.AddScoped<IStandingsNotifier, SignalRStandingsNotifier>();
+```
+
+### Hubissa ei ole sääntöjä eikä kirjoituksia
+
+Hub hoitaa vain yhteydet: kuka kuuntelee mitäkin ryhmää.
+
+```csharp
+public class LeagueHub : Hub
+{
+    public Task JoinLeague(int leagueId)
+    {
+        return Groups.AddToGroupAsync(Context.ConnectionId, $"league-{leagueId}");
+    }
+}
+```
+
+Tuloksen kirjaus **ei** kulje Hubin kautta. Kirjoitus tehdään tavallisella HTTP-pyynnöllä, joka päätyy commandiin ja handleriin. Jos saman kirjoituksen voisi tehdä myös Hubin metodilla, kirjoituksille olisi kaksi sisäänkäyntiä. Silloin validointi, oikeustarkistus ja lokitus pitäisi muistaa tehdä molemmissa.
+
+### Ilmoita vasta tallennuksen jälkeen
+
+```csharp
+// Command-handlerissa
+match.RecordResult(request.HomeGoals, request.AwayGoals);
+
+await _matches.SaveAsync(match, ct);                          // 1. tallenna
+await _notifier.StandingsChangedAsync(match.LeagueId, ct);    // 2. ilmoita
+```
+
+Jos ilmoitus lähtee ennen tallennusta, selaimet hakevat datan liian aikaisin ja saavat vanhan tilan. Jos tallennus epäonnistuu, ilmoitusta ei saa lähteä lainkaan. Kun välissä on välimuisti, järjestys on: tallenna, tyhjennä välimuisti, ilmoita. Katso [Caching: Järjestys](../Patterns/Caching.md#järjestys-tallenna-tyhjennä-ilmoita).
+
+### Viesti on heräte, ei data
+
+Viesti kertoo vain, **että** jokin muuttui ja mitä se koskee (tunniste). Selain hakee tuoreen datan samalla kyselyllä kuin sivun latauksessa.
+
+```javascript
+connection.on("StandingsChanged", () => {
+    reloadStandings();   // tavallinen GET /api/standings
+});
+```
+
+Näin datalla on yksi lähde. Jos viestissä kulkisi koko sarjataulukko, selaimella olisi toinen totuus, joka voi poiketa rajapinnan vastauksesta. Jos yhteys katkeaa hetkeksi, seuraava haku korjaa näkymän joka tapauksessa.
+
+Sama asia selaimen puolelta: [Frontend-arkkitehtuuri: Reaaliaikaisuus](../Architecture/Frontend-Architecture.md#reaaliaikaisuus).
+
+**Milloin rajapintaa ei tarvita?** Pienessä sovelluksessa, jossa ei ole erillisiä kerroksia, `IHubContext`in voi injektoida suoraan. Rajapinta kannattaa, kun Application-kerros halutaan pitää riippumattomana ulkokehän kirjastoista ja handleri halutaan testata ilman SignalR:ää.
+
 ---
 
 ## Ryhmät (Groups)
@@ -406,6 +502,8 @@ public class BookingHub : Hub
     }
 }
 ```
+
+> **Huom:** Esimerkki näyttää ryhmän käytön. Siinä asiakas pyytää ilmoituksen lähettämistä ja viestissä kulkee koko varaus. Kerrosarkkitehtuurissa ilmoituksen lähettää palvelin itse tallennuksen jälkeen, ja viestissä kulkee vain tunniste. Katso [SignalR Clean Architecturessa](#signalr-clean-architecturessa).
 
 ---
 
@@ -576,6 +674,8 @@ public class OrderService
 }
 ```
 
+Viestissä kulkee vain tilauksen tunniste, mikä on hyvä. Palvelu riippuu kuitenkin suoraan `IHubContext`ista. Kerrosarkkitehtuurissa väliin tehdään rajapinta: katso [SignalR Clean Architecturessa](#signalr-clean-architecturessa).
+
 ### 3. Live-dashboard (reaaliaikainen data)
 
 ```csharp
@@ -659,6 +759,20 @@ builder.Services.AddSignalR()
 
 ---
 
+## Milloin SignalR:ää ei tarvita
+
+SignalR ratkaisee yhden ongelman: käyttäjän pitää nähdä **toisen** tekemä muutos heti, ilman sivun päivitystä. Jos tätä tarvetta ei ole, SignalR lisää vain ylläpidettävää: pysyvät yhteydet, uudelleenyhdistämisen ja skaalauksen.
+
+Et tarvitse SignalR:ää, kun:
+
+- **Käyttäjä näkee vain omat muutoksensa.** Kun hän tallentaa, selain hakee datan uudestaan. Kukaan muu ei odota päivitystä.
+- **Muutaman sekunnin viive riittää.** Silloin polling on tarpeeksi: selain kysyy rajapinnasta esimerkiksi 10 sekunnin välein. Se on yksinkertaisempi rakentaa ja testata.
+- **Data muuttuu harvoin.** Jos sarjataulukko muuttuu kerran päivässä, pysyvä yhteys jokaiselle selaimelle on turha.
+
+SignalR kannattaa, kun usea käyttäjä katsoo samaa dataa samaan aikaan ja muutoksen pitää näkyä kaikille heti: live-tulokset, chat, yhteinen työtila.
+
+---
+
 ## Best Practices
 
 ### 1. Käytä Strongly Typed Hubeja
@@ -695,20 +809,24 @@ await Clients.All.SendAsync("Update", data);
 ### 4. Pidä Hub-metodit kevyinä
 
 ```csharp
-// ✅ Delegoi logiikka palvelulle
-public async Task CreateBooking(CreateBookingDto dto)
+// ✅ Hub hoitaa vain yhteydet: ei liiketoimintalogiikkaa, ei kirjoituksia
+public class BookingHub : Hub
 {
-    var result = await _bookingService.CreateAsync(dto);
-    await Clients.Group($"hotel-{dto.HotelId}").SendAsync("BookingCreated", result);
+    public Task JoinHotelGroup(int hotelId)
+    {
+        return Groups.AddToGroupAsync(Context.ConnectionId, $"hotel-{hotelId}");
+    }
 }
 
-// ❌ Raskas logiikka suoraan Hubissa
+// ❌ Kirjoitus ja logiikka Hubissa
 public async Task CreateBooking(CreateBookingDto dto)
 {
     var room = await _db.Rooms.FindAsync(dto.RoomId);
     // ... 50 riviä validointia ja logiikkaa ...
 }
 ```
+
+Varaus luodaan HTTP-pyynnöllä (`POST /api/bookings`), joka kulkee saman validoinnin ja saman handlerin läpi kuin muutkin kirjoitukset. Tallennuksen jälkeen palvelin ilmoittaa ryhmälle. Jos varauksen voisi luoda myös Hubin kautta, kirjoituksille olisi kaksi sisäänkäyntiä. Katso [SignalR Clean Architecturessa](#signalr-clean-architecturessa).
 
 ### 5. Käytä CancellationTokenia
 
@@ -730,7 +848,9 @@ public async Task<List<Message>> GetHistory(
 | **Reaaliaikainen viestintä** | Palvelin lähettää dataa asiakkaalle ilman erillistä pyyntöä |
 | **WebSocket** | Kaksisuuntainen pysyvä yhteys — SignalR:n ensisijainen kuljetustapa |
 | **SignalR** | ASP.NET Core -kirjasto joka abstrahoi reaaliaikaisen viestinnän |
-| **Hub** | Palvelinpuolen luokka joka käsittelee viestejä |
+| **Hub** | Palvelimen päätepiste, johon selaimet pitävät yhteyden auki |
+| **Notifier-rajapinta** | Application-kerroksen rajapinta ilmoitukselle; SignalR-toteutus on API-kerroksessa |
+| **Heräte** | Viesti, jossa kulkee vain tunniste; selain hakee datan tavallisella kyselyllä |
 | **Clients** | API viestien lähettämiseen (All, Caller, Others, Group, Client) |
 | **Groups** | Mekanismi viestien kohdentamiseen tietyille asiakkaille |
 | **IHubContext** | Viestien lähettäminen Hubin ulkopuolelta (Controller, Service) |
@@ -741,7 +861,9 @@ public async Task<List<Message>> GetHistory(
 - SignalR **valitsee automaattisesti** parhaan kuljetustavan (WebSocket → SSE → Long Polling)
 - Käytä **Strongly Typed Hubeja** välttääksesi magic string -ongelmia
 - Käytä **ryhmiä** viestien kohdentamiseen — älä lähetä kaikille
-- **IHubContext** mahdollistaa viestien lähettämisen mistä tahansa (Controller, BackgroundService)
+- **IHubContext** mahdollistaa viestien lähettämisen Hubin ulkopuolelta (Controller, BackgroundService); kerrosarkkitehtuurissa se piilotetaan rajapinnan taakse
+- **Kirjoitukset kulkevat HTTP:n kautta**, eivät Hubin; Hubissa ei ole liiketoimintasääntöjä
+- **Ilmoita vasta tallennuksen jälkeen** ja lähetä vain tunniste
 - **Azure SignalR Service** tarvitaan kun skaalataan useisiin instansseihin
 
 ---

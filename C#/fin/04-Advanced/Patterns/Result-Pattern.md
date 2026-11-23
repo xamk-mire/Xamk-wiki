@@ -8,10 +8,11 @@
 4. [Railway Oriented Programming](#railway-oriented-programming)
 5. [Toteutus C#:ssa](#toteutus-cssa)
 6. [Result vs Exceptions](#result-vs-exceptions)
-7. [Käytännön esimerkkejä](#käytännön-esimerkkejä)
-8. [Result Pattern Libraries](#result-pattern-libraries)
-9. [Best Practices](#best-practices)
-10. [Yhteenveto](#yhteenveto)
+7. [Missä virhe syntyy ja mikä statuskoodi](#missä-virhe-syntyy-ja-mikä-statuskoodi)
+8. [Käytännön esimerkkejä](#käytännön-esimerkkejä)
+9. [Result Pattern Libraries](#result-pattern-libraries)
+10. [Best Practices](#best-practices)
+11. [Yhteenveto](#yhteenveto)
 
 ---
 
@@ -19,7 +20,7 @@
 
 **Result Pattern** on funktionaalisen ohjelmoinnin malli, jossa operaation tulos palautetaan eksplisiittisenä Result-oliona sen sijaan että heitetään exception. Pattern tekee virheenkäsittelystä näkyvän ja kontrolloidun.
 
-API-kehityksessä Result Pattern on erityisen hyödyllinen, koska se erottaa **odotettavat domainvirheet** (esim. "tuotetta ei löydy", "sähköposti on jo käytössä") odottamattomista poikkeuksista. Tämä tekee controllerista helpomman kirjoittaa, service-kerroksesta helpomman testata ja koko sovelluksen virrankäsittelystä selkeämpää.
+API-kehityksessä Result Pattern on erityisen hyödyllinen, koska se erottaa **odotettavat domainvirheet** (esim. "tuotetta ei löydy", "sähköposti on jo käytössä") odottamattomista poikkeuksista. Tämä tekee controllerista helpomman kirjoittaa, service-kerroksesta helpomman testata ja koko sovelluksen virheenkäsittelystä selkeämpää.
 
 ---
 
@@ -87,10 +88,12 @@ Kehittäjä ei tiedä mitä exceptioneita voi tulla!
 
 **2. Performance-kustannus**
 
-Exceptionit ovat kalliita:
+Exceptionin heittäminen on kalliimpaa kuin arvon palauttaminen:
 - Stack trace luodaan
 - Exception-olio allokoidaan
 - Unwinding stack:ia
+
+Tavallisessa web-sovelluksessa ero ei yleensä näy, koska tietokantakutsu vie moninkertaisesti enemmän aikaa. Kustannuksella on merkitystä vasta, kun poikkeuksia heitetään hyvin usein. Result Patternin tärkein peruste on selkeys, ei nopeus.
 
 **3. Try-catch kaikkialla**
 
@@ -167,7 +170,7 @@ Task<Order> CreateOrderAsync(CreateOrderDto dto)
 
 ## Railway Oriented Programming
 
-**Ajattele koodia kahtena raitioparina:**
+**Ajattele koodia kahtena raiteena:**
 
 ```
 Success Track:  ────────────────────────────►  Success
@@ -317,11 +320,12 @@ public async Task<Result> DeleteOrderAsync(int id)
 ```csharp
 public enum ErrorType
 {
-    Validation,
-    NotFound,
-    Conflict,
-    Unauthorized,
-    Forbidden,
+    Validation,    // Muotovirhe → 400
+    NotFound,      // Kohdetta ei ole → 404
+    Conflict,      // Ristiriita nykyisen tilan kanssa → 409
+    BusinessRule,  // Sisältö on muodoltaan kunnossa, mutta rikkoo säännön → 422
+    Unauthorized,  // → 401
+    Forbidden,     // → 403
     InternalError
 }
 
@@ -335,10 +339,13 @@ public class Result<T>
     
     // ...
     
-    public static Result<T> Failure(string error, ErrorType errorType = ErrorType.Validation)
+    // Ei oletusarvoa: kutsuja valitsee tyypin aina itse
+    public static Result<T> Failure(string error, ErrorType errorType)
         => new Result<T>(false, default, error, errorType);
 }
 ```
+
+`errorType`-parametrilla ei ole oletusarvoa. Jos oletus olisi `Validation`, jokainen sääntövirhe, jolle tyyppi unohtui antaa, muuttuisi huomaamatta 400-vastaukseksi. Silloin asiakas luulisi, että pyynnön muoto oli väärä.
 
 **Controller:**
 
@@ -347,14 +354,17 @@ if (result.IsFailure)
 {
     return result.ErrorType switch
     {
+        ErrorType.Validation => BadRequest(new { error = result.Error }),
         ErrorType.NotFound => NotFound(new { error = result.Error }),
         ErrorType.Conflict => Conflict(new { error = result.Error }),
+        ErrorType.BusinessRule => UnprocessableEntity(new { error = result.Error }),
         ErrorType.Unauthorized => Unauthorized(new { error = result.Error }),
-        ErrorType.Validation => BadRequest(new { error = result.Error }),
         _ => StatusCode(500, new { error = result.Error })
     };
 }
 ```
+
+Huomaa, että oletushaara (`_`) on 500 eikä 400. Tuntematon virhetyyppi on ohjelmointivirhe, ei asiakkaan virhe. Statuskoodien valinnasta kerrotaan kohdassa [Missä virhe syntyy ja mikä statuskoodi](#missä-virhe-syntyy-ja-mikä-statuskoodi).
 
 ---
 
@@ -366,12 +376,11 @@ if (result.IsFailure)
 - Virhe on **odotettavissa** (expected error)
 - Virhe on osa normaalia kontrollivirtaa
 - Haluat eksplisiittisen virheenkäsittelyn
-- Performance on kriittinen
 
 **Esimerkkejä:**
 ```csharp
 Result<User> FindUserByEmail(string email)  // ← Käyttäjä ei välttämättä löydy
-Result<Order> CreateOrder(CreateOrderDto)   // ← Validointi voi epäonnistua
+Result<Order> CreateOrder(CreateOrderDto)   // ← Liiketoimintasääntö voi estää tilauksen
 Result DeleteResource(int id)               // ← Resurssi ei välttämättä ole olemassa
 ```
 
@@ -395,7 +404,7 @@ throw new OutOfMemoryException();                    // ← Catastrophic
 | Kriteeri | Result | Exception |
 |-----------|--------|-----------|
 | **Signatointi** | Eksplisiittinen | Implisiittinen |
-| **Performance** | Nopea | Hidas |
+| **Kustannus** | Tavallinen paluuarvo | Heitto on kalliimpi; näkyy vain, jos heittoja on paljon |
 | **Kontrollivirta** | Lineaarinen | Hyppäävä |
 | **Käyttötapaus** | Expected errors | Unexpected errors |
 | **Tyypillinen koodi** | if (result.IsFailure) | try-catch |
@@ -406,15 +415,21 @@ throw new OutOfMemoryException();                    // ← Catastrophic
 ```csharp
 public async Task<Result<Order>> CreateOrderAsync(CreateOrderDto dto)
 {
-    // Validointi, business rules → Result
-    if (dto.Items.Count == 0)
-        return Result.Failure<Order>("Order must have items");
+    var customer = await _customerRepository.GetByIdAsync(dto.CustomerId);
+    if (customer == null)
+        return Result.Failure<Order>("Customer not found", ErrorType.NotFound);
+
+    // Liiketoimintasääntö → Result
+    if (customer.IsBlocked)
+        return Result.Failure<Order>("Customer is blocked", ErrorType.Conflict);
     
     // ...
     
     return Result.Success(order);
 }
 ```
+
+> **Huom:** Syötteen muoto (puuttuva kenttä, väärä tyyppi, tyhjä lista) tarkistetaan jo rajalla ennen kuin service tai use case kutsutaan. Tämän sivun alkupään yksinkertaistetuissa esimerkeissä muototarkistus (`dto.Items.Count == 0`, `ValidateOrder(dto)`) on servicen sisällä vain siksi, että esimerkki pysyy yhdessä metodissa. Oikeassa sovelluksessa service palauttaa Resultina sääntövirheet, ei muotovirheitä.
 
 **Exception odottamattomille:**
 ```csharp
@@ -435,6 +450,32 @@ public async Task<Result<Order>> CreateOrderAsync(CreateOrderDto dto)
 
 ---
 
+## Missä virhe syntyy ja mikä statuskoodi
+
+Virheitä on kolmea lajia. Jokainen syntyy eri paikassa ja saa eri statuskoodin.
+
+| Virhe | Missä se syntyy | Miten se kulkee | Statuskoodi |
+|-------|-----------------|-----------------|-------------|
+| **Muotovirhe**: kenttä puuttuu, tyyppi on väärä | Rajalla (API), ennen use casea | Raja vastaa itse | `400 Bad Request` |
+| **Odotettu sääntövirhe**: liiketoimintasääntö estää toiminnon | Use casessa tai domainissa | `Result.Failure` paluuarvona rajalle | `409 Conflict` tai `422 Unprocessable Content` |
+| **Odottamaton virhe**: tietokanta ei vastaa, ohjelmointivirhe | Missä tahansa | Poikkeus, jonka yleinen virheenkäsittelijä ottaa kiinni | `500 Internal Server Error` |
+
+Sääntövirheelle on kaksi yleistä koodia:
+
+- **409 Conflict**: pyyntö on ristiriidassa resurssin nykyisen tilan kanssa. Esimerkki: ottelun tulos on jo kirjattu, tai tila on jo varattu samalle ajalle.
+- **422 Unprocessable Content**: sisältö on muodoltaan kunnossa, mutta se rikkoo säännön, joka ei riipu nykyisestä tilasta. Esimerkki: varauksen kesto ylittää sallitun enimmäisajan.
+
+Raja näiden välillä ei ole aina selvä, ja tiimit ratkaisevat sen eri tavoin. Osa käyttää kaikille sääntövirheille yhtä koodia. Tärkeintä on **valita yksi käytäntö ja kirjoittaa se ylös**, esimerkiksi rajapinnan kuvaukseen. Silloin asiakasohjelma voi luottaa siihen, että sama virhe saa aina saman koodin.
+
+Kaksi asiaa pysyy samana valinnasta riippumatta:
+
+- Sääntövirhe ei ole 400. Koodi 400 kertoo asiakkaalle, että pyynnön muoto oli väärä.
+- Sääntövirhe ei ole 500. Koodi 500 kertoo, että palvelin epäonnistui, vaikka se toimi juuri niin kuin pitää.
+
+Muotovirheen ja sääntövirheen ero DTO:n näkökulmasta: [DTOs - Muotovirhe ja sääntövirhe](../Architecture/DTOs.md#muotovirhe-ja-sääntövirhe).
+
+---
+
 ## Käytännön esimerkkejä
 
 ### Esimerkki 1: Use Case
@@ -447,23 +488,19 @@ public class CreateBookingUseCase
     
     public async Task<Result<BookingResponseDto>> ExecuteAsync(CreateBookingDto dto)
     {
-        // Validate
-        var booking = new Booking
-        {
-            ResourceId = dto.ResourceId,
-            BookedBy = dto.BookedBy,
-            StartTime = dto.StartTime,
-            EndTime = dto.EndTime
-        };
+        // Domain tarkistaa omat sääntönsä ja palauttaa Resultin
+        var bookingResult = Booking.Create(
+            dto.ResourceId,
+            dto.BookedBy,
+            dto.StartTime,
+            dto.EndTime);
         
-        try
-        {
-            booking.Validate();
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Result.Failure<BookingResponseDto>(ex.Message);
-        }
+        if (bookingResult.IsFailure)
+            return Result.Failure<BookingResponseDto>(
+                bookingResult.Error,
+                bookingResult.ErrorType);
+        
+        var booking = bookingResult.Value;
         
         // Check resource exists
         var resource = await _resourceRepository.GetByIdAsync(dto.ResourceId);
@@ -489,7 +526,7 @@ public class CreateBookingUseCase
                 ErrorType.Conflict);
         
         // Create
-        booking.Status = BookingStatus.Confirmed;
+        booking.Confirm();
         var created = await _bookingRepository.AddAsync(booking);
         
         // Success
@@ -502,6 +539,8 @@ public class CreateBookingUseCase
     }
 }
 ```
+
+**Valittu linja:** tässä esimerkissä myös domain palauttaa Resultin (`Booking.Create` palauttaa `Result<Booking>`, esimerkiksi tyypillä `ErrorType.BusinessRule`, jos loppuaika ei ole alkuajan jälkeen), joten use casessa ei tarvita try-catchia, joka muuntaisi poikkeuksen Resultiksi. Toinen johdonmukainen linja on, että domain heittää oman domain-poikkeuksensa ja **yksi paikka** (esimerkiksi middleware) muuntaa sen vastaukseksi. Valitse toinen ja pysy siinä; älä muunna poikkeuksia Resultiksi jokaisessa use casessa erikseen.
 
 ### Esimerkki 2: Controller
 
@@ -522,9 +561,11 @@ public class BookingsController : ControllerBase
         {
             return result.ErrorType switch
             {
+                ErrorType.Validation => BadRequest(new { error = result.Error }),
                 ErrorType.NotFound => NotFound(new { error = result.Error }),
                 ErrorType.Conflict => Conflict(new { error = result.Error }),
-                _ => BadRequest(new { error = result.Error })
+                ErrorType.BusinessRule => UnprocessableEntity(new { error = result.Error }),
+                _ => StatusCode(500, new { error = result.Error })
             };
         }
         
@@ -582,10 +623,13 @@ var result = ValidateInput()
 **NuGet:** `LanguageExt.Core`
 
 ```csharp
-public Either<Error, Order> CreateOrder()
+public Either<Error, Order> CreateOrder(Customer customer)
 {
+    if (customer.IsBlocked)
+        return Left(new Error("Customer is blocked"));  // Failure
+
+    var order = new Order { CustomerId = customer.Id };
     return Right(order);  // Success
-    return Left(new Error("Failed"));  // Failure
 }
 
 // Pattern matching
@@ -600,10 +644,13 @@ result.Match(
 **NuGet:** `CSharpFunctionalExtensions`
 
 ```csharp
-public Result<Order> CreateOrder()
+public Result<Order> CreateOrder(Customer customer)
 {
+    if (customer.IsBlocked)
+        return Result.Failure<Order>("Customer is blocked");
+
+    var order = new Order { CustomerId = customer.Id };
     return Result.Success(order);
-    return Result.Failure<Order>("Error message");
 }
 
 // Railway oriented programming
@@ -705,9 +752,11 @@ public static class ResultExtensions
         
         return result.ErrorType switch
         {
+            ErrorType.Validation => new BadRequestObjectResult(new { error = result.Error }),
             ErrorType.NotFound => new NotFoundObjectResult(new { error = result.Error }),
             ErrorType.Conflict => new ConflictObjectResult(new { error = result.Error }),
-            _ => new BadRequestObjectResult(new { error = result.Error })
+            ErrorType.BusinessRule => new UnprocessableEntityObjectResult(new { error = result.Error }),
+            _ => new ObjectResult(new { error = result.Error }) { StatusCode = 500 }
         };
     }
 }
@@ -734,7 +783,7 @@ public async Task<ActionResult<Order>> Create([FromBody] CreateOrderDto dto)
 
 **Edut:**
 - ✅ Selkeä ja eksplisiittinen
-- ✅ Parempi performance
+- ✅ Odotettu virhe ei vaadi poikkeuksen heittoa
 - ✅ Helpompi testata
 - ✅ Lineaarinen kontrollivirta
 
@@ -744,8 +793,13 @@ public async Task<ActionResult<Order>> Create([FromBody] CreateOrderDto dto)
 - ❌ Ei standardoitu C#:ssa (vielä)
 
 **Result vs Exception:**
-- Result = Expected errors (validation, not found, etc.)
+- Result = Expected errors (sääntövirhe, not found, conflict)
 - Exception = Unexpected errors (bugs, system errors)
+
+**Statuskoodit:**
+- Muotovirhe rajalla → 400
+- Odotettu sääntövirhe Resultina → 409 tai 422 (valitse käytäntö ja kirjaa se)
+- Odottamaton virhe poikkeuksena → 500
 
 **Railway Oriented Programming:**
 - Success-raite: Kaikki OK → jatka
@@ -757,7 +811,7 @@ public async Task<ActionResult<Order>> Create([FromBody] CreateOrderDto dto)
 - Clean Architecture / Domain-Driven Design
 - Use Case -pohjainen arkkitehtuuri
 - Haluat eksplisiittisen virheenkäsittelyn
-- Performance on tärkeä
+- Odotettuja virheitä on paljon ja niiden pitää näkyä metodin signaturessa
 
 **Älä käytä jos:**
 - Yksinkertainen CRUD-sovellus

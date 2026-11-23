@@ -89,6 +89,12 @@ Hyvin jaetussa frontendissä on neljä kerrosta. Kutsut kulkevat ylhäältä ala
 
 Vertaa backendin kerroksiin: controller ei kutsu tietokantaa suoraan, ja komponentti ei kutsu `fetch`iä suoraan. Ajatus on sama kuin [riippuvuuksien kääntämisessä](../Dependency-Injection.md): ylempi kerros tuntee tehtävän, ei toteutustapaa.
 
+### Milloin kerroksia ei tarvita
+
+Kerrokset ratkaisevat toiston ja muutosten leviämisen. Jos sovelluksessa on yksi sivu ja yksi haku, kumpaakaan ongelmaa ei ole. Silloin haun voi kirjoittaa suoraan komponenttiin, ja neljä tiedostoa olisi enemmän luettavaa kuin hyötyä.
+
+Jako kannattaa tehdä, kun sama osoite tai sama data tarvitaan toisessa paikassa, tai kun pyyntöihin tulee yhteistä käsittelyä (virheet, kirjautumistunniste). Aloita HTTP-apurista ja API-moduulista: ne maksavat vähiten ja poistavat eniten toistoa.
+
 ---
 
 ## API-client-kerros
@@ -318,7 +324,8 @@ Backend on ainoa paikka, jossa liiketoimintasääntö päätetään. Frontend vo
 | Tarkistus | Frontend | Backend |
 |-----------|----------|---------|
 | Kenttä ei ole tyhjä | ✅ Nopea palaute käyttäjälle | ✅ Aina |
-| Hinta on positiivinen | ✅ Nopea palaute | ✅ Aina (domain) |
+| Hinta-kentässä on luku | ✅ Nopea palaute (muoto) | ✅ Aina |
+| Hinta on positiivinen | ❌ Sääntöä ei toisteta, näytetään backendin viesti | ✅ Aina (domain) |
 | Tuotetta on varastossa | ❌ Selain ei tiedä tuoretta tilaa | ✅ Aina |
 | Käyttäjällä on oikeus | ❌ Painikkeen piilotus ei ole suojaus | ✅ Aina |
 

@@ -8,10 +8,12 @@
 4. [Offset-based Pagination](#offset-based-pagination)
 5. [Cursor-based Pagination](#cursor-based-pagination)
 6. [PagedResult Pattern](#pagedresult-pattern)
-7. [API Design](#api-design)
-8. [Performance-näkökulmat](#performance-näkökulmat)
-9. [Best Practices](#best-practices)
-10. [Yhteenveto](#yhteenveto)
+7. [Mihin kerrokseen sivutus kuuluu](#mihin-kerrokseen-sivutus-kuuluu)
+8. [Milloin sivutusta ei tarvita](#milloin-sivutusta-ei-tarvita)
+9. [API Design](#api-design)
+10. [Performance-näkökulmat](#performance-näkökulmat)
+11. [Best Practices](#best-practices)
+12. [Yhteenveto](#yhteenveto)
 
 ---
 
@@ -141,7 +143,7 @@ var users = _context.Users
 > **Huom:** Cursor-kentän tyyppi riippuu pääavaimen tyypistä. Numeerisilla ID:illä käytetään `>` -vertailua, merkkijonopohjaisilla `CompareTo`:ta.
 
 **Edut:**
-- ✅ Parempi performance (ei skannaa skipattuuja rivejä)
+- ✅ Parempi performance (ei skannaa ohitettuja rivejä)
 - ✅ Johdonmukainen vaikka data muuttuu
 - ✅ Sopii infinite scroll -tyyppisiin UI:hin
 
@@ -150,20 +152,24 @@ var users = _context.Users
 - ❌ Et voi hypätä suoraan sivulle X
 - ❌ Vaikea laskea sivujen määrä
 
-### 3. Page Number Pagination
+### Sivunumero ei ole kolmas strategia
 
-**Käyttäjäystävällinen sivunumeroiden kanssa.**
+Usein näkee puhuttavan erikseen "page number" -sivutuksesta:
 
 ```http
 GET /api/users?page=5&pageSize=20
 ```
 
-**Edut:**
-- ✅ Intuitiivinen (Sivu 1, 2, 3, ...)
-- ✅ Helppo UI (sivunumerot)
+Se **ei ole eri strategia** kuin offset-based. Se on sama asia asiakkaan näkökulmasta: asiakas antaa sivun numeron ja sivukoon, ja palvelin laskee niistä offsetin kaavalla `(page - 1) * pageSize`. Tietokantakysely on sama Skip/Take, joten edut ja haitat ovat samat.
 
-**Haitat:**
-- ❌ Performance-ongelmat (sama kuin offset-based)
+Erot ovat vain parametrien nimissä:
+
+| Asiakas lähettää | Palvelin tekee |
+|------------------|----------------|
+| `page=5&pageSize=20` | `Skip(80).Take(20)` |
+| `offset=80&limit=20` | `Skip(80).Take(20)` |
+
+Todellisia strategioita on siis kaksi: offset-based ja cursor-based.
 
 ---
 
@@ -215,7 +221,8 @@ public async Task<PagedResult<UserDto>> GetUsersPagedAsync(
     int page, 
     int pageSize)
 {
-    // Validate
+    // Virheelliset arvot korjataan tässä sallittuun arvoon (clamp).
+    // Toinen vaihtoehto on vastata 400 - ks. Best Practices 1.
     if (page < 1) page = 1;
     if (pageSize < 1) pageSize = 10;
     if (pageSize > 100) pageSize = 100; // Max 100 per page
@@ -250,10 +257,12 @@ public async Task<PagedResult<UserDto>> GetUsersPagedAsync(
 **1. Request:**
 
 ```http
-GET /api/users?cursor=lastUserId&limit=20
+GET /api/users?cursor=20&limit=20
 ```
 
-**2. SQL (koncepti):**
+`cursor` on edellisen sivun viimeisen rivin Id. Ensimmäisellä pyynnöllä sitä ei anneta.
+
+**2. SQL (periaate):**
 
 ```sql
 SELECT * FROM Users
@@ -269,7 +278,7 @@ public async Task<CursorPagedResult<UserDto>> GetUsersAsync(
     int? cursor,
     int limit = 20)
 {
-    var query = _context.Users.OrderBy(u => u.Id);
+    IQueryable<User> query = _context.Users;
     
     if (cursor.HasValue)
     {
@@ -277,14 +286,22 @@ public async Task<CursorPagedResult<UserDto>> GetUsersAsync(
     }
     
     var users = await query
+        .OrderBy(u => u.Id)
         .Take(limit + 1) // Take one extra to check if there's more
+        .Select(u => new UserDto
+        {
+            Id = u.Id,
+            Name = u.Name,
+            Email = u.Email
+        })
         .ToListAsync();
     
     var hasMore = users.Count > limit;
     if (hasMore)
         users.RemoveAt(users.Count - 1); // Remove extra
     
-    var nextCursor = hasMore ? users.Last().Id : null;
+    // int? - null tarkoittaa, että seuraavaa sivua ei ole
+    int? nextCursor = hasMore ? users.Last().Id : null;
     
     return new CursorPagedResult<UserDto>
     {
@@ -300,18 +317,32 @@ public async Task<CursorPagedResult<UserDto>> GetUsersAsync(
 ```json
 {
   "items": [
-    { "id": "user_21", "name": "User 21" },
+    { "id": 21, "name": "User 21" },
     ...
-    { "id": "user_40", "name": "User 40" }
+    { "id": 40, "name": "User 40" }
   ],
-  "nextCursor": "user_40",
+  "nextCursor": 40,
   "hasMore": true
 }
 ```
 
+Seuraava sivu haetaan pyynnöllä `GET /api/users?cursor=40&limit=20`.
+
 ---
 
 ## PagedResult Pattern
+
+Sivutettu vastaus ei ole pelkkä lista. Asiakas tarvitsee rivien lisäksi tiedon siitä, mikä osa kokonaisuudesta sillä on kädessään. `PagedResult` on vastauksen kääre, jossa nämä tiedot kulkevat rivien mukana.
+
+| Kenttä | Mitä se tarkoittaa |
+|--------|--------------------|
+| **Sivu** (`page`) | Monesko sivu tämä on. Numerointi alkaa yleensä ykkösestä. |
+| **Sivukoko** (`pageSize`) | Kuinka monta riviä yhdelle sivulle enintään tulee. Viimeisellä sivulla rivejä voi olla vähemmän. |
+| **Kokonaismäärä** (`totalCount`) | Kuinka monta riviä hakuehtoon osuu yhteensä, kaikilla sivuilla. |
+
+Miksi asiakas tarvitsee kokonaismäärän? Ilman sitä asiakas ei tiedä, onko seuraavaa sivua olemassa eikä montako sivua on. Kokonaismäärästä ja sivukoosta lasketaan sivujen määrä, ja käyttöliittymä voi näyttää sivunumerot ja tekstin "näytetään 11–20 / 150". Palvelin on ainoa, joka tietää määrän, koska asiakkaalla on vain yksi sivu.
+
+Sivu ja sivukoko palautetaan vastauksessa, vaikka asiakas lähetti ne itse. Palvelin on voinut käyttää oletusarvoa tai rajata liian suuren sivukoon, ja vastaus kertoo, mitä arvoja oikeasti käytettiin.
 
 ### Generic Wrapper
 
@@ -374,6 +405,74 @@ var result = new PagedResult<UserDto>(
   "hasNextPage": true
 }
 ```
+
+---
+
+## Mihin kerrokseen sivutus kuuluu
+
+Sivutus on **lupaus rajapinnan sopimuksessa**: "tämä lista palautetaan sivuina, ja vastaus kertoo sivun, sivukoon ja kokonaismäärän". Lupaus tehdään API-kerroksessa, mutta itse rajaus tehdään tietokannassa.
+
+Parametrit kulkevat kerrosten läpi:
+
+```
+API (controller)        Lukee page ja pageSize, tarkistaa ne
+      ↓
+Application (use case)  Välittää parametrit eteenpäin
+      ↓
+Repository              Tekee Skip/Take-kyselyn ja laskee kokonaismäärän
+      ↓
+Tietokanta              Palauttaa vain pyydetyn sivun rivit
+```
+
+```csharp
+// Repository: rajaus tehdään tietokannassa
+public async Task<PagedResult<Match>> GetPagedAsync(int page, int pageSize)
+{
+    var totalCount = await _context.Matches.CountAsync();
+
+    var items = await _context.Matches
+        .OrderBy(m => m.PlayedAt)
+        .ThenBy(m => m.Id)
+        .Skip((page - 1) * pageSize)
+        .Take(pageSize)
+        .ToListAsync();
+
+    return new PagedResult<Match>(items, page, pageSize, totalCount);
+}
+```
+
+**Älä koskaan hae kaikkea ja leikkaa muistissa.** Tämä näyttää toimivalta, mutta kumoaa sivutuksen hyödyn:
+
+```csharp
+// ❌ Huono - koko taulu haetaan muistiin, sivu leikataan vasta sitten
+var all = await _repository.GetAllAsync();
+var pageItems = all.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+```
+
+Asiakas saa oikean kokoisen vastauksen, mutta palvelin ja tietokanta tekevät silti koko työn joka pyynnöllä. Sama virhe syntyy, jos `ToListAsync()` kutsutaan ennen `Skip`- ja `Take`-kutsuja.
+
+Katso myös [Repository Pattern](Repository-Pattern.md).
+
+---
+
+## Milloin sivutusta ei tarvita
+
+Sivutus ei kuulu jokaiseen listaan. Sitä ei tarvita, kun lista on **luonnostaan pieni** ja sen rivit **kuuluvat yhteen**.
+
+| Lista | Miksi sivuja ei tarvita |
+|-------|-------------------------|
+| Juuri nyt vapaana olevat ajat tai tilat | Rivejä on vähän, ja käyttäjä haluaa nähdä ne kaikki kerralla |
+| Yhden sarjan joukkueet | Enintään kymmeniä rivejä, ja sarjataulukko näytetään kokonaisena |
+| Valintalistan vaihtoehdot (esim. tilatyypit) | Määrä on pieni ja pysyy pienenä |
+
+Näissä sivutus toisi vain lisää edestakaisia pyyntöjä ja lisää koodia asiakkaalle, eikä säästäisi mitään.
+
+Kysy kaksi asiaa:
+
+1. **Voiko lista kasvaa rajatta?** Ottelut, varaukset ja tilaukset kertyvät ajan myötä, joten ne sivutetaan. Yhden sarjan joukkueet eivät kerry.
+2. **Tarvitseeko käyttäjä koko listan kerralla?** Jos tarvitsee ja lista on pieni, palauta se kokonaan.
+
+Kun jätät sivutuksen pois, kirjoita syy rajapinnan kuvaukseen. Silloin valinta on päätös eikä unohdus.
 
 ---
 
@@ -546,6 +645,13 @@ var orders = await _context.Orders
 
 ### 1. Validoi parametrit
 
+Asiakas voi lähettää virheellisen arvon, esimerkiksi `page=0` tai `pageSize=100000`. Vaihtoehtoja on kaksi:
+
+- **Vastaa 400 Bad Request.** Asiakas saa tietää, että pyyntö oli virheellinen.
+- **Korjaa arvo sallittuun rajaan (clamp).** Pyyntö onnistuu, ja vastauksen `page` ja `pageSize` kertovat, mitä arvoja käytettiin.
+
+Kumpikin käy. Tärkeää on, että valinta on **tehty tietoisesti ja dokumentoitu** rajapinnan kuvaukseen, ja että se on sama kaikissa listoissa. Alla oleva esimerkki korjaa arvon.
+
 ```csharp
 public class PaginationRequest
 {
@@ -660,10 +766,16 @@ Ilman indeksiä paginaatio on hidasta!
 |-----------|--------------|------|--------|
 | **Offset-based** | Yleisin, sivunumerot | Yksinkertainen, hyppy mille tahansa sivulle | Performance suurilla offset:illa |
 | **Cursor-based** | Infinite scroll, suuret datamäärät | Parempi performance | Ei voi hypätä sivulle |
-| **Page number** | UI sivunumeroilla | Käyttäjäystävällinen | Sama kuin offset-based |
+
+Sivunumero (`page` + `pageSize`) on offset-based-sivutus asiakkaan näkökulmasta, ei kolmas strategia.
+
+**Kerros ja rajaus:**
+- Sivutus on rajapinnan lupaus; Skip/Take tehdään repositoryssä tietokantaa vasten
+- Älä hae kaikkea ja leikkaa muistissa
+- Luonnostaan pientä, yhteen kuuluvaa listaa ei sivuteta
 
 **Best Practices:**
-- Validoi parametrit (page > 0, pageSize <= 100)
+- Validoi parametrit (page > 0, pageSize <= 100): vastaa 400 tai korjaa arvo, ja dokumentoi valinta
 - Käytä oletusarvoja
 - Palauta meta-data (page, totalPages, hasNext)
 - Indeksoi ORDER BY -kentät

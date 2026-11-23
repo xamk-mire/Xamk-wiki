@@ -7,15 +7,16 @@
 3. [Mikä on CQRS?](#mikä-on-cqrs)
 4. [Ongelma: Yhteinen malli lukemiselle ja kirjoittamiselle](#ongelma-yhteinen-malli-lukemiselle-ja-kirjoittamiselle)
 5. [Ratkaisu: Erilliset mallit](#ratkaisu-erilliset-mallit)
-6. [CQRS-tasot](#cqrs-tasot)
-7. [CQRS käytännössä C#:lla](#cqrs-käytännössä-clla)
-8. [CQRS + MediatR](#cqrs--mediatr)
-9. [CQRS + Clean Architecture](#cqrs--clean-architecture)
-10. [CQRS + Event Sourcing](#cqrs--event-sourcing)
-11. [Milloin käyttää CQRS:ää?](#milloin-käyttää-cqrsää)
-12. [Best Practices](#best-practices)
-13. [Anti-patterns](#anti-patterns)
-14. [Yhteenveto](#yhteenveto)
+6. [Lukumalli ja entiteetti](#lukumalli-ja-entiteetti)
+7. [CQRS-tasot](#cqrs-tasot)
+8. [CQRS käytännössä C#:lla](#cqrs-käytännössä-clla)
+9. [CQRS + MediatR](#cqrs--mediatr)
+10. [CQRS + Clean Architecture](#cqrs--clean-architecture)
+11. [CQRS + Event Sourcing](#cqrs--event-sourcing)
+12. [Milloin käyttää CQRS:ää?](#milloin-käyttää-cqrsää)
+13. [Best Practices](#best-practices)
+14. [Anti-patterns](#anti-patterns)
+15. [Yhteenveto](#yhteenveto)
 
 ---
 
@@ -41,7 +42,7 @@ Perinteinen malli:
      │ Database  │
      └───────────┘
 
-CQRS-malli:
+CQRS-malli (kevyin taso):
 ┌──────────────┐    ┌───────────────┐
 │  Query Side  │    │ Command Side  │
 │ ──────────── │    │ ───────────── │
@@ -50,10 +51,15 @@ CQRS-malli:
 │              │    │ Delete()      │
 └──────┬───────┘    └───────┬───────┘
        │                    │
-  ┌────┴────┐          ┌───┴────┐
-  │ Read DB │          │Write DB│
-  └─────────┘          └────────┘
+       └─────────┬──────────┘
+           ┌─────┴─────┐
+           │ Database  │
+           └───────────┘
 ```
+
+Kevyimmillään CQRS erottaa **koodin**, ei tietokantaa. Lukeminen ja kirjoittaminen kulkevat eri luokkien kautta, mutta tietokanta on yksi ja sama. Erilliset tietokannat lukemiselle ja kirjoittamiselle ovat myöhempi, valinnainen taso, jota tarvitaan harvoin (katso [CQRS-tasot](#cqrs-tasot)).
+
+CQRS ei myöskään vaadi mitään kirjastoa. [MediatR](../Patterns/MediatR.md) on yksi tapa toteuttaa se, mutta saman jaon voi tehdä tavallisilla luokilla.
 
 ---
 
@@ -135,6 +141,19 @@ Ominaisuudet:
   - Validoidaan ennen suoritusta
   - Voi epäonnistua business-sääntöjen vuoksi
 ```
+
+**Miksi command ei palauta dataa?** Commandin tehtävä on muuttaa tilaa. Jos se palauttaisi koko olion, se alkaisi palvella näkymää: paluuarvoon lisättäisiin kenttiä sen mukaan, mitä ruudulla halutaan näyttää. Silloin sama luokka tekisi taas sekä kirjoituksen että lukemisen, ja jako katoaisi.
+
+Siksi command palauttaa korkeintaan uuden rivin tunnisteen (ID). **Asiakas hakee uuden tilan erikseen querylla.**
+
+Esimerkki sarjataulukkosovelluksesta:
+
+```
+1. POST /api/matches/42/result   → RecordResultCommand   → vastaus: 204 No Content
+2. GET  /api/standings           → GetStandingsQuery     → vastaus: tuore sarjataulukko
+```
+
+Selain ei laske uutta sarjataulukkoa itse eikä saa sitä commandin vastauksena. Se kysyy sen samasta paikasta kuin aina muulloinkin.
 
 ### Query (Kysely)
 
@@ -287,7 +306,8 @@ QueryHandler           CommandHandler
     ↓                      ↓
   Read Model           Write Model
     ↓                      ↓
-  Database             Database
+    └──────────┬───────────┘
+          Sama tietokanta
 ```
 
 ### Käytännön ero
@@ -322,15 +342,73 @@ public class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, P
 public record CreateProductCommand(string Name, decimal Price) : IRequest<int>;
 public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand, int>
 {
-    // Validointi, business rules, domain events
+    // Handler ohjaa työn: luo entiteetti, tallenna, palauta ID.
+    // Liiketoimintasääntö on entiteetissä, ei handlerissa.
 }
 
 public record UpdateProductCommand(int Id, string Name, decimal Price) : IRequest;
 public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand>
 {
-    // Validointi, optimistic concurrency, audit trail
+    // Hae entiteetti, kutsu sen metodia, tallenna
 }
 ```
+
+> Esimerkissä käytetään MediatR:n rajapintoja (`IRequest`, `IRequestHandler`), koska ne ovat yleisin tapa. Jako toimii samalla tavalla ilman kirjastoa, katso [CQRS käytännössä C#:lla](#cqrs-käytännössä-clla).
+
+---
+
+## Lukumalli ja entiteetti
+
+CQRS:n kaksi mallia ovat **entiteetti** ja **lukumalli**. Ne ovat eri luokkia, koska niillä on eri tehtävä.
+
+| | Entiteetti (kirjoitusmalli) | Lukumalli (read model) |
+|---|---|---|
+| **Tehtävä** | Suojaa säännöt | Näyttää datan yhdelle näkymälle |
+| **Muoto** | Luokka, jolla on metodit ja yksityiset setterit | DTO: pelkkiä kenttiä |
+| **Kuka käyttää** | Command-handler | Query-handler |
+| **Kerros** | Domain | Application |
+| **Muuttuu, kun** | Sääntö muuttuu | Näkymä muuttuu |
+
+**Entiteetti** on olemassa sääntöjä varten. Sarjataulukkosovelluksessa `Match`-entiteetti tietää, että tuloksen voi kirjata vain kerran ja että maalimäärä ei voi olla negatiivinen. Se viittaa joukkueisiin tunnisteilla.
+
+**Lukumalli** on DTO, joka on muotoiltu yhtä näkymää varten. Ottelulista ei tarvitse sääntöjä. Se tarvitsee joukkueiden nimet, koska käyttäjä ei halua nähdä tunnisteita.
+
+```csharp
+// Entiteetti: suojaa säännön
+public class Match
+{
+    public int Id { get; private set; }
+    public int HomeTeamId { get; private set; }
+    public int AwayTeamId { get; private set; }
+    public int? HomeGoals { get; private set; }
+    public int? AwayGoals { get; private set; }
+
+    public void RecordResult(int homeGoals, int awayGoals)
+    {
+        if (HomeGoals is not null)
+            throw new InvalidOperationException("Tulos on jo kirjattu.");
+        if (homeGoals < 0 || awayGoals < 0)
+            throw new ArgumentException("Maalimäärä ei voi olla negatiivinen.");
+
+        HomeGoals = homeGoals;
+        AwayGoals = awayGoals;
+    }
+}
+
+// Lukumalli: muotoiltu ottelulistaa varten, nimet tunnisteiden tilalla
+public record MatchListItemDto(
+    int Id,
+    string HomeTeamName,
+    string AwayTeamName,
+    int? HomeGoals,
+    int? AwayGoals);
+```
+
+**Minkä ongelman tämä ratkaisee?** Jos näkymälle palautetaan entiteetti, näkymän tarpeet alkavat muokata sitä. Entiteettiin lisätään kenttiä vain näyttämistä varten, ja sääntöjä suojaava luokka muuttuu aina, kun ruutu muuttuu. Kun lukumalli on erikseen, näkymää voi muuttaa koskematta sääntöihin.
+
+**Milloin erillistä lukumallia ei tarvita?** Kun näkymä näyttää täsmälleen samat kentät kuin mitä tallennetaan eikä entiteetissä ole sääntöjä. Silloin kyse on pelkästä CRUD:sta, ja kaksi mallia on turhaa työtä.
+
+Katso myös: [DTO:t](DTOs.md).
 
 ---
 
@@ -598,7 +676,7 @@ public class QueryDispatcher : IQueryDispatcher
 }
 ```
 
-> Kuten näet, manuaalinen toteutus vaatii paljon boilerplate-koodia. Tämän takia **MediatR** on suosituin tapa toteuttaa CQRS .NET-sovelluksissa.
+> Kuten näet, manuaalinen toteutus vaatii jonkin verran toistuvaa koodia. Siksi CQRS toteutetaan .NET-sovelluksissa usein **MediatR**-kirjastolla. Kirjasto on apuväline, ei CQRS:n osa: yllä oleva koodi on jo CQRS:ää.
 
 ---
 
@@ -811,7 +889,7 @@ Event Store              Read Model (denormalized)
 | ✅ Domain-logiikka on monimutkaista | Command-puolelle oma rikas domain-malli |
 | ✅ Tiimissä useita kehittäjiä | Vähemmän merge-konflikteja |
 | ✅ Käytät Clean Architecture -arkkitehtuuria | Luonnollinen yhteensopivuus |
-| ✅ Tarvitset Pipeline Behavioreita | Validointi, logging, caching ketjutettuna |
+| ✅ Näkymät tarvitsevat eri muotoista dataa kuin mitä tallennetaan | Jokaiselle näkymälle oma lukumalli |
 
 ### Älä käytä CQRS:ää kun:
 
@@ -820,7 +898,8 @@ Event Store              Read Model (denormalized)
 | ❌ Yksinkertainen CRUD-sovellus | Lisää turhaa monimutkaisuutta |
 | ❌ Luku- ja kirjoitusmallit ovat identtisiä | Ei hyötyä erottamisesta |
 | ❌ Pieni projekti, 1-2 kehittäjää | Overhead ylittää hyödyt |
-| ❌ Ei tarvetta cross-cutting concerneille | Pipeline Behaviorit turhia |
+
+> **Huom:** Pipeline Behaviorit (validointi, lokitus ketjutettuna) ovat MediatR-kirjaston ominaisuus, eivät CQRS:n. Ne eivät ole syy valita CQRS:ää, eikä CQRS vaadi MediatR:ia.
 
 ---
 
@@ -832,7 +911,7 @@ Event Store              Read Model (denormalized)
 // ✅ HYVÄ: Aloita yhdellä tietokannalla, erillisillä handlereilla
 // Siirry monimutkaisempaan vasta kun tarve ilmenee
 
-// ❌ HUONO: Aloita heti erillisillä tietokannoilla ja Event Sourcingilla
+// ❌ HUONO: Aloita heti erillisillä tietokannoilla tai Event Sourcingilla
 ```
 
 ### 2. Nimeä Commands ja Queries johdonmukaisesti
@@ -949,11 +1028,15 @@ public record CreateProductCommand(...) : IRequest<int>;
 |---|---|
 | **CQS** | Metodi joko lukee tai kirjoittaa, ei molempia |
 | **CQRS** | Sovellustason CQS: erilliset mallit lukemiselle ja kirjoittamiselle |
-| **Command** | Muuttaa tilaa (Create, Update, Delete) |
-| **Query** | Lukee dataa (Get, Search, List) |
+| **Command** | Muuttaa tilaa (Create, Update, Delete), palauttaa korkeintaan ID:n |
+| **Query** | Lukee dataa (Get, Search, List), ei muuta tilaa |
+| **Entiteetti** | Kirjoitusmalli: suojaa säännöt |
+| **Lukumalli** | DTO, joka on muotoiltu yhtä näkymää varten |
 | **Taso 1** | Erillinen koodimalli, sama tietokanta (suositelluin aloitustaso) |
 | **Taso 2** | Erillinen tietokantayhteys (ReadDbContext / WriteDbContext) |
-| **Taso 3** | Erilliset tietokannat + Event Sourcing (harvoin tarpeellinen) |
+| **Taso 3** | Erilliset tietokannat lukemiselle ja kirjoittamiselle (harvoin tarpeellinen) |
+
+Event Sourcing on erillinen malli. Sitä voi käyttää CQRS:n kanssa, mutta mikään taso ei vaadi sitä.
 
 ### Hyödyt
 
@@ -962,7 +1045,7 @@ public record CreateProductCommand(...) : IRequest<int>;
 - Helpompi testata (yksi handler kerrallaan)
 - Skaalautuu isoihin projekteihin
 - Luonnollinen yhteensopivuus Clean Architecturen kanssa
-- Pipeline Behaviors cross-cutting concerneille
+- Näkymää voi muuttaa koskematta sääntöihin, koska lukumalli ja entiteetti ovat eri luokkia
 
 ### Hyödyllisiä linkkejä
 

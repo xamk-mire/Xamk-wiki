@@ -10,6 +10,8 @@
 6. [xUnit Attribuutit](#xunit-attribuutit)
 7. [Assert-metodit](#assert-metodit)
 8. [Mocking](#mocking)
+   - [Testikaksoset: fake, mock ja oikea riippuvuus](#testikaksoset-fake-mock-ja-oikea-riippuvuus)
+   - [Domain-testi ja use case -testi](#domain-testi-ja-use-case--testi)
 9. [Testien organisointi](#testien-organisointi)
 10. [Parhaat käytännöt](#parhaat-käytännöt)
 11. [Esimerkit](#esimerkit)
@@ -55,7 +57,7 @@ Yksikkötestaus on ohjelmistokehityksen keskeinen osa, joka varmistaa koodin laa
 
 ❌ **Integraatiotesti** - Testaa useita komponentteja yhdessä
 
-Integraatiotestit testaavat, miten eri osat järjestelmästä toimivat yhdessä. Esimerkiksi testataan, että sovellus pystyy tallentamaan datan oikeasti tietokantaan, ei mockattuna. Nämä testit ovat hitaampia ja monimutkaisempia kuin yksikkötestit.
+Integraatiotestit testaavat, miten eri osat järjestelmästä toimivat yhdessä. Esimerkiksi testataan, että sovellus pystyy tallentamaan datan oikeasti tietokantaan, ei korvikkeeseen. Nämä testit ovat hitaampia ja monimutkaisempia kuin yksikkötestit.
 
 **Esimerkki:** Testataan UserService:n ja oikean tietokannan yhteistoimintaa.
 
@@ -162,7 +164,7 @@ AAA (Arrange-Act-Assert) on yleinen malli yksikkötestauksessa. Se jakaa testin 
 **Valmistele testi:**
 - Luo tarvittavat objektit
 - Aseta alkuarvot
-- Konfiguroi mock-objektit
+- Konfiguroi testikaksoset (fake tai mock), jos niitä tarvitaan
 
 ```csharp
 // Arrange
@@ -438,6 +440,8 @@ Assert.IsAssignableFrom<BaseClass>(object);
 
 **Mocking** on tekniikka, jossa luodaan "teko-objekteja" (mockeja) korvaamaan oikeat riippuvuudet testeissä. Näin voit testata koodia eristettynä ulkoisista riippuvuuksista.
 
+Arkikielessä kaikkia korvikkeita kutsutaan usein mockeiksi. Tarkasti ottaen mock on vain yksi korvikkeen laji. Lajit ja niiden erot selitetään kohdassa [Testikaksoset: fake, mock ja oikea riippuvuus](#testikaksoset-fake-mock-ja-oikea-riippuvuus).
+
 ### Miksi mockata?
 
 #### 1. Eristäminen
@@ -540,6 +544,106 @@ public class UserService
 - Mock voidaan luoda automaattisesti
 - Riippuvuuden voi vaihtaa helposti
 - Parempi arkkitehtuuri (Dependency Inversion)
+
+### Testikaksoset: fake, mock ja oikea riippuvuus
+
+**Testikaksonen** (test double) on yleisnimi oliolle, joka korvaa oikean riippuvuuden testissä. Nimi tulee elokuvien sijaisnäyttelijästä (stunt double). Testissä riippuvuudelle on kolme vaihtoehtoa:
+
+| Vaihtoehto | Mikä se on | Milloin käytät |
+|---|---|---|
+| **Fake** | Käsin kirjoitettu, yksinkertainen ja toimiva toteutus. Esimerkiksi repository, joka pitää datan listassa muistissa. | Use case -testeissä repositoryn tilalla. Kun haluat tarkistaa lopputuloksen: "onko ottelu tallessa ja onko sillä tulos?" |
+| **Mock** | Kirjaston (esim. Moq) luoma olio. Sille kerrotaan, mitä sen pitää palauttaa, ja se kirjaa, mitä metodeja kutsuttiin. | Kun haluat tarkistaa kutsun: "lähetettiinkö sähköposti kerran?" Tai kun tarvitset virhetilanteen, jota fakella on hankala tuottaa. |
+| **Oikea riippuvuus** | Oikea tietokanta, tiedosto tai verkkopalvelu. | Integraatiotestissä, kun haluat varmistaa, että esimerkiksi EF Core -kysely toimii oikeaa tietokantaa vasten. |
+
+**Fake** kirjoitetaan kerran ja sitä käytetään monessa testissä:
+
+```csharp
+public class FakeMatchRepository : IMatchRepository
+{
+    private readonly List<Match> _matches = new();
+
+    public Task<Match?> GetByIdAsync(int id) =>
+        Task.FromResult(_matches.FirstOrDefault(m => m.Id == id));
+
+    public Task AddAsync(Match match)
+    {
+        _matches.Add(match);
+        return Task.CompletedTask;
+    }
+}
+```
+
+**Mock** luodaan testin sisällä, ja sille kerrotaan vastaukset:
+
+```csharp
+Mock<IEmailService> emailMock = new Mock<IEmailService>();
+emailMock.Setup(x => x.SendEmail(It.IsAny<string>())).Returns(true);
+
+// ... testattava kutsu ...
+
+emailMock.Verify(x => x.SendEmail("test@example.com"), Times.Once);
+```
+
+| | Fake | Mock |
+|---|---|---|
+| Kuka tekee | Sinä, käsin | Kirjasto |
+| Mitä testi tarkistaa | Lopputilan (mitä repositoryssa on) | Kutsut (mitä metodia kutsuttiin ja montako kertaa) |
+| Heikkous | Yksi luokka lisää ylläpidettävää | Testi sitoutuu toteutuksen yksityiskohtiin ja hajoaa helposti refaktoroinnissa |
+
+**Milloin et tarvitse mitään näistä:** kun testattava koodi ei riipu mistään ulkoisesta. Katso seuraava kohta.
+
+Muita testikaksosten nimiä ovat *stub* (palauttaa valmiita vastauksia) ja *spy* (kirjaa kutsut). Käytännössä Moq-olio toimii molempina, joten tällä sivulla riittää jako fake / mock / oikea riippuvuus.
+
+### Domain-testi ja use case -testi
+
+Se, tarvitseeko testi korvikkeen, riippuu siitä, missä testattava sääntö on.
+
+**Domain-testi** testaa sääntöä, joka on entiteetissä tai value objectissa. Se ei tarvitse yhtään testikaksosta. Olio luodaan `new`-sanalla ja sen metodia kutsutaan.
+
+```csharp
+[Fact]
+public void RecordResult_WhenResultAlreadyRecorded_Throws()
+{
+    // Arrange: ei fakea, ei mockia, ei tietokantaa
+    Match match = new Match(homeTeamId: 1, awayTeamId: 2);
+    match.RecordResult(2, 1);
+
+    // Act & Assert
+    Assert.Throws<InvalidOperationException>(() => match.RecordResult(3, 0));
+}
+```
+
+**Use case -testi** testaa käyttötapausta: hae, kutsu oliota, tallenna. Use case tarvitsee repositoryn, joten testi antaa sille faken.
+
+```csharp
+[Fact]
+public async Task RecordResult_SavesResultToMatch()
+{
+    // Arrange: fake repository, jossa on yksi ottelu
+    FakeMatchRepository matches = new FakeMatchRepository();
+    Match match = new Match(homeTeamId: 1, awayTeamId: 2);
+    await matches.AddAsync(match);
+    RecordResultUseCase useCase = new RecordResultUseCase(matches);
+
+    // Act
+    await useCase.ExecuteAsync(match.Id, homeGoals: 2, awayGoals: 1);
+
+    // Assert: tarkistetaan lopputila fakesta
+    Match? saved = await matches.GetByIdAsync(match.Id);
+    Assert.True(saved!.HasResult);
+}
+```
+
+| | Domain-testi | Use case -testi |
+|---|---|---|
+| Mitä testaa | Yhden olion sääntöä | Käyttötapauksen kulkua |
+| Testikaksonen | Ei tarvita | Fake repository |
+| Nopeus | Nopein | Nopea |
+| Esimerkki | Tulosta ei voi kirjata kahdesti | Ottelua ei löydy → virhe |
+
+**Testi kertoo, missä sääntö on.** Jos säännön testaamiseen riittää `new` ja metodikutsu, sääntö on entiteetissä. Jos testi tarvitsee faken, sääntö on use casessa tai se vaatii haun. Jos huomaat tarvitsevasi tietokannan testataksesi pelkkää sääntöä, sääntö on väärässä paikassa, yleensä repositoryssa tai controllerissa.
+
+Tämä toimii myös toiseen suuntaan: sääntö, joka koskee vain olion omaa dataa, kannattaa sijoittaa entiteettiin jo siksi, että se on silloin helpoin testata. Katso [Mihin sääntö kuuluu?](../Architecture/Domain-Driven-Design.md#mihin-sääntö-kuuluu-nyrkkisääntö)
 
 ---
 
@@ -803,7 +907,7 @@ Kun hallitset yksikkötestauksen perusteet, jatka:
 - Käytä AAA-mallia (Arrange-Act-Assert)
 - Kirjoita selkeät ja kuvaavat nimet
 - Testit ovat itsenäisiä
-- Mockkaa ulkoiset riippuvuudet
+- Korvaa ulkoiset riippuvuudet testikaksosella (fake tai mock)
 - Testaa myös virhetilanteet
 - Noudata FIRST-periaatteita
 

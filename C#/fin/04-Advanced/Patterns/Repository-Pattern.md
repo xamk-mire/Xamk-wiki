@@ -3,15 +3,16 @@
 ## Sisällysluettelo
 
 1. [Johdanto](#johdanto)
-2. [Miksi Repository Pattern?](#miksi-repository-pattern)
-3. [Perusrakenne](#perusrakenne)
-4. [Generic Repository vs. Spesifi Repository](#generic-repository-vs-spesifi-repository)
-5. [Repository Clean Architecturessa](#repository-clean-architecturessa)
-6. [Unit of Work](#unit-of-work)
-7. [Repository ja Unit Testing](#repository-ja-unit-testing)
-8. [Best Practices](#best-practices)
-9. [Anti-patterns](#anti-patterns)
-10. [Yhteenveto](#yhteenveto)
+2. [Mitä repository tekee ja mitä ei](#mitä-repository-tekee-ja-mitä-ei)
+3. [Miksi Repository Pattern?](#miksi-repository-pattern)
+4. [Perusrakenne](#perusrakenne)
+5. [Generic Repository vs. Spesifi Repository](#generic-repository-vs-spesifi-repository)
+6. [Repository Clean Architecturessa](#repository-clean-architecturessa)
+7. [Unit of Work](#unit-of-work)
+8. [Repository ja Unit Testing](#repository-ja-unit-testing)
+9. [Best Practices](#best-practices)
+10. [Anti-patterns](#anti-patterns)
+11. [Yhteenveto](#yhteenveto)
 
 ---
 
@@ -28,12 +29,34 @@ Controller → DbContext.Products.Where(p => p.Price > 100).ToListAsync()
 Controller tuntee EF Core:n suoraan (tight coupling)
 
 Repository Patternilla:
-Controller → IProductRepository.GetExpensiveAsync(100)
+Controller → Service / use case → IProductRepository.GetExpensiveAsync(100)
      ↓
-Controller tuntee vain rajapinnan (loose coupling)
+Sovelluslogiikka tuntee vain rajapinnan (loose coupling)
 ```
 
 Repository toimii **abstraktiokerroksena** sovelluslogiikan ja tietokantateknologian välillä. Ajattele sitä "tietovarastona", jolta voit pyytää objekteja ilman tietoa siitä, miten ne on tallennettu.
+
+---
+
+## Mitä repository tekee ja mitä ei
+
+**Mitä se tekee:** repository piilottaa sen, missä data on. Se hakee olioita ja tallentaa niitä. Kutsuja ei tiedä, onko takana tietokanta, tiedosto vai lista muistissa.
+
+**Mitä se ei tee:** repository ei päätä liiketoimintasääntöjä. Se ei päätä, saako varauksen tehdä tai saako tuloksen kirjata. Se palauttaa dataa, ja päätöksen tekee use case tai entiteetti.
+
+| Kysymys | Kuka vastaa |
+|---|---|
+| Mitkä varaukset osuvat tälle aikavälille? | Repository (haku) |
+| Saako uuden varauksen tehdä, jos päällekkäisiä on? | Use case tai entiteetti (sääntö) |
+| Tallenna tämä varaus | Repository (tallennus) |
+
+**Varoitusmerkki:** metodin nimi kuulostaa säännöltä, esimerkiksi `HasOverlappingBookingAsync` tai `CanBook`. Silloin sääntö on valunut repositoryyn. Sitä ei voi testata ilman tietokantaa, eikä sitä löydä sieltä, mistä sääntöjä etsitään. Parempi on kysely, joka palauttaa dataa (`GetOverlappingAsync`), ja päätös tehdään use casessa.
+
+**Mistä metodit tulevat:** käyttötapausten tarpeista. Repositoryyn ei kirjoiteta oletuksena koko CRUD-listaa (Create, Read, Update, Delete). Jos mikään käyttötapaus ei poista varauksia, `DeleteAsync`-metodia ei tehdä. Jokainen turha metodi on koodia, joka pitää ylläpitää ja toteuttaa myös testien fake-repositoryyn.
+
+**Missä kerroksessa se on:** rajapinta (`IBookingRepository`) on Domain-kerroksessa ja toteutus (`BookingRepository`) Infrastructure-kerroksessa. Rajapinta kertoo, mitä sovelluksen ydin tarvitsee. Toteutus kertoo, miten se tehdään EF Corella. Jos rajapinta olisi Infrastructuressa, use casen pitäisi viitata Infrastructure-projektiin, ja riippuvuus osoittaisi ulospäin. Tarkempi selitys: [Miksi rajapinta on Domainissa ja toteutus Infrastructuressa](../Architecture/Clean-Architecture.md#miksi-rajapinta-on-domainissa-ja-toteutus-infrastructuressa).
+
+**Milloin repositorya ei tarvita:** pienessä sovelluksessa, jossa ei ole sääntöjä eikä yksikkötestejä, service voi käyttää `DbContext`ia suoraan. Repository on lisäkerros, ja sen pitää ansaita paikkansa.
 
 ---
 
@@ -79,32 +102,51 @@ public class BookingController : ControllerBase
 ### Ratkaisu: Repository Pattern
 
 ```csharp
-public class BookingController : ControllerBase
+// Service (tai use case) käyttää repositorya rajapinnan kautta
+public class BookingService
 {
     private readonly IBookingRepository _bookingRepository;
 
-    public BookingController(IBookingRepository bookingRepository)
+    public BookingService(IBookingRepository bookingRepository)
     {
         _bookingRepository = bookingRepository;
+    }
+
+    public async Task<List<Booking>> GetUpcomingAsync()
+    {
+        // Service ei tiedä EF Coresta mitään
+        return await _bookingRepository.GetUpcomingAsync();
+    }
+}
+
+// Controller kutsuu serviceä, ei repositorya
+public class BookingController : ControllerBase
+{
+    private readonly BookingService _bookingService;
+
+    public BookingController(BookingService bookingService)
+    {
+        _bookingService = bookingService;
     }
 
     [HttpGet]
     public async Task<ActionResult<List<Booking>>> GetAll()
     {
-        // Controller ei tiedä EF Coresta mitään
-        var bookings = await _bookingRepository.GetUpcomingAsync();
+        var bookings = await _bookingService.GetUpcomingAsync();
         return Ok(bookings);
     }
 }
 ```
 
+**Huomaa:** controller ei käytä repositorya suoraan. Kerroksittain rakennetussa sovelluksessa controller kutsuu serviceä tai use casea, ja vasta se käyttää repositorya. Jos controller hakisi ja tallentaisi itse, säännöt päätyisivät ennen pitkää controlleriin.
+
 **Edut:**
 
-- ✅ **Loose coupling** — Controller riippuu vain rajapinnasta
-- ✅ **Testattava** — Repository voidaan mockata yksikkötesteissä
+- ✅ **Loose coupling** — Sovelluslogiikka riippuu vain rajapinnasta
+- ✅ **Testattava** — Repository voidaan korvata testissä fakella tai mockilla
 - ✅ **DRY** — Kyselylogiikka on yhdessä paikassa
 - ✅ **Vaihdettavissa** — Tietokantateknologia voidaan vaihtaa ilman sovelluslogiikan muuttamista
-- ✅ **Selkeä vastuu** — Repository vastaa datasta, Controller vastaa HTTP:stä
+- ✅ **Selkeä vastuu** — Repository vastaa datasta, service säännöistä, Controller HTTP:stä
 
 ---
 
@@ -123,10 +165,14 @@ public interface IBookingRepository
     Task<List<Booking>> GetByRoomAsync(int roomId);
     Task<Booking> AddAsync(Booking booking);
     Task UpdateAsync(Booking booking);
-    Task DeleteAsync(int id);
-    Task<bool> HasOverlappingBookingAsync(int roomId, DateTime start, DateTime end);
+    Task<List<Booking>> GetOverlappingAsync(int roomId, DateTime start, DateTime end);
 }
 ```
+
+Kaksi huomiota:
+
+- `GetOverlappingAsync` palauttaa päällekkäiset varaukset. Se ei päätä, saako uuden varauksen tehdä. Päätös tehdään use casessa.
+- Rajapinnassa ei ole `DeleteAsync`-metodia, koska tässä esimerkissä mikään käyttötapaus ei poista varauksia.
 
 ### 2. Toteutus (Implementation)
 
@@ -173,13 +219,15 @@ public class BookingRepository : IBookingRepository
         return booking;
     }
 
-    public async Task<bool> HasOverlappingBookingAsync(
+    public async Task<List<Booking>> GetOverlappingAsync(
         int roomId, DateTime start, DateTime end)
     {
-        return await _db.Bookings.AnyAsync(b =>
-            b.RoomId == roomId &&
-            b.StartDate < end &&
-            b.EndDate > start);
+        return await _db.Bookings
+            .Where(b =>
+                b.RoomId == roomId &&
+                b.StartDate < end &&
+                b.EndDate > start)
+            .ToListAsync();
     }
 
     // ... muut metodit
@@ -193,7 +241,7 @@ public class BookingRepository : IBookingRepository
 builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 ```
 
-`AddScoped` tarkoittaa, että jokaiselle HTTP-pyynnölle luodaan oma repository-instanssi — sama elinkaari kuin `DbContext`:lla.
+`AddScoped` tarkoittaa, että jokaiselle HTTP-pyynnölle luodaan oma repository-instanssi — sama elinkaari kuin `DbContext`:lla. Tämä koskee repositoryja, jotka käyttävät `DbContext`ia. Muistissa toimiva repository, joka pitää datan omassa listassaan, rekisteröidään `AddSingleton`-metodilla. Muuten jokainen pyyntö saisi tyhjän listan. Katso [Mitä menee rikki väärällä elinkaarella](../Dependency-Injection.md#mitä-menee-rikki-väärällä-elinkaarella).
 
 ---
 
@@ -255,7 +303,7 @@ Spesifi repository laajentaa geneeristä ja lisää entiteettikohtaisia metodeja
 public interface IBookingRepository : IRepository<Booking>
 {
     Task<List<Booking>> GetUpcomingAsync();
-    Task<bool> HasOverlappingBookingAsync(int roomId, DateTime start, DateTime end);
+    Task<List<Booking>> GetOverlappingAsync(int roomId, DateTime start, DateTime end);
 }
 ```
 
@@ -273,13 +321,15 @@ public class BookingRepository : Repository<Booking>, IBookingRepository
             .ToListAsync();
     }
 
-    public async Task<bool> HasOverlappingBookingAsync(
+    public async Task<List<Booking>> GetOverlappingAsync(
         int roomId, DateTime start, DateTime end)
     {
-        return await _dbSet.AnyAsync(b =>
-            b.RoomId == roomId &&
-            b.StartDate < end &&
-            b.EndDate > start);
+        return await _dbSet
+            .Where(b =>
+                b.RoomId == roomId &&
+                b.StartDate < end &&
+                b.EndDate > start)
+            .ToListAsync();
     }
 }
 ```
@@ -295,6 +345,23 @@ public class BookingRepository : Repository<Booking>, IBookingRepository
 | Suositus | Pohjaluokkana (base class) | Julkinen rajapinta |
 
 **Suositus:** Käytä geneeristä repositoryä **pohjaluokkana** (`Repository<T>`) ja spesifejä repositoryja **julkisena rajapintana** (`IBookingRepository`). Näin saat molemmat hyödyt.
+
+**Varaus:** geneerinen CRUD-pohja antaa jokaiselle entiteetille kaikki operaatiot, myös ne, joita mikään käyttötapaus ei tarvitse. Yllä `IBookingRepository : IRepository<Booking>` perii `DeleteAsync`- ja `UpdateAsync`-metodit, vaikka varauksia ei ehkä saa poistaa lainkaan. Silloin rajapinta lupaa enemmän kuin sovellus sallii, ja joku käyttää metodia ennemmin tai myöhemmin. Kun säännöillä on väliä, turvallisempi tapa on tämä:
+
+- Spesifi rajapinta **ei peri** geneeristä rajapintaa. Siihen kirjoitetaan vain ne metodit, joita käyttötapaukset tarvitsevat.
+- Geneeristä luokkaa voi silti käyttää toteutuksen apuna Infrastructure-kerroksessa.
+
+```csharp
+// Vain se, mitä käyttötapaukset tarvitsevat. Ei Deleteä.
+public interface IBookingRepository
+{
+    Task<Booking?> GetByIdAsync(int id);
+    Task<List<Booking>> GetOverlappingAsync(int roomId, DateTime start, DateTime end);
+    Task<Booking> AddAsync(Booking booking);
+}
+```
+
+Geneerinen CRUD-pohja sopii sovellukseen, joka todella on pelkkää CRUDia: jokaista entiteettiä saa luoda, muokata ja poistaa vapaasti.
 
 ---
 
@@ -320,7 +387,7 @@ Clean Architecturessa Repository Pattern noudattaa **Dependency Inversion Princi
 └─────────────────────────────────────────────────┘
 ```
 
-**Tärkeä sääntö:** Rajapinta (`IBookingRepository`) sijaitsee **Domain**- tai **Application**-kerroksessa. Toteutus (`BookingRepository`) sijaitsee **Infrastructure**-kerroksessa.
+**Tärkeä sääntö:** Rajapinta (`IBookingRepository`) sijaitsee **Domain**-kerroksessa. Toteutus (`BookingRepository`) sijaitsee **Infrastructure**-kerroksessa. Jotkut tiimit sijoittavat rajapinnan Application-kerrokseen. Olennaista on, että se on sisäkerroksessa eikä Infrastructuressa.
 
 ```
 Domain/Interfaces/IBookingRepository.cs      ← Rajapinta
@@ -352,10 +419,12 @@ public class CreateBookingUseCase
         if (room is null)
             return Result<Booking>.Failure("Huonetta ei löydy");
 
-        bool hasOverlap = await _bookingRepository
-            .HasOverlappingBookingAsync(dto.RoomId, dto.StartDate, dto.EndDate);
+        // Repository palauttaa dataa...
+        List<Booking> overlapping = await _bookingRepository
+            .GetOverlappingAsync(dto.RoomId, dto.StartDate, dto.EndDate);
 
-        if (hasOverlap)
+        // ...ja use case tekee päätöksen
+        if (overlapping.Count > 0)
             return Result<Booking>.Failure("Huone on jo varattu kyseiselle ajalle");
 
         var booking = new Booking
@@ -432,9 +501,81 @@ await _unitOfWork.SaveChangesAsync();  // Molemmat tallentuvat tai kumpikaan ei
 
 ## Repository ja Unit Testing
 
-Repository Pattern tekee yksikkötestauksesta helppoa, koska repository voidaan **mockata**:
+Repository Pattern tekee yksikkötestauksesta helppoa, koska repository voidaan **korvata testissä**. Korvikkeita on kahta lajia: käsin kirjoitettu **fake** ja kirjaston luoma **mock**. Ero selitetään kohdassa [Testikaksoset: fake, mock ja oikea riippuvuus](../UnitTesting/Unit-Testing.md#testikaksoset-fake-mock-ja-oikea-riippuvuus).
 
-### Use Casen testaaminen
+### Fake-repository
+
+**Fake** on yksinkertainen, toimiva toteutus samasta rajapinnasta. Se pitää datan listassa muistissa. Se kirjoitetaan kerran ja sitä käytetään kaikissa use case -testeissä.
+
+```csharp
+public class FakeBookingRepository : IBookingRepository
+{
+    private readonly List<Booking> _bookings = new();
+
+    public Task<Booking?> GetByIdAsync(int id) =>
+        Task.FromResult(_bookings.FirstOrDefault(b => b.Id == id));
+
+    public Task<List<Booking>> GetAllAsync() =>
+        Task.FromResult(_bookings.ToList());
+
+    public Task<List<Booking>> GetUpcomingAsync() =>
+        Task.FromResult(_bookings.Where(b => b.StartDate > DateTime.Today).ToList());
+
+    public Task<List<Booking>> GetByRoomAsync(int roomId) =>
+        Task.FromResult(_bookings.Where(b => b.RoomId == roomId).ToList());
+
+    public Task<List<Booking>> GetOverlappingAsync(int roomId, DateTime start, DateTime end) =>
+        Task.FromResult(_bookings
+            .Where(b => b.RoomId == roomId && b.StartDate < end && b.EndDate > start)
+            .ToList());
+
+    public Task<Booking> AddAsync(Booking booking)
+    {
+        _bookings.Add(booking);
+        return Task.FromResult(booking);
+    }
+
+    public Task UpdateAsync(Booking booking) => Task.CompletedTask;
+}
+```
+
+Testi käyttää fakea kuin oikeaa repositorya. Lopuksi tarkistetaan lopputulos, ei sitä, mitä metodeja kutsuttiin:
+
+```csharp
+[Fact]
+public async Task Execute_WhenRoomHasOverlap_DoesNotAddBooking()
+{
+    // Arrange: huoneessa 1 on jo varaus huomiselle
+    var bookings = new FakeBookingRepository();
+    await bookings.AddAsync(new Booking
+    {
+        RoomId = 1,
+        StartDate = DateTime.Today.AddDays(1),
+        EndDate = DateTime.Today.AddDays(2)
+    });
+
+    var rooms = new Mock<IRoomRepository>();
+    rooms.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(new Room { Id = 1 });
+
+    var useCase = new CreateBookingUseCase(bookings, rooms.Object);
+
+    // Act: yritetään varata sama aika
+    var result = await useCase.ExecuteAsync(new CreateBookingDto
+    {
+        RoomId = 1,
+        StartDate = DateTime.Today.AddDays(1),
+        EndDate = DateTime.Today.AddDays(2)
+    });
+
+    // Assert: varaus hylättiin ja repositoryssa on yhä vain yksi varaus
+    Assert.False(result.IsSuccess);
+    Assert.Single(await bookings.GetAllAsync());
+}
+```
+
+Huomaa, että fakea ja mockia voi käyttää samassa testissä. Alla sama use case testataan pelkillä mockeilla.
+
+### Use Casen testaaminen mockeilla
 
 ```csharp
 public class CreateBookingUseCaseTests
@@ -451,8 +592,8 @@ public class CreateBookingUseCaseTests
             .ReturnsAsync(new Room { Id = 1, Name = "Kokoushuone A" });
 
         mockBookingRepo
-            .Setup(r => r.HasOverlappingBookingAsync(1, It.IsAny<DateTime>(), It.IsAny<DateTime>()))
-            .ReturnsAsync(false);
+            .Setup(r => r.GetOverlappingAsync(1, It.IsAny<DateTime>(), It.IsAny<DateTime>()))
+            .ReturnsAsync(new List<Booking>());  // Ei päällekkäisiä varauksia
 
         var useCase = new CreateBookingUseCase(
             mockBookingRepo.Object,
@@ -484,8 +625,8 @@ public class CreateBookingUseCaseTests
             .ReturnsAsync(new Room { Id = 1 });
 
         mockBookingRepo
-            .Setup(r => r.HasOverlappingBookingAsync(1, It.IsAny<DateTime>(), It.IsAny<DateTime>()))
-            .ReturnsAsync(true);  // Päällekkäinen varaus!
+            .Setup(r => r.GetOverlappingAsync(1, It.IsAny<DateTime>(), It.IsAny<DateTime>()))
+            .ReturnsAsync(new List<Booking> { new Booking { RoomId = 1 } });  // Päällekkäinen varaus!
 
         var useCase = new CreateBookingUseCase(
             mockBookingRepo.Object,
@@ -517,14 +658,20 @@ public class CreateBookingUseCaseTests
 ### 1. Rajapinta kuvaa domainia, ei teknologiaa
 
 ```csharp
-// ✅ Hyvä — domain-kielellä
+// ✅ Hyvä — domain-kielellä, palauttaa dataa
 Task<List<Booking>> GetUpcomingAsync();
-Task<bool> HasOverlappingBookingAsync(int roomId, DateTime start, DateTime end);
+Task<List<Booking>> GetOverlappingAsync(int roomId, DateTime start, DateTime end);
 
 // ❌ Huono — vuotaa teknologiaa
 IQueryable<Booking> GetQueryable();
 Task<List<Booking>> FindAsync(Expression<Func<Booking, bool>> predicate);
+
+// ⚠️ Vältä — sääntö vuotaa repositoryyn
+Task<bool> HasOverlappingBookingAsync(int roomId, DateTime start, DateTime end);
+Task<bool> CanBookAsync(int roomId, DateTime start, DateTime end);
 ```
+
+Kaksi viimeistä metodia vastaavat kysymykseen "saako varata?". Se on liiketoimintasääntö, ja sen paikka on use case tai entiteetti. Repository vastaa kysymykseen "mitä varauksia on?". Katso [Mitä repository tekee ja mitä ei](#mitä-repository-tekee-ja-mitä-ei).
 
 ### 2. Palauta domain-olioita, ei EF Core -entiteettejä
 
@@ -623,18 +770,20 @@ public class BookingRepository : IBookingRepository { ... }
 | Käsite | Selitys |
 |--------|---------|
 | **Repository Pattern** | Abstrahoi tietokantakäsittelyn rajapinnan taakse |
-| **Interface** | Määrittelee mitä operaatioita on saatavilla (Domain/Application-kerroksessa) |
+| **Interface** | Määrittelee mitä operaatioita on saatavilla (Domain-kerroksessa) |
 | **Implementation** | Sisältää EF Core -logiikan (Infrastructure-kerroksessa) |
 | **Generic Repository** | Yleiset CRUD-operaatiot pohjaluokkana |
 | **Spesifi Repository** | Entiteettikohtaiset kyselyt domain-kielellä |
 | **Unit of Work** | Hallinnoi useiden repositoryjen transaktioita |
 | **DIP** | Riippuvuuden kääntö — Domain ei riipu infrastruktuurista |
-| **Testattavuus** | Repository mockataan yksikkötesteissä |
+| **Testattavuus** | Repository korvataan yksikkötesteissä fakella tai mockilla |
 
 **Muista:**
 - Repository **abstrahoi** tietokantateknologian pois sovelluslogiikasta
+- Repository **hakee ja tallentaa**. Se ei päätä liiketoimintasääntöjä
+- Metodit tulevat **käyttötapausten tarpeista**, eivät valmiista CRUD-listasta
 - Rajapinta käyttää **domain-kieltä**, ei teknologiakieltä
-- Clean Architecturessa rajapinta on **Domain/Application**-kerroksessa, toteutus **Infrastructure**-kerroksessa
+- Clean Architecturessa rajapinta on **Domain**-kerroksessa, toteutus **Infrastructure**-kerroksessa
 - **Älä paljasta** `IQueryable` tai `Expression<Func<T, bool>>` rajapinnassa
 
 ---
