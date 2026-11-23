@@ -7,6 +7,7 @@ Tämä kansio sisältää materiaaleja, jotka eivät ole suoraan C#-kieleen liit
 ### Työkalut ja ympäristöt
 - [IDE](IDE.md) - Integroitu kehitysympäristö
 - [GitHub (Git)](GitHub.md) - Versionhallinta
+- [Haarat ja pull request](Git-Haarat-ja-Pull-Request.md) - Haarat, pull request ja haaran suojaus
 - [Markdown](Markdown.md) - Dokumentoinnin perusteet
 - [Tehtävien palautusohjeet](Assignment-Submission.md) - Ohjeet tehtävien palauttamiseen
 

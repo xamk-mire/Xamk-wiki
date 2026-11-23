@@ -370,6 +370,7 @@ ProductApi/
 
 ### Seuraavaksi
 
+- [DTO:t arkkitehtuurin näkökulmasta](../Architecture/DTOs.md) — Kerros, muotovirhe ja sääntövirhe, milloin DTO:ta ei tarvita
 - [Entity Framework Core](Entity-Framework.md) — Tietokantakäsittelyn perusteet
 - [BaseEntity ja automaattiset aikaleimakentät](BaseEntity.md) — Kantaluokka ja ChangeTracker
 - [Service-kerros ja DI](Services-and-DI.md) — Liiketoimintalogiikan erottaminen controllerista

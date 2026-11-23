@@ -12,9 +12,10 @@
 8. [Validointi FluentValidationilla](#validointi-fluentvalidationilla)
 9. [Käytännön esimerkki: ASP.NET Core + MediatR](#käytännön-esimerkki-aspnet-core--mediatr)
 10. [MediatR ja Clean Architecture](#mediatr-ja-clean-architecture)
-11. [Best Practices](#best-practices)
-12. [Anti-patterns](#anti-patterns)
-13. [Yhteenveto](#yhteenveto)
+11. [MediatR:n hinta ja handlerin testaus](#mediatrn-hinta-ja-handlerin-testaus)
+12. [Best Practices](#best-practices)
+13. [Anti-patterns](#anti-patterns)
+14. [Yhteenveto](#yhteenveto)
 
 ---
 
@@ -27,7 +28,9 @@
 - Vähentää komponenttien välistä kytkentää (loose coupling)
 - Mahdollistaa CQRS-mallin (Command Query Responsibility Segregation) helpon toteutuksen
 - Tarjoaa pipeline-mekanismin cross-cutting concerns -toiminnallisuuksille (logging, validointi, caching)
-- On de facto standardi ASP.NET Core -projekteissa
+- On yleisesti käytetty ASP.NET Core -projekteissa, joten siihen törmää usein valmiissa koodissa
+
+> **Lisenssi:** MediatR muuttui kesällä 2025 kaupalliseksi. Versiosta 13.0.0 alkaen kirjastolla on kaksoislisenssi (RPL-1.5 tai kaupallinen lisenssi, josta on ehdoiltaan rajattu ilmainen Community-versio). Versiot 12.x ja vanhemmat pysyvät Apache 2.0 -lisenssillä. Tarkista lisenssi ennen kuin otat kirjaston projektiin: [Lucky Penny Software: FAQ](https://luckypennysoftware.com/faq). Tämän sivun esimerkit toimivat versiolla 12.
 
 **Perusidea:**
 
@@ -86,9 +89,11 @@ Jokainen komponentti tuntee vain Mediatorin → N riippuvuutta
 ### NuGet-paketin asennus
 
 ```bash
-# ASP.NET Core -projektissa
-dotnet add package MediatR
+# ASP.NET Core -projektissa: lukitse versio
+dotnet add package MediatR --version 12.5.0
 ```
+
+Versio kannattaa kirjoittaa näkyviin. Ilman `--version`-valitsinta komento asentaa uusimman version, jolla on eri lisenssi kuin 12.x-versioilla (katso [Johdanto](#johdanto)). 12.5.0 on viimeinen Apache 2.0 -lisenssillä julkaistu versio.
 
 ### Rekisteröinti DI-containeriin
 
@@ -227,6 +232,20 @@ public class ProductsController : ControllerBase
 }
 ```
 
+**`ISender` riittää controllerille.** `IMediator` koostuu kahdesta rajapinnasta: `ISender` (metodi `Send`) ja `IPublisher` (metodi `Publish`). Controller vain lähettää viestejä, joten sille riittää kapeampi `ISender`. Silloin konstruktorista näkee, ettei controller julkaise tapahtumia.
+
+```csharp
+public class ProductsController : ControllerBase
+{
+    private readonly ISender _sender;
+
+    public ProductsController(ISender sender)
+    {
+        _sender = sender;
+    }
+}
+```
+
 ### Miten MediatR löytää handlerin?
 
 ```
@@ -241,6 +260,43 @@ public class ProductsController : ControllerBase
 
 5. Handler palauttaa tuloksen → Controller saa ProductDto:n
 ```
+
+Uusi toiminto on siis uusi viesti ja uusi handler. Vanhoihin luokkiin ei kosketa.
+
+### Handler on use case
+
+Handler on sama asia kuin Clean Architecturen **use case** (käyttötapaus), vain uudessa muodossa. Se ohjaa yhden toiminnon alusta loppuun: **hae, kutsu domainia, tallenna**. Liiketoimintasääntö pysyy entiteetissä. Handler ei tarkista sitä itse.
+
+Esimerkki sarjataulukkosovelluksesta, jossa otteluun kirjataan tulos:
+
+```csharp
+public record RecordResultCommand(int MatchId, int HomeGoals, int AwayGoals) : IRequest;
+
+public class RecordResultCommandHandler : IRequestHandler<RecordResultCommand>
+{
+    private readonly IMatchRepository _matches;
+
+    public RecordResultCommandHandler(IMatchRepository matches)
+    {
+        _matches = matches;
+    }
+
+    public async Task Handle(RecordResultCommand request, CancellationToken cancellationToken)
+    {
+        // 1. Hae
+        var match = await _matches.GetByIdAsync(request.MatchId, cancellationToken)
+            ?? throw new NotFoundException($"Match {request.MatchId} not found");
+
+        // 2. Kutsu domainia: sääntö "tuloksen voi kirjata vain kerran" on entiteetissä
+        match.RecordResult(request.HomeGoals, request.AwayGoals);
+
+        // 3. Tallenna
+        await _matches.SaveAsync(match, cancellationToken);
+    }
+}
+```
+
+Jos handleriin alkaa kertyä `if`-lauseita, jotka tarkistavat liiketoimintasääntöjä, ne kuuluvat entiteettiin. Tämän sivun muut esimerkit käyttävät yksinkertaista `Product`-luokkaa ilman sääntöjä, jotta MediatR:n omat osat näkyvät selvästi.
 
 ---
 
@@ -553,7 +609,9 @@ public class CreateProductCommandHandler
 
 ## Pipeline Behaviors
 
-**Pipeline Behavior** on MediatR:n tehokkain ominaisuus. Se toimii kuin ASP.NET Core:n middleware, mutta MediatR-viesteille. Behavior suoritetaan **ennen ja/tai jälkeen** jokaisen handlerin.
+**Pipeline Behavior** on luokka, joka tekee saman työn jokaisen pyynnön ympärillä. Se toimii kuin ASP.NET Core:n middleware, mutta MediatR-viesteille. Behavior suoritetaan **ennen ja/tai jälkeen** jokaisen handlerin.
+
+Rakenteeltaan behavior on [Decorator-suunnittelumalli](Decorator-Pattern.md) valmiissa muodossa: se kääritään jokaisen handlerin ympärille, kutsuu handleria ja lisää jotain kutsun ympärille.
 
 ### Perusidea
 
@@ -570,6 +628,22 @@ Request saapuu:
       ↓
   Response palautuu (käänteisessä järjestyksessä behaviorien läpi)
 ```
+
+Kuvan `[Caching Behavior]` on esimerkki siitä, mitä ketjuun voi lisätä. Behavior koskee kuitenkin kaikkia pyyntöjä. Kun välimuistiin halutaan vain yhden kyselyn tulos, se tehdään yleensä decoratorilla, joka kääritään sen yhden rajapinnan ympärille (katso [Caching: Decorator Pattern cachingille](Caching.md#decorator-pattern-cachingille)).
+
+### Mikä kuuluu behavioriin ja mikä ei
+
+Behavioriin kuuluu työ, joka on **sama jokaiselle pyynnölle** eikä riipu siitä, mitä pyyntö tekee.
+
+| Kuuluu behavioriin | Ei kuulu behavioriin |
+|---|---|
+| Lokitus: mikä pyyntö tuli ja onnistuiko se | Liiketoimintasääntö ("tuloksen voi kirjata vain kerran") |
+| Ajanmittaus: kauanko käsittely kesti | Päätös, joka vaatii entiteetin tilan |
+| Syötteen muodon tarkistus: kenttä ei ole tyhjä, teksti ei ole liian pitkä | Yhden toiminnon oma logiikka |
+
+**Miksi liiketoimintasääntö ei kuulu behavioriin?** Behavior näkee vain viestin, eli sen kentät. Se ei näe entiteettiä eikä tiedä, missä tilassa se on. Sääntö "tuloksen voi kirjata vain kerran" vaatii tiedon siitä, onko tulos jo kirjattu. Sen tiedon omistaa entiteetti, joten sääntö kuuluu sinne.
+
+**Kerros:** behaviorit ovat Application-kerroksessa. **Milloin behavioria ei kannata tehdä:** kun työ koskee vain yhtä tai kahta pyyntöä. Silloin se kirjoitetaan handleriin tai decoratoriin.
 
 ### IPipelineBehavior
 
@@ -621,7 +695,6 @@ builder.Services.AddMediatR(cfg =>
     // Lisää pipeline behaviors (suoritusjärjestys = rekisteröintijärjestys)
     cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
     cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
-    cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(CachingBehavior<,>));
 });
 ```
 
@@ -728,15 +801,13 @@ public class CreateProductCommandValidator
             .NotEmpty().WithMessage("Product name is required")
             .MaximumLength(200).WithMessage("Product name must not exceed 200 characters");
 
-        RuleFor(x => x.Price)
-            .GreaterThan(0).WithMessage("Price must be greater than 0")
-            .LessThanOrEqualTo(99999.99m).WithMessage("Price must not exceed 99999.99");
-
         RuleFor(x => x.Description)
             .MaximumLength(2000).WithMessage("Description must not exceed 2000 characters");
     }
 }
 ```
+
+> **Huom:** Validator tarkistaa syötteen **muodon**: onko kenttä täytetty ja mahtuuko se sarakkeeseen. Sääntö "hinnan pitää olla positiivinen" on liiketoimintasääntö, joten se kuuluu `Product`-entiteettiin eikä validatoriin. Jos sama sääntö kirjoitetaan molempiin, ne ajautuvat ennen pitkää erilleen. Katso [Mikä kuuluu behavioriin ja mikä ei](#mikä-kuuluu-behavioriin-ja-mikä-ei).
 
 ### Validation Pipeline Behavior
 
@@ -800,12 +871,12 @@ builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 ### Miten se toimii?
 
 ```
-1. Controller: _mediator.Send(new CreateProductCommand("", -5, ""))
+1. Controller: _mediator.Send(new CreateProductCommand("", 10, ""))
 
 2. ValidationBehavior aktivoituu:
    → Löytää CreateProductCommandValidator:n DI:stä
    → Suorittaa validoinnin
-   → Virheet: "Name is required", "Price must be > 0"
+   → Virhe: "Product name is required"
    → Heittää ValidationException
 
 3. Handler EI suoritu ollenkaan → virheellinen data ei pääse läpi!
@@ -1165,6 +1236,76 @@ builder.Services.AddInfrastructure();   // Infrastructure-kerroksen palvelut
 
 ---
 
+## MediatR:n hinta ja handlerin testaus
+
+### Hinta: kutsusta ei näe käsittelijää
+
+MediatR:n hyöty on, että controller ei tiedä, mikä luokka viestin käsittelee. Sama asia on myös sen hinta.
+
+```csharp
+await _sender.Send(new RecordResultCommand(matchId, 2, 1));
+```
+
+Tältä riviltä ei näe, mihin luokkaan suoritus jatkuu. Editorin "siirry määrittelyyn" vie `Send`-metodiin, ei handleriin. Lukijan pitää tietää nimeämiskäytäntö: `RecordResultCommand` → `RecordResultCommandHandler`, samassa kansiossa.
+
+Tästä seuraa kaksi asiaa:
+
+- **Nimeämiskäytännön pitää pitää.** Jos handlerin nimi tai paikka poikkeaa käytännöstä, sitä ei löydä.
+- **Virhe näkyy vasta ajon aikana.** Jos handler puuttuu tai sitä ei ole rekisteröity, koodi kääntyy silti. Virhe tulee vasta, kun viesti lähetetään.
+
+Pienessä sovelluksessa, jossa on muutama toiminto, suora kutsu use case -luokkaan on helpompi lukea. MediatR maksaa itsensä takaisin, kun toimintoja on paljon ja niiden ympärille halutaan sama työ (lokitus, muodon tarkistus).
+
+### Handlerin testaus
+
+Handler on tavallinen luokka. Sen voi testata kutsumalla `Handle`-metodia suoraan. Testi ei tarvitse HTTP:tä, controlleria eikä MediatR:ia. Riippuvuuksien tilalle annetaan tekaistut toteutukset (fake).
+
+```csharp
+// Tekaistu repository: pitää ottelun muistissa
+public class FakeMatchRepository : IMatchRepository
+{
+    private readonly Match _match;
+    public bool SaveWasCalled { get; private set; }
+
+    public FakeMatchRepository(Match match)
+    {
+        _match = match;
+    }
+
+    public Task<Match?> GetByIdAsync(int id, CancellationToken ct)
+        => Task.FromResult<Match?>(_match);
+
+    public Task SaveAsync(Match match, CancellationToken ct)
+    {
+        SaveWasCalled = true;
+        return Task.CompletedTask;
+    }
+}
+
+public class RecordResultCommandHandlerTests
+{
+    [Fact]
+    public async Task Handle_RecordsResultAndSaves()
+    {
+        var match = new Match(homeTeamId: 1, awayTeamId: 2);
+        var repository = new FakeMatchRepository(match);
+        var handler = new RecordResultCommandHandler(repository);
+
+        await handler.Handle(
+            new RecordResultCommand(match.Id, HomeGoals: 2, AwayGoals: 1),
+            CancellationToken.None);
+
+        Assert.Equal(2, match.HomeGoals);
+        Assert.True(repository.SaveWasCalled);
+    }
+}
+```
+
+**Mitä tämä testi todistaa?** Handlerin oman logiikan: se hakee ottelun, kutsuu entiteettiä ja tallentaa.
+
+**Mitä se ei todista?** Sitä, että osoite ohjautuu oikeaan controlleriin, että handler on rekisteröity DI-containeriin tai että behaviorit ajetaan. Ne näkyvät vasta testissä, joka käynnistää koko sovelluksen ja lähettää oikean HTTP-pyynnön (integraatiotesti).
+
+---
+
 ## Best Practices
 
 ### 1. Nimeä Commands ja Queries selkeästi
@@ -1213,10 +1354,15 @@ public class ProductHandler : IRequestHandler<CreateProductCommand, int>
     public async Task<int> Handle(CreateProductCommand request, CancellationToken ct)
     {
         // Luominen + sähköpostin lähetys + loggaus + cachen päivitys...
-        // → Käytä Notifications sivuvaikutuksille!
+        // → Siirrä sivuvaikutukset pois handlerin rungosta (katso alla)
     }
 }
 ```
+
+Sivuvaikutukselle on kaksi tapaa:
+
+- **Yksinkertaisempi: handler kutsuu rajapintaa.** Handler saa konstruktorissa esimerkiksi rajapinnan, jolla sarjataulukon välimuisti tyhjennetään, ja kutsuu sitä tallennuksen jälkeen. Kutsu näkyy handlerissa, ja järjestys on selvä. Tämä riittää, kun sivuvaikutuksia on yksi tai kaksi.
+- **Notification.** Handler julkaisee tapahtuman, ja erilliset handlerit reagoivat siihen. Tämä kannattaa, kun samaan tapahtumaan reagoi monta toisistaan riippumatonta osaa tai kun reagoijia lisätään usein. Hinta on, että handlerista ei enää näe, mitä tallennuksen jälkeen tapahtuu ja missä järjestyksessä.
 
 ### 4. Käytä CancellationToken aina
 
@@ -1355,9 +1501,10 @@ public async Task<int> Handle(CreateOrderCommand request, CancellationToken ct)
 }
 
 // ✅ HYVÄ: Jaa vastuut
-// - Validointi → Validator + ValidationBehavior
-// - Sivuvaikutukset → Notifications
-// - Handler: vain ydinlogiikka
+// - Syötteen muodon tarkistus → Validator + ValidationBehavior
+// - Liiketoimintasääntö → entiteetti
+// - Sivuvaikutukset → rajapinta tai Notifications
+// - Handler: hae, kutsu domainia, tallenna
 ```
 
 ---
@@ -1372,7 +1519,8 @@ public async Task<int> Handle(CreateOrderCommand request, CancellationToken ct)
 | **Handler** | Viestin käsittelijä | `IRequestHandler<TRequest, TResponse>` |
 | **Notification** | Tapahtuma (one-to-many) | `INotification` |
 | **NotificationHandler** | Tapahtuman käsittelijä | `INotificationHandler<T>` |
-| **PipelineBehavior** | Middleware viesteille | `IPipelineBehavior<TRequest, TResponse>` |
+| **PipelineBehavior** | Sama työ jokaisen pyynnön ympärillä | `IPipelineBehavior<TRequest, TResponse>` |
+| **Sender** | Kapea rajapinta viestin lähettämiseen | `ISender` |
 
 ### Milloin käyttää MediatR:ia?
 
@@ -1390,8 +1538,10 @@ public async Task<int> Handle(CreateOrderCommand request, CancellationToken ct)
 
 ### Hyödyllisiä linkkejä
 
-- [MediatR GitHub](https://github.com/jbogard/MediatR) - Virallinen repository
-- [MediatR Wiki](https://github.com/jbogard/MediatR/wiki) - Dokumentaatio
+- [MediatR GitHub](https://github.com/LuckyPennySoftware/MediatR) - Virallinen repository
+- [MediatR Wiki](https://github.com/LuckyPennySoftware/MediatR/wiki) - Dokumentaatio
+- [Lucky Penny Software: FAQ](https://luckypennysoftware.com/faq) - Lisenssiehdot versiosta 13 alkaen
+- [Decorator Pattern](Decorator-Pattern.md) - Malli, jonka valmis muoto Pipeline Behavior on
 - [CQRS Pattern - Microsoft Docs](https://learn.microsoft.com/en-us/azure/architecture/patterns/cqrs) - CQRS-malli
 - [Mediator Pattern - Refactoring Guru](https://refactoring.guru/design-patterns/mediator) - Mediator-suunnittelumalli
 

@@ -30,6 +30,7 @@ Tervetuloa C#-ohjelmoinnin edistyneisiin aiheisiin! Tämä osio käsittelee kehi
 - [Hexagonal Architecture](Architecture/Hexagonal-Architecture.md) - Portit ja adapterit -malli
 - [CQRS](Architecture/CQRS.md) - Command Query Responsibility Segregation, luku- ja kirjoitusoperaatioiden erottaminen
 - [Frontend-arkkitehtuuri](Architecture/Frontend-Architecture.md) - Selainsovelluksen kerrokset, API-client, DTO sopimuksena, säännöt backendissä
+- [Kuvauksesta koodiksi tekoälyagentin kanssa](Architecture/Spec-Driven-Development.md) - Spec-Driven Development: spec, hyväksymiskriteerit, ei-tavoitteet, ADR, agentin ohjetiedosto ja rajattu prompti
 
 ### Docker
 - [Docker C#/.NET-kehityksessä](Docker/) - Docker .NET-sovellusten kehityksessä ja käyttöönotossa

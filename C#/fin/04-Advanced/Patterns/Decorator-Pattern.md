@@ -8,8 +8,9 @@
 4. [Toteutus C#:lla](#toteutus-clla)
 5. [Käytännön esimerkkejä](#käytännön-esimerkkejä)
 6. [Decorator vs Inheritance](#decorator-vs-inheritance)
-7. [Best Practices](#best-practices)
-8. [Yhteenveto](#yhteenveto)
+7. [Decorator ja Pipeline Behavior](#decorator-ja-pipeline-behavior)
+8. [Best Practices](#best-practices)
+9. [Yhteenveto](#yhteenveto)
 
 ---
 
@@ -49,13 +50,47 @@ class Coffee
 
 **Decorator:ien kanssa:**
 
-```csharp
+```text
 Coffee
   → MilkDecorator (wraps Coffee)
     → SugarDecorator (wraps MilkDecorator)
       → WhipCreamDecorator (wraps SugarDecorator)
         = Decorated Coffee (Cost = 2.0 + 0.5 + 0.2 + 0.7 = 3.4€)
 ```
+
+### Kolme tuntomerkkiä
+
+Luokka on decorator, kun kaikki kolme täyttyvät:
+
+1. **Se toteuttaa saman rajapinnan** kuin olio, jonka se käärii. Kutsuja ei huomaa eroa.
+2. **Se saa käärittävän olion konstruktorissaan**, saman rajapinnan tyyppisenä.
+3. **Se kutsuu käärittyä oliota ja lisää jotain kutsun ympärille**: ennen kutsua, sen jälkeen tai molempiin.
+
+```csharp
+public class LoggingStandingsCalculator : IStandingsCalculator          // 1. sama rajapinta
+{
+    private readonly IStandingsCalculator _inner;
+    private readonly ILogger<LoggingStandingsCalculator> _logger;
+
+    public LoggingStandingsCalculator(
+        IStandingsCalculator inner,                                     // 2. käärittävä olio
+        ILogger<LoggingStandingsCalculator> logger)
+    {
+        _inner = inner;
+        _logger = logger;
+    }
+
+    public async Task<IReadOnlyList<StandingsRow>> CalculateAsync(CancellationToken ct)
+    {
+        _logger.LogInformation("Lasketaan sarjataulukko");              // 3. lisäys ennen
+        var rows = await _inner.CalculateAsync(ct);                     //    kutsu käärittyä
+        _logger.LogInformation("Rivejä: {Count}", rows.Count);          //    lisäys jälkeen
+        return rows;
+    }
+}
+```
+
+Jos luokka perii käärittävän luokan, luo sen itse `new`-sanalla tai jättää sen kutsumatta kokonaan, se ei ole decorator.
 
 ---
 
@@ -79,6 +114,14 @@ Coffee
 - **Authorization** - Lisää oikeustarkistukset
 - **Retry logic** - Lisää uudelleenyrityslogiikka
 - **Performance monitoring** - Lisää ajanmittaus
+
+### DIP on OCP:n edellytys
+
+Kun välimuisti lisätään decoratorina, kutsuja (esimerkiksi handler) ja kääritty luokka (esimerkiksi sarjataulukon laskenta) eivät muutu lainkaan. Uusi toiminto tulee uutena luokkana. Tämä on **Open/Closed Principle (OCP)**: koodi on avoin laajennukselle ja suljettu muutokselle.
+
+Se onnistuu vain, koska kutsuja riippui jo valmiiksi **rajapinnasta** eikä konkreettisesta luokasta. Tämä on **Dependency Inversion Principle (DIP)**. Jos handler loisi laskentaluokan itse `new`-sanalla, väliin ei voisi laittaa mitään muuttamatta handleria. DIP on siis OCP:n edellytys: ensin rajapinta, sitten vasta decorator.
+
+Periaatteet tarkemmin: [SOLID](../SOLID.md).
 
 ---
 
@@ -245,6 +288,8 @@ public class CachedProductRepository : IProductRepository
 }
 ```
 
+**Missä kerroksessa caching decorator asuu?** Infrastructure-kerroksessa. `CachedProductRepository` tuntee `IMemoryCache`n, joka on tekniikkaa. Rajapinta `IProductRepository` on Application-kerroksessa, joten sitä käyttävä koodi ei tiedä välimuistista mitään. Katso myös [Caching: Välimuisti omassa kerroksessaan](Caching.md#välimuisti-omassa-kerroksessaan).
+
 **DI Registration:**
 
 ```csharp
@@ -348,18 +393,25 @@ public class LoggingOrderService : IOrderService
 
 ### Esimerkki 3: Retry Decorator
 
+Uudelleenyritys sopii **lukuoperaatioon**, jonka voi toistaa turvallisesti. Esimerkissä haetaan valuuttakurssi ulkoisesta palvelusta.
+
 ```csharp
-public class RetryOrderService : IOrderService
+public interface IExchangeRateClient
 {
-    private readonly IOrderService _inner;
+    Task<decimal> GetRateAsync(string currency);
+}
+
+public class RetryExchangeRateClient : IExchangeRateClient
+{
+    private readonly IExchangeRateClient _inner;
     private readonly int _maxRetries = 3;
     
-    public RetryOrderService(IOrderService inner)
+    public RetryExchangeRateClient(IExchangeRateClient inner)
     {
         _inner = inner;
     }
     
-    public async Task<Order> CreateOrderAsync(CreateOrderDto dto)
+    public async Task<decimal> GetRateAsync(string currency)
     {
         int attempt = 0;
         
@@ -369,7 +421,7 @@ public class RetryOrderService : IOrderService
             
             try
             {
-                return await _inner.CreateOrderAsync(dto);
+                return await _inner.GetRateAsync(currency);
             }
             catch (Exception ex) when (attempt < _maxRetries && IsTransient(ex))
             {
@@ -387,29 +439,33 @@ public class RetryOrderService : IOrderService
 }
 ```
 
+> **Huom:** Älä kääri uudelleenyritystä tai välimuistia komennon ympärille. `CreateOrderAsync` muuttaa tilaa: jos se yritetään uudestaan aikakatkaisun jälkeen, tilaus voi syntyä kahdesti. Välimuistista palautettu vastaus taas tarkoittaisi, ettei tilausta luotu lainkaan. Molemmat sopivat vain lukuoperaatioihin.
+
 ### Esimerkki 4: Ketjutetut Decoratorit
 
-**Voit ketjuttaa useita decorator:eja:**
+**Voit ketjuttaa useita decorator:eja.** Esimerkissä sama valuuttakurssin haku saa uudelleenyrityksen, välimuistin ja lokituksen. `CachedExchangeRateClient` ja `LoggingExchangeRateClient` on tehty samalla tavalla kuin aiemmat esimerkit.
 
 ```csharp
-services.AddScoped<IOrderService>(provider =>
+services.AddHttpClient<HttpExchangeRateClient>();
+
+services.AddScoped<IExchangeRateClient>(provider =>
 {
-    var logger = provider.GetRequiredService<ILogger<LoggingOrderService>>();
+    var logger = provider.GetRequiredService<ILogger<LoggingExchangeRateClient>>();
     var cache = provider.GetRequiredService<IMemoryCache>();
     
-    // 1. Alkuperäinen
-    IOrderService service = new OrderService();
+    // 1. Alkuperäinen: tekee HTTP-kutsun
+    IExchangeRateClient client = provider.GetRequiredService<HttpExchangeRateClient>();
     
     // 2. Lisää retry
-    service = new RetryOrderService(service);
+    client = new RetryExchangeRateClient(client);
     
     // 3. Lisää caching
-    service = new CachedOrderService(service, cache);
+    client = new CachedExchangeRateClient(client, cache);
     
     // 4. Lisää logging (uloin, logittaa kaikki)
-    service = new LoggingOrderService(service, logger);
+    client = new LoggingExchangeRateClient(client, logger);
     
-    return service;
+    return client;
 });
 ```
 
@@ -418,19 +474,19 @@ services.AddScoped<IOrderService>(provider =>
 ```
 Request
   ↓
-LoggingOrderService (log start)
+LoggingExchangeRateClient (log start)
   ↓
-CachedOrderService (check cache)
+CachedExchangeRateClient (check cache)
   ↓ (cache miss)
-RetryOrderService (retry on error)
+RetryExchangeRateClient (retry on error)
   ↓
-OrderService (business logic)
+HttpExchangeRateClient (HTTP-kutsu)
   ↓
-RetryOrderService (success)
+RetryExchangeRateClient (success)
   ↓
-CachedOrderService (save to cache)
+CachedExchangeRateClient (save to cache)
   ↓
-LoggingOrderService (log success)
+LoggingExchangeRateClient (log success)
   ↓
 Response
 ```
@@ -474,7 +530,7 @@ class LoggingCachedOrderService : LoggingOrderService { }  // ← Duplikaatiota!
 
 ```csharp
 // Vain 4 luokkaa:
-class OrderService { }
+class OrderService : IOrderService { }
 class LoggingOrderService : IOrderService { }
 class CachedOrderService : IOrderService { }
 class RetryOrderService : IOrderService { }
@@ -500,7 +556,25 @@ service = new LoggingOrderService(service);
 | **Joustavuus** | Compile-time | Runtime |
 | **Ylläpito** | Vaikea | Helppo |
 | **Ketjutus** | Ei mahdollinen | Kyllä |
-| **Open/Closed** | Rikkouu | Noudattaa |
+| **Open/Closed** | Rikkoutuu | Noudattaa |
+
+Tässä luvussa luokkien nimet havainnollistavat vain luokkien määrää. Se, mitä operaatioita kannattaa kääriä välimuistiin tai uudelleenyritykseen, on kerrottu [Esimerkissä 3](#esimerkki-3-retry-decorator).
+
+---
+
+## Decorator ja Pipeline Behavior
+
+[MediatR](MediatR.md):n **Pipeline Behavior** on sama malli valmiissa muodossa. Behavior kääritään handlerin ympärille, kutsuu sitä (`next()`) ja lisää jotain ennen kutsua ja sen jälkeen.
+
+| | Decorator | Pipeline Behavior |
+|---|---|---|
+| **Mitä käärii** | Yhden rajapinnan toteutuksen | Jokaisen MediatR-handlerin |
+| **Kuka kokoaa ketjun** | Sinä itse DI-rekisteröinnissä | MediatR |
+| **Sopii, kun** | Lisäys koskee yhtä palvelua (yhden kyselyn välimuisti) | Lisäys koskee kaikkia pyyntöjä (lokitus, ajanmittaus, syötteen muodon tarkistus) |
+
+Valinta tehdään sen mukaan, kuinka laajalle lisäys kuuluu. Sarjataulukon välimuisti koskee yhtä laskentaa, joten se on decorator. Jokaisen pyynnön lokitus koskee kaikkia, joten se on behavior.
+
+Kumpaankaan ei kuulu liiketoimintasääntö. Katso [MediatR: Mikä kuuluu behavioriin ja mikä ei](MediatR.md#mikä-kuuluu-behavioriin-ja-mikä-ei).
 
 ---
 
@@ -595,24 +669,37 @@ EnhancedOrderService        // ← Mitä "enhanced"?
 
 ### 5. DI-rekisteröinti järjestyksessä
 
+Kun samalla rajapinnalla on monta toteutusta, DI-container ei voi arvata, mikä niistä on uloin ja missä järjestyksessä ne kääritään. Järjestys pitää kertoa itse. Se tehdään tehdasfunktiossa (*factory*), jossa ketju kootaan **sisältä ulospäin**: ensin alkuperäinen, viimeisenä uloin kerros.
+
 ```csharp
-// Uloin decorator rekisteröidään viimeisenä
-services.AddScoped<IOrderService>(provider =>
+services.AddScoped<IExchangeRateClient>(provider =>
 {
-    IOrderService service = new OrderService();
+    var cache = provider.GetRequiredService<IMemoryCache>();
+    var logger = provider.GetRequiredService<ILogger<LoggingExchangeRateClient>>();
+
+    IExchangeRateClient client = provider.GetRequiredService<HttpExchangeRateClient>();
     
-    service = new RetryOrderService(service);      // ← Sisin
-    service = new CachedOrderService(service);     // ← Keskimmäinen
-    service = new LoggingOrderService(service);    // ← Uloin
+    client = new RetryExchangeRateClient(client);            // ← Sisin
+    client = new CachedExchangeRateClient(client, cache);    // ← Keskimmäinen
+    client = new LoggingExchangeRateClient(client, logger);  // ← Uloin, luodaan viimeisenä
     
-    return service;
+    return client;
 });
 ```
 
 **Suoritus:**
 ```
-Request → Logging → Cache → Retry → OrderService
+Request → Logging → Cache → Retry → HttpExchangeRateClient
 ```
+
+**Miksi pelkkä tavallinen rekisteröinti ei toimi?**
+
+```csharp
+// ❌ Kehäriippuvuus (circular dependency)
+services.AddScoped<IExchangeRateClient, CachedExchangeRateClient>();
+```
+
+`CachedExchangeRateClient` tarvitsee konstruktorissaan `IExchangeRateClient`in. Container etsii sille toteutuksen ja löytää saman `CachedExchangeRateClient`in, joka tarvitsee taas `IExchangeRateClient`in. Kehä ei pääty, ja sovellus kaatuu virheeseen, kun palvelua pyydetään. Tehdasfunktiossa sisin olio haetaan konkreettisella tyypillään, joten kehää ei synny.
 
 ---
 
@@ -627,9 +714,10 @@ Request → Logging → Cache → Retry → OrderService
 - ✅ Haluat ketjuttaa toiminnallisuuksia
 
 **Älä käytä kun:**
-- ❌ Tarvitset vain yhden lisätoiminnallisuuden (inheritance riittää)
+- ❌ Lisättävä toiminto on liiketoimintasääntö. Sääntö kuuluu entiteettiin, ei kääreeseen, jonka voi jättää rekisteröimättä.
+- ❌ Käärittävällä luokalla ei ole rajapintaa. Silloin kutsuja riippuu konkreettisesta luokasta, eikä väliin voi laittaa mitään (katso [DIP on OCP:n edellytys](#dip-on-ocpn-edellytys)).
+- ❌ Kääreen pitäisi tuntea käärityn luokan sisäinen toteutus. Decorator näkee vain rajapinnan metodit.
 - ❌ Interface muuttuu usein (kaikki decoratorit pitää päivittää)
-- ❌ Performance on kriittinen (decorator lisää overhead:ia)
 
 ### Yleisimmät käyttötapaukset
 
@@ -647,6 +735,8 @@ Request → Logging → Cache → Retry → OrderService
 3. **Ketjutettava** - Voit yhdistää useita decorator:eja
 4. **Parempi kuin inheritance** - Ei class explosion -ongelmaa
 5. **Käytä interfacea** - Parempi testattavuus ja joustavuus
+6. **Kolme tuntomerkkiä** - Sama rajapinta, kääritty olio konstruktorissa, lisäys kutsun ympärillä
+7. **Kokoa ketju itse** - Container ei arvaa järjestystä
 
 ---
 
@@ -655,12 +745,12 @@ Request → Logging → Cache → Retry → OrderService
 ### Ulkoiset linkit
 
 - [Refactoring Guru: Decorator Pattern](https://refactoring.guru/design-patterns/decorator)
-- [Microsoft: Decorator Pattern](https://learn.microsoft.com/en-us/azure/architecture/patterns/decorator)
 - [Gang of Four: Design Patterns](https://en.wikipedia.org/wiki/Design_Patterns)
 
 ### Liittyvät aiheet
 
 - [Caching](Caching.md)
+- [MediatR](MediatR.md) - Pipeline Behavior on sama malli valmiissa muodossa
 - [Design Patterns](../Design-Patterns.md)
 - [SOLID Principles](../Design-Principles.md)
 
@@ -670,4 +760,4 @@ Request → Logging → Cache → Retry → OrderService
 
 ---
 
-**Hyvää decorator-matkaa!** Käytä decoratoreita lisätäksesi toiminnallisuutta ilman alkuperäisen koodin muuttamista. 🎨
+**Muista:** decoratorilla lisäät toiminnallisuutta muuttamatta alkuperäistä koodia.

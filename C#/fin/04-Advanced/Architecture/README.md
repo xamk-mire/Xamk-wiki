@@ -88,6 +88,13 @@ Ohjelmistoarkkitehtuuri määrittelee sovelluksen rakenteen, komponenttien väli
    - Backend on totuus, frontend näyttää ja kysyy
    - Sopii: SPA (React, Vue, Angular) Web API:n päällä
 
+### Työtavat
+
+10. **[Kuvauksesta koodiksi tekoälyagentin kanssa](Spec-Driven-Development.md)** (Spec-Driven Development)
+    - Päätökset kirjoitetaan tiedostoiksi ennen koodia: spec, hyväksymiskriteerit, ei-tavoitteet, ADR
+    - Agentti toteuttaa yhden rajatun askeleen kerrallaan, ihminen tarkistaa
+    - Sopii: Ylläpidettävä koodi, jota rakennetaan tekoälyagentin kanssa
+
 ## Arkkitehtuurien vertailu
 
 | Arkkitehtuuri | Kompleksisuus | Testattavuus | Skaalautuvuus | Sopii... |
@@ -229,6 +236,7 @@ Suosittelemme tutustumaan materiaaleihin tässä järjestyksessä:
    - **[DDD Käytännön esimerkki](DDD-Example.md)** - Verkkokaupan tilausjärjestelmä DDD:llä
 5. **[Hexagonal Architecture](Hexagonal-Architecture.md)** - Portit ja adapterit, integraatiorikkaisiin sovelluksiin
 6. **[CQRS](CQRS.md)** - Luku- ja kirjoitusoperaatioiden erottaminen, CQS-periaate, tasot
+7. **[Kuvauksesta koodiksi tekoälyagentin kanssa](Spec-Driven-Development.md)** - Spec, hyväksymiskriteerit, ADR ja rajattu prompti
 
 ## Seuraavaksi
 

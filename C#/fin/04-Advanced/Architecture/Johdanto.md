@@ -22,6 +22,31 @@
 > 
 > — IEEE 1471-2000
 
+Käytännössä hyödyllisempi määritelmä on tämä: **arkkitehtuuri on niiden päätösten joukko, joita on kallista muuttaa myöhemmin.**
+
+| Päätös | Onko arkkitehtuuria? | Miksi |
+|---|---|---|
+| Muuttujan nimi | Ei | Sen voi vaihtaa minuutissa |
+| Missä kerroksessa liiketoimintasäännöt ovat | Kyllä | Muutos koskee kymmeniä tiedostoja |
+| Mihin suuntaan riippuvuudet osoittavat | Kyllä | Muutos koskee koko projektirakennetta |
+| Käytetäänkö yhtä sovellusta vai monta palvelua | Kyllä | Muutos koskee myös julkaisua ja tiimien työtä |
+
+Arkkitehtuurin tehtävä on tehdä nämä kalliit päätökset harkiten ja pitää muut päätökset halpoina muuttaa.
+
+### Toimiva koodi ja hyvä koodi
+
+**Toimiva koodi** tekee oikean asian tänään. **Hyvä koodi** tekee oikean asian tänään, ja lisäksi sitä voi huomenna muuttaa, testata ja ymmärtää.
+
+Ero ei näy, kun ohjelmaa ajetaan. Molemmat palauttavat saman tuloksen. Ero näkyy vasta, kun jotain pitää muuttaa:
+
+| Kysymys | Vain toimiva koodi | Hyvä koodi |
+|---|---|---|
+| Voiko sitä muuttaa? | Yksi muutos rikkoo jotain muualta | Muutos osuu yhteen paikkaan |
+| Voiko sitä testata? | Vain käynnistämällä koko sovellus | Sääntö testataan erikseen ilman tietokantaa |
+| Voiko sen ymmärtää? | Vain kirjoittaja tietää, missä mikin on | Rakenne kertoo, mistä asia löytyy |
+
+Arkkitehtuuri on keino päästä toimivasta koodista hyvään koodiin. Pienessä kertakäyttöisessä ohjelmassa toimiva koodi riittää.
+
 ### Mitä arkkitehtuuri sisältää?
 
 **1. Rakenne (Structure)**
@@ -128,7 +153,7 @@ Ohjelmistoarkkitehtuurin historia kulkee käsi kädessä ohjelmistokehityksen hi
 ```
 
 **Esimerkkejä:**
-- TCP/IP-protokollapino (7 kerrosta)
+- Verkkoprotokollien kerrosmallit: OSI-malli (7 kerrosta) ja TCP/IP-malli (4 kerrosta)
 - Tietokantasovellukset (Presentation, Business, Data)
 
 ### 1990: Olio-ohjelmointi ja Design Patterns
@@ -347,6 +372,8 @@ public void ProcessOrder(Order order)
          ↑ Vain UI:ta skaalataan
 ```
 
+**Huomaa:** kuvassa osat on ajettu eri palvelimille. Silloin puhutaan **tasoista** (tier), ei kerroksista (layer). Koodin jako kerroksiin ei vielä tarkoita, että osat ajetaan eri palvelimilla. Selkeä kerrosjako kuitenkin helpottaa osien erottamista omille palvelimilleen myöhemmin. Ero selitetään kohdassa [Kerros ja taso](#3-kerros-layer--tier).
+
 **Tiimin skaalautuvuus:**
 
 ```
@@ -420,6 +447,20 @@ Business Logic → IRepository (interface)
 → Vaihto PostgreSQL:ään:
   Luo PostgresRepository, vaihda 1 rivi (DI-rekisteröinti)
 ```
+
+### 6. Selkeä rakenne auttaa myös tekoälyagenttia
+
+**Tekoälyagentti** on työkalu, joka lukee projektin tiedostoja ja kirjoittaa koodia pyynnön perusteella. Agentti ei tunne projektin historiaa. Se päättelee asiayhteyden siitä, mitä se näkee: kansioista, nimistä ja rajapinnoista.
+
+| Agentti näkee | Mitä se siitä päättelee |
+|---|---|
+| Kansiot `Domain/`, `Application/`, `Infrastructure/` | Mihin kerrokseen uusi luokka kuuluu |
+| Rajapinnan `IMatchRepository` | Mitä tallennukselta saa pyytää |
+| Nimen `RecordResultUseCase` | Mistä muut käyttötapaukset löytyvät ja miltä ne näyttävät |
+
+Jos kaikki koodi on yhdessä tiedostossa tai kerrokset ovat sekaisin, agentilla ei ole näitä vihjeitä. Silloin se laittaa uuden koodin sinne, mihin se sattuu sopimaan. Usein sääntö päätyy controlleriin tai tietokantakoodiin.
+
+Selkeä rakenne kertoo siis sekä ihmiselle että agentille, mihin uusi koodi kuuluu. Rakenne ei korvaa tarkistamista: ihminen lukee agentin tekemät muutokset ja päättää, hyväksytäänkö ne. Katso [Haarat ja pull request](../../99-General/Git-Haarat-ja-Pull-Request.md).
 
 ---
 
@@ -553,13 +594,23 @@ UserManagement/        ← Moduuli
 
 ### 3. Kerros (Layer / Tier)
 
-Vaakasuora jako vastuualueittain.
+**Kerros (layer)** on koodin looginen jako vastuualueittain. Kerrokset voivat olla kansioita tai projekteja samassa sovelluksessa.
 
 ```
 UI Layer        ← Kerros 1
 Business Layer  ← Kerros 2
 Data Layer      ← Kerros 3
 ```
+
+**Taso (tier)** on fyysinen yksikkö, joka ajetaan omana prosessinaan tai omalla palvelimellaan. Esimerkiksi selain, API-palvelin ja tietokantapalvelin ovat kolme tasoa.
+
+| | Kerros (layer) | Taso (tier) |
+|---|---|---|
+| Mitä jaetaan | Koodi | Ajoympäristö |
+| Missä näkyy | Kansiot, projektit, riippuvuudet | Palvelimet, prosessit, verkko |
+| Esimerkki | Controller, service, repository | Selain, API-palvelin, tietokanta |
+
+Sanat menevät usein sekaisin, koska niitä käytetään arkikielessä samasta asiasta. Ne ovat silti eri asioita: kolmen kerroksen sovellus voi pyöriä yhdellä palvelimella, eli yhdellä tasolla.
 
 ### 4. Rajapinta (Interface)
 

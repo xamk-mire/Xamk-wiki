@@ -6,11 +6,13 @@
 2. [Mikä on Layered Architecture?](#mikä-on-layered-architecture)
 3. [Kerrokset](#kerrokset)
 4. [Periaatteet](#periaatteet)
-5. [Edut ja haitat](#edut-ja-haitat)
-6. [Milloin käyttää?](#milloin-käyttää)
-7. [Käytännön esimerkki](#käytännön-esimerkki)
-8. [Parhaat käytännöt](#parhaat-käytännöt)
-9. [Yhteenveto](#yhteenveto)
+5. [Pyynnön kulku kerrosten läpi](#pyynnön-kulku-kerrosten-läpi)
+6. [Edut ja haitat](#edut-ja-haitat)
+7. [Mitä kerrosarkkitehtuuri jättää ratkaisematta](#mitä-kerrosarkkitehtuuri-jättää-ratkaisematta)
+8. [Milloin käyttää?](#milloin-käyttää)
+9. [Käytännön esimerkki](#käytännön-esimerkki)
+10. [Parhaat käytännöt](#parhaat-käytännöt)
+11. [Yhteenveto](#yhteenveto)
 
 ---
 
@@ -163,9 +165,7 @@ Layered Architecture jakaa sovelluksen **vaakasuoriin kerroksiin**, jossa jokain
 - ViewModels / DTOs
 - UI-logiikka (validointi, muotoilu)
 
-**Tekn
-
-ologiat:**
+**Teknologiat:**
 - ASP.NET Core MVC / Razor Pages
 - Blazor
 - WPF / WinForms
@@ -256,6 +256,55 @@ public class ProductController
 
 ---
 
+## Pyynnön kulku kerrosten läpi
+
+Esimerkkinä on sarjasovellus, jossa on joukkueita ja otteluita. Käyttäjä kirjaa ottelun tuloksen: `POST /matches/5/result`. Pyyntö kulkee kerrosten läpi ylhäältä alas ja vastaus palaa samaa reittiä takaisin.
+
+```
+Selain / asiakas
+      │  POST /matches/5/result  { "home": 2, "away": 1 }
+      ▼
+┌──────────────┐
+│  Controller  │  1. Ottaa pyynnön vastaan
+└──────┬───────┘  5. Valitsee statuskoodin
+       ▼
+┌──────────────┐
+│   Service    │  2. Pyytää ottelun repositorylta
+└──────┬───────┘  3. Tarkistaa säännön ja muuttaa ottelua
+       ▼
+┌──────────────┐
+│  Repository  │  Hakee ja tallentaa (vaihe 2 ja 4)
+└──────┬───────┘
+       ▼
+   Tietokanta
+```
+
+| Vaihe | Kerros | Mitä tapahtuu |
+|---|---|---|
+| 1 | Controller | Lukee pyynnöstä ottelun tunnisteen ja maalit. Kutsuu serviceä. |
+| 2 | Service → Repository | Service pyytää ottelun. Repository hakee sen tietokannasta. |
+| 3 | Service | Tarkistaa säännön: tuloksen saa kirjata vain kerran. Jos sääntö rikkoutuu, service heittää poikkeuksen. |
+| 4 | Service → Repository | Service pyytää tallentamaan muuttuneen ottelun. Repository tallentaa. |
+| 5 | Controller | Valitsee HTTP-statuskoodin: 200 onnistui, 404 ottelua ei ole, 409 tulos on jo kirjattu. |
+
+Jokainen kerros tekee yhden asian:
+
+- **Controller** tuntee HTTP:n. Se ei tiedä, mikä sääntö tarkistetaan.
+- **Service** tuntee säännöt. Se ei tiedä HTTP:stä eikä SQL:stä.
+- **Repository** hakee ja tallentaa. Se ei päätä, saako tuloksen kirjata.
+
+### Miksi riippuvuudet kulkevat vain alaspäin?
+
+Jos repository kutsuisi serviceä tai service controlleria, kerrokset tarvitsisivat toisiaan molempiin suuntiin. Silloin mitään kerrosta ei voisi muuttaa tai testata erikseen.
+
+Kun suunta on vain alaspäin:
+
+- Käyttöliittymän voi vaihtaa (MVC-sivuista REST API:ksi) koskematta serviceen.
+- Samaa serviceä voi kutsua controllerista, taustatyöstä tai testistä.
+- Muutos ylemmässä kerroksessa ei voi rikkoa alempaa kerrosta, koska alempi ei tunne ylempää.
+
+---
+
 ## Edut ja haitat
 
 ### Edut
@@ -282,19 +331,41 @@ public class ProductController
 ❌ **Riippuvuus suunta alaspäin**
 - Business Logic riippuu Data Access:sta
 - Vaikea vaihtaa tietokantaa
-- Testaaminen vaatii tietokannan
+- Muutos Data Access -kerroksessa voi vaatia muutoksia Business Logic -kerrokseen
 
 ❌ **Tietokantamalli "valuu" ylemmille kerroksille**
-- Entity Framework -mallit käytetään suoraan UI:ssa
+- Entity Framework -mallit päätyvät helposti suoraan UI:hin
 - Muutokset tietokantaan vaikuttavat koko sovellukseen
 
-❌ **Vaikea testata ilman tietokantaa**
-- Business Logic testit vaativat tietokannan
-- Hitaat testit
+❌ **Ilman rajapintoja serviceä ei voi testata ilman tietokantaa**
+- Jos service käyttää konkreettista repository-luokkaa, testi tarvitsee oikean tietokannan ja on hidas
+- Kun service riippuu rajapinnasta (esim. `IProductRepository`), testissä voi käyttää korviketta. Katso [Parhaat käytännöt](#6-testaa-jokaista-kerrosta-erikseen)
 
 ❌ **Monolittisuus**
-- Kaikki koodi yhdessä projektissa
-- Vaikea skaalata
+- Kerrokset julkaistaan yhtenä sovelluksena, vaikka ne olisivat eri projekteissa
+- Yhtä kerrosta ei voi skaalata tai julkaista erikseen
+
+---
+
+## Mitä kerrosarkkitehtuuri jättää ratkaisematta
+
+Kerrosarkkitehtuuri kertoo, mihin koodi kuuluu. Se jättää kolme asiaa auki.
+
+**1. Kansiot eivät valvo suuntaa**
+
+Usein kerrokset ovat vain kansioita yhdessä projektissa: `Controllers/`, `Services/`, `Repositories/`. Silloin sääntö "controller kutsuu vain serviceä" on pelkkä sopimus. Mikään ei estä controlleria kutsumasta repositorya suoraan. Koodi kääntyy ja toimii, ja virhe huomataan vain koodikatselmuksessa.
+
+**2. Malli jää helposti aneemiseksi**
+
+**Aneeminen malli** tarkoittaa luokkaa, jossa on vain dataa (`get; set;`) eikä sääntöjä. Kerrosarkkitehtuurissa säännöt kirjoitetaan yleensä serviceen. Silloin mikä tahansa koodi voi asettaa oliolle virheellisen arvon, ja sama sääntö pitää muistaa tarkistaa joka servicessä. Katso [Aneeminen ja rikas malli](Domain-Driven-Design.md#aneeminen-ja-rikas-malli).
+
+**3. Kaikki riippuu tietokantakerroksesta**
+
+Data Access on alimpana, joten service riippuu siitä ja controller servicestä. Tietokantakerros on siis koko sovelluksen pohja. Kun se muuttuu, muutos voi nousta ylös asti. Sovelluksen tärkein osa, eli liiketoimintasäännöt, riippuu teknisestä yksityiskohdasta.
+
+**Ratkaisu:** [Clean Architecture](Clean-Architecture.md) kääntää riippuvuuden suunnan. Säännöt ovat keskellä eivätkä riipu mistään. Kerrokset ovat erillisiä projekteja, joten kääntäjä valvoo suuntaa.
+
+Pienessä sovelluksessa, jossa on vähän sääntöjä, nämä puutteet eivät haittaa. Silloin kerrosarkkitehtuuri on hyvä valinta.
 
 ---
 
@@ -901,6 +972,8 @@ app.MapControllerRoute(
 app.Run();
 ```
 
+**Huomaa:** esimerkki käyttää konkreettisia luokkia (`ProductService`, `ProductRepository`) ilman rajapintoja, jotta kerrosten jako näkyy mahdollisimman yksinkertaisesti. Tästä syystä `ProductService`ä ei voi testata ilman tietokantaa. Oikeassa sovelluksessa service riippuisi rajapinnasta `IProductRepository`. Katso [Dependency Inversion Principle](../SOLID.md#d---dependency-inversion-principle-dip).
+
 ---
 
 ## Parhaat käytännöt
@@ -997,13 +1070,22 @@ public class ProductController : Controller
 
 ### 6. Testaa jokaista kerrosta erikseen
 
+Jotta serviceä voi testata ilman tietokantaa, sen pitää riippua rajapinnasta eikä konkreettisesta luokasta. Konkreettista `ProductRepository`-luokkaa ei voi korvata testissä, koska sen metodit eivät ole `virtual` ja se tarvitsee `DbContext`in.
+
 ```csharp
+// Rajapinta, josta service riippuu
+public interface IProductRepository
+{
+    Task<int> AddAsync(ProductEntity product);
+}
+
 // Business Logic Layer testi
 [Fact]
 public async Task CreateProduct_ValidProduct_ReturnsId()
 {
     // Arrange
-    Mock<ProductRepository> mockRepo = new Mock<ProductRepository>();
+    Mock<IProductRepository> mockRepo = new Mock<IProductRepository>();
+    mockRepo.Setup(r => r.AddAsync(It.IsAny<ProductEntity>())).ReturnsAsync(1);
     ProductService service = new ProductService(mockRepo.Object);
     
     Product product = new Product { Name = "Test", Price = 10, Stock = 5 };
@@ -1012,9 +1094,11 @@ public async Task CreateProduct_ValidProduct_ReturnsId()
     int id = await service.CreateProductAsync(product);
     
     // Assert
-    Assert.True(id > 0);
+    Assert.Equal(1, id);
 }
 ```
+
+Tässä `ProductService`n konstruktori ottaa `IProductRepository`n. Mockin sijasta voi käyttää myös käsin kirjoitettua fakea. Katso [Testikaksoset: fake, mock ja oikea riippuvuus](../UnitTesting/Unit-Testing.md#testikaksoset-fake-mock-ja-oikea-riippuvuus).
 
 ---
 
@@ -1028,10 +1112,10 @@ public async Task CreateProduct_ValidProduct_ReturnsId()
 ✅ Tiimi tuntee perinteisen kerrosarkkitehtuurin
 ✅ Sovellus ei vaadi korkeaa testattavuutta
 
-### Haas teet:
+### Haasteet:
 
 ❌ Riippuvuus suunta alaspäin (Business → Data Access)
-❌ Vaikea testata ilman tietokantaa
+❌ Ilman rajapintoja serviceä ei voi testata ilman tietokantaa
 ❌ Tietokantamallit "vuotavat" UI:hin
 ❌ Ei sovi suuriin, monimutkaisiin sovelluksiin
 

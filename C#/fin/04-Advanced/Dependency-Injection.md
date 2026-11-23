@@ -11,8 +11,12 @@
 7. [DI ja yksikkötestaus](#di-ja-yksikkötestaus)
 8. [DI Containerit](#di-containerit)
 9. [ASP.NET Core DI](#aspnet-core-di)
-10. [Parhaat käytännöt](#parhaat-käytännöt)
-11. [Yhteenveto](#yhteenveto)
+   - [Elinkaaret](#elinkaaret)
+   - [Mitä menee rikki väärällä elinkaarella](#mitä-menee-rikki-väärällä-elinkaarella)
+   - [Composition root](#composition-root)
+10. [Milloin DI:tä ei tarvita](#milloin-ditä-ei-tarvita)
+11. [Parhaat käytännöt](#parhaat-käytännöt)
+12. [Yhteenveto](#yhteenveto)
 
 ---
 
@@ -430,7 +434,7 @@ services.AddScoped<IEmailService, SendGridEmailService>();
 
 ## DI ja yksikkötestaus
 
-DI:n tärkein hyöty on **mockauksen mahdollistaminen** yksikkötesteissä.
+DI:n tärkein hyöty on, että riippuvuuden voi **korvata testissä**. Korvike voi olla kirjaston luoma mock (kuten alla) tai käsin kirjoitettu fake. Ero selitetään kohdassa [Testikaksoset: fake, mock ja oikea riippuvuus](UnitTesting/Unit-Testing.md#testikaksoset-fake-mock-ja-oikea-riippuvuus).
 
 ### Ilman DI:tä - Vaikea testata
 
@@ -565,7 +569,9 @@ var userService = serviceProvider.GetService<IUserService>();
 
 ASP.NET Core sisältää sisäänrakennetun DI Containerin.
 
-### Rekisteröinti (Program.cs tai Startup.cs)
+### Rekisteröinti (Program.cs)
+
+Rekisteröinti tehdään `Program.cs`-tiedostossa. Vanhoissa projekteissa (.NET 5 ja sitä vanhemmat) sama koodi oli tiedostossa `Startup.cs`.
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
@@ -589,8 +595,75 @@ var app = builder.Build();
 | Elinkaari | Kuvaus | Käyttö |
 |-----------|--------|--------|
 | **Singleton** | Yksi instanssi koko sovellukselle | Loggerit, konfiguraatio |
-| **Scoped** | Yksi instanssi per HTTP-pyyntö | Repositoryt, DbContext |
+| **Scoped** | Yksi instanssi per HTTP-pyyntö | DbContext ja repositoryt, jotka käyttävät DbContextia |
 | **Transient** | Uusi instanssi joka kerta | Kevyet, tilattomat palvelut |
+
+Elinkaari valitaan sen mukaan, **mitä tilaa olio pitää sisällään** ja kuinka kauan tilan pitää säilyä. "Repository on aina Scoped" ei ole sääntö. Muistissa toimiva repository tarvitsee eri elinkaaren kuin tietokantaa käyttävä.
+
+### Mitä menee rikki väärällä elinkaarella
+
+Väärä elinkaari ei aiheuta käännösvirhettä. Sovellus käynnistyy, ja vika näkyy vasta ajon aikana.
+
+**1. Muistissa toimiva repository on Scoped**
+
+```csharp
+public class InMemoryTeamRepository : ITeamRepository
+{
+    private readonly List<Team> _teams = new();   // data elää tässä oliossa
+
+    public void Add(Team team) => _teams.Add(team);
+    public List<Team> GetAll() => _teams.ToList();
+}
+
+// ❌ Jokainen HTTP-pyyntö saa uuden olion ja uuden tyhjän listan
+builder.Services.AddScoped<ITeamRepository, InMemoryTeamRepository>();
+
+// ✅ Yksi olio ja yksi lista koko sovelluksen ajan
+builder.Services.AddSingleton<ITeamRepository, InMemoryTeamRepository>();
+```
+
+Oire: `POST` palauttaa onnistumisen, mutta seuraava `GET` palauttaa tyhjän listan. Lisätty joukkue katosi, koska se oli edellisen pyynnön oliossa.
+
+**2. Singleton riippuu Scoped-palvelusta (captive dependency)**
+
+**Captive dependency** eli vangittu riippuvuus syntyy, kun pitkäikäinen olio pitää kiinni lyhytikäisestä.
+
+```csharp
+// ❌ Singleton saa DbContextin konstruktorissa ja pitää sen ikuisesti
+builder.Services.AddDbContext<AppDbContext>();                      // Scoped
+builder.Services.AddSingleton<StandingsService>();                  // käyttää AppDbContextia
+```
+
+Singleton luodaan kerran. Se saa silloin yhden `DbContext`in ja käyttää samaa oliota kaikissa pyynnöissä. Scoped-palvelusta tuli käytännössä Singleton. Kehitysympäristössä ASP.NET Core huomaa tämän käynnistyksessä ja heittää poikkeuksen. Korjaus: tee riippuvasta palvelusta Scoped.
+
+**3. DbContext on Singleton**
+
+`DbContext` on tehty yhden pyynnön mittaiseksi työyksiköksi. Jos se on Singleton:
+
+- Kaikki pyynnöt jakavat saman olion. `DbContext` ei ole säieturvallinen, joten kaksi samanaikaista pyyntöä aiheuttaa poikkeuksen.
+- Olio muistaa kaikki koskaan lataamansa entiteetit. Muisti kasvaa, ja pyynnöt näkevät toistensa keskeneräisiä muutoksia.
+
+| Tilanne | Oire | Oikea elinkaari |
+|---|---|---|
+| Muistissa toimiva repository on Scoped | Data katoaa pyyntöjen välillä | Singleton |
+| Singleton käyttää Scoped-palvelua | Poikkeus käynnistyksessä tai vanhentunut data | Riippuva palvelu Scopediksi |
+| DbContext on Singleton | Satunnaisia poikkeuksia samanaikaisissa pyynnöissä | Scoped (`AddDbContext` tekee tämän) |
+
+**Nyrkkisääntö:** olio saa riippua vain olioista, jotka elävät vähintään yhtä kauan kuin se itse. Singleton → vain Singleton. Scoped → Scoped tai Singleton.
+
+### Composition root
+
+**Composition root** on se yksi kohta, jossa rajapinnat sidotaan toteutuksiin. ASP.NET Core -sovelluksessa se on `Program.cs`. Se on ainoa tiedosto, joka tuntee konkreettiset luokat. Muu koodi tuntee vain rajapinnat.
+
+```csharp
+// Program.cs – toteutuksen vaihto on yhden rivin muutos
+builder.Services.AddSingleton<ITeamRepository, InMemoryTeamRepository>();
+// builder.Services.AddScoped<ITeamRepository, EfTeamRepository>();
+```
+
+Kun vaihdat toteutuksen, tarkista samalla elinkaari. Yllä muistissa toimiva versio on Singleton ja EF Core -versio Scoped.
+
+Kerrosten näkökulma: [Clean Architecture – Composition root](Architecture/Clean-Architecture.md#composition-root).
 
 ### Käyttö Controllerissa
 
@@ -615,6 +688,24 @@ public class OrdersController : ControllerBase
     }
 }
 ```
+
+---
+
+## Milloin DI:tä ei tarvita
+
+DI ratkaisee yhden ongelman: riippuvuuden voi vaihtaa toiseen muuttamatta luokkaa, joka sitä käyttää. Jos mitään ei tarvitse vaihtaa, DI on turhaa lisätyötä.
+
+| Tilanne | Tarvitaanko DI? | Miksi |
+|---|---|---|
+| Pieni skripti tai konsoliohjelma | Ei | Ei ole testejä eikä vaihdettavia toteutuksia. `new` riittää. |
+| Entiteetti (`new Match(homeId, awayId)`) | Ei | Entiteetti on dataa ja sääntöjä, ei palvelu. Se luodaan siellä, missä sitä tarvitaan. |
+| Value object (`new Money(10, "EUR")`) | Ei | Sama syy. Arvoa ei vaihdeta toiseen toteutukseen. |
+| DTO | Ei | Pelkkää dataa. |
+| Service, use case, repository | Kyllä | Niillä on riippuvuuksia, jotka halutaan korvata testissä tai vaihtaa. |
+
+Muistisääntö "`new` = tiukka kytkentä" koskee siis **palveluita**: luokkia, jotka tekevät työtä toisten luokkien avulla. Se ei koske olioita, jotka ovat dataa.
+
+Entiteettiin ei myöskään injektoida palveluita. Jos entiteetin sääntö tuntuu tarvitsevan repositorya, sääntö kuuluu use caseen. Katso [Mihin sääntö kuuluu?](Architecture/Domain-Driven-Design.md#mihin-sääntö-kuuluu-nyrkkisääntö)
 
 ---
 

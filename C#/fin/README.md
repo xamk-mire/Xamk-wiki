@@ -50,6 +50,7 @@ Lisäesimerkit
 Materiaalit, jotka eivät ole suoraan C#-kieleen liittyviä:
 - [IDE](99-General/IDE.md)
 - [GitHub (Git)](99-General/GitHub.md)
+- [Haarat ja pull request](99-General/Git-Haarat-ja-Pull-Request.md)
 - [Algoritmi](99-General/Algorithm.md)
 - [Pseudokoodaus](99-General/Pseudocode.md)
 - [UML](99-General/UML.md)

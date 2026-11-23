@@ -9,9 +9,14 @@
 5. [Keskeiset käsitteet](#keskeiset-käsitteet)
 6. [Strategic Design](#strategic-design)
 7. [Tactical Design](#tactical-design)
+   - [Invariantti](#invariantti)
+   - [Aneeminen ja rikas malli](#aneeminen-ja-rikas-malli)
+   - [Mihin sääntö kuuluu? (nyrkkisääntö)](#mihin-sääntö-kuuluu-nyrkkisääntö)
+   - [Ei entiteetti eikä value object](#ei-entiteetti-eikä-value-object)
+   - [Milloin value objectia ei kannata tehdä](#milloin-value-objectia-ei-kannata-tehdä)
 8. [DDD ja arkkitehtuurit](#ddd-ja-arkkitehtuurit)
 9. [Edut ja haitat](#edut-ja-haitat)
-10. [Milloin käyttää DDD:tä?](#milloin-käyttää-ddtä)
+10. [Milloin käyttää DDD:tä?](#milloin-käyttää-dddtä)
 11. [Parhaat käytännöt](#parhaat-käytännöt)
 12. [Yhteenveto](#yhteenveto)
 
@@ -166,7 +171,7 @@ public class OrderController : Controller
 }
 
 // Liiketoimintalogiikka domain-mallissa ✅
-public class Order : Entity
+public class Order : Entity<OrderId>
 {
     public void PlaceOrder(Customer customer, List<OrderItem> items)
     {
@@ -422,10 +427,9 @@ namespace CustomerContext
 **Esimerkki:**
 
 ```csharp
-public class Order : Entity
+public class Order : Entity<OrderId>
 {
-    // Identiteetti
-    public OrderId Id { get; private set; }
+    // Identiteetti (Id) tulee kantaluokasta Entity<OrderId>
     
     // Muuttuvia arvoja
     public OrderStatus Status { get; private set; }
@@ -462,13 +466,21 @@ public class Order : Entity
     }
 }
 
-// Base class
-public abstract class Entity
+// Base class: tunniste, vertailu ja domain-tapahtumien lista
+public abstract class Entity<TId> where TId : notnull
 {
-    public override bool Equals(object obj)
+    public TId Id { get; protected set; } = default!;
+    
+    private readonly List<IDomainEvent> _domainEvents = new();
+    public IReadOnlyList<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+    
+    protected void AddDomainEvent(IDomainEvent domainEvent) => _domainEvents.Add(domainEvent);
+    public void ClearDomainEvents() => _domainEvents.Clear();
+    
+    public override bool Equals(object? obj)
     {
         // Vertailu ID:n perusteella
-        if (obj is not Entity other)
+        if (obj is not Entity<TId> other || other.GetType() != GetType())
             return false;
             
         return Id.Equals(other.Id);
@@ -477,6 +489,8 @@ public abstract class Entity
     public override int GetHashCode() => Id.GetHashCode();
 }
 ```
+
+`IDomainEvent` esitellään alempana kohdassa Domain Event.
 
 **Milloin käyttää?**
 - Kun identiteetti on tärkeä (esim. Order, Customer, Product)
@@ -644,9 +658,8 @@ public class Email : ValueObject
 
 ```csharp
 // Aggregate Root
-public class Order : Entity, IAggregateRoot
+public class Order : Entity<OrderId>, IAggregateRoot
 {
-    public OrderId Id { get; private set; }
     public CustomerId CustomerId { get; private set; }
     public OrderStatus Status { get; private set; }
     public Money TotalAmount { get; private set; }
@@ -655,9 +668,7 @@ public class Order : Entity, IAggregateRoot
     private readonly List<OrderItem> _items = new();
     public IReadOnlyList<OrderItem> Items => _items.AsReadOnly();
     
-    // Domain events
-    private readonly List<IDomainEvent> _domainEvents = new();
-    public IReadOnlyList<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+    // Domain-tapahtumien lista (DomainEvents, AddDomainEvent) tulee kantaluokasta
     
     // Kaikki muutokset Aggregate Root:n kautta
     public void AddItem(ProductId productId, int quantity, Money unitPrice)
@@ -698,7 +709,7 @@ public class Order : Entity, IAggregateRoot
             throw new DomainException("Only draft orders can be submitted");
             
         Status = OrderStatus.Submitted;
-        _domainEvents.Add(new OrderSubmittedEvent(Id, CustomerId, TotalAmount));
+        AddDomainEvent(new OrderSubmittedEvent(Id, CustomerId, TotalAmount));
     }
     
     private void ValidateCanModify()
@@ -715,9 +726,8 @@ public class Order : Entity, IAggregateRoot
 }
 
 // Internal Entity - osa Aggregatea
-public class OrderItem : Entity
+public class OrderItem : Entity<OrderItemId>
 {
-    public OrderItemId Id { get; private set; }
     public ProductId ProductId { get; private set; }
     public int Quantity { get; private set; }
     public Money UnitPrice { get; private set; }
@@ -807,12 +817,9 @@ public class OrderSubmittedEvent : IDomainEvent
     }
 }
 
-// Käyttö
-public class Order : Entity, IAggregateRoot
+// Käyttö: lista ja metodit AddDomainEvent / ClearDomainEvents ovat kantaluokassa Entity<TId>
+public class Order : Entity<OrderId>, IAggregateRoot
 {
-    private readonly List<IDomainEvent> _domainEvents = new();
-    public IReadOnlyList<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
-    
     public void Submit()
     {
         // ... validointi ...
@@ -820,12 +827,7 @@ public class Order : Entity, IAggregateRoot
         Status = OrderStatus.Submitted;
         
         // Lisää domain event
-        _domainEvents.Add(new OrderSubmittedEvent(Id, CustomerId, TotalAmount));
-    }
-    
-    public void ClearDomainEvents()
-    {
-        _domainEvents.Clear();
+        AddDomainEvent(new OrderSubmittedEvent(Id, CustomerId, TotalAmount));
     }
 }
 
@@ -868,7 +870,6 @@ public interface IOrderRepository
     Task<List<Order>> GetByCustomerIdAsync(CustomerId customerId);
     Task AddAsync(Order order);
     Task UpdateAsync(Order order);
-    Task DeleteAsync(OrderId id);
 }
 
 // Infrastructure Layer - Implementation
@@ -908,6 +909,8 @@ public class OrderRepository : IOrderRepository
     }
 }
 ```
+
+Repository hakee ja tallentaa. Se ei päätä liiketoimintasääntöjä, ja sen metodit tulevat käyttötapausten tarpeista. Siksi rajapinnassa ei ole esimerkiksi `DeleteAsync`-metodia, jos mikään käyttötapaus ei poista tilausta. Lisää: [Repository Pattern](../Patterns/Repository-Pattern.md#mitä-repository-tekee-ja-mitä-ei).
 
 #### 6. Domain Service
 
@@ -949,36 +952,205 @@ public class OrderPricingService : IOrderPricingService
 
 **Factory** luo monimutkaisia olioita.
 
+Yksinkertaisin factory on entiteetin oma **staattinen tehdasmetodi**. Se on luokan sisällä, joten se saa asettaa private-setterit. Erillinen `OrderFactory`-luokka ei pystyisi siihen: setterit ovat `private`, eikä koodi kääntyisi.
+
 **Esimerkki:**
 
 ```csharp
-public class OrderFactory
+public class Order : Entity<OrderId>, IAggregateRoot
 {
-    public static Order CreateDraftOrder(CustomerId customerId)
+    // Private-konstruktori: tilauksen voi luoda vain tehdasmetodilla
+    private Order() { }
+    
+    public static Order CreateDraft(CustomerId customerId)
     {
         return new Order
         {
             Id = OrderId.New(),
             CustomerId = customerId,
             Status = OrderStatus.Draft,
-            TotalAmount = Money.Zero("EUR"),
+            TotalAmount = new Money(0, "EUR"),
             CreatedAt = DateTime.UtcNow
         };
     }
     
-    public static Order CreateFromExisting(Order existingOrder)
+    public static Order CreateFrom(Order existingOrder)
     {
-        var newOrder = CreateDraftOrder(existingOrder.CustomerId);
+        Order newOrder = CreateDraft(existingOrder.CustomerId);
         
-        foreach (var item in existingOrder.Items)
+        foreach (OrderItem item in existingOrder.Items)
         {
             newOrder.AddItem(item.ProductId, item.Quantity, item.UnitPrice);
         }
         
         return newOrder;
     }
+    
+    // ... ominaisuudet ja muut metodit kuten yllä ...
 }
 ```
+
+### Invariantti
+
+**Invariantti** on sääntö, jonka pitää olla voimassa aina. Ei vain tallennushetkellä, vaan jokaisen metodikutsun jälkeen.
+
+Esimerkkejä sarjasovelluksesta, jossa on joukkueita ja otteluita:
+
+- Ottelun koti- ja vierasjoukkue eivät ole sama joukkue.
+- Ottelun tulos kirjataan vain kerran.
+- Maalimäärä ei ole negatiivinen.
+
+**Minkä ongelman se ratkaisee?** Jos sääntö tarkistetaan vain yhdessä servicessä, toinen koodipolku voi ohittaa sen. Silloin tietokantaan päätyy olio, jonka ei pitäisi olla mahdollinen. Kun olio itse vartioi invarianttiaan, virheellistä oliota ei voi olla olemassa.
+
+**Kuka sen omistaa?** Invariantti, joka koskee vain olion omaa dataa, kuuluu oliolle itselleen: entiteetille tai value objectille. Se tarkistetaan konstruktorissa ja jokaisessa metodissa, joka muuttaa tilaa.
+
+**Mikä ei ole invariantti?** Syötteen muototarkistus ("kenttä ei saa olla tyhjä JSON:ssa") on controllerin asia. Sääntö, joka vaatii haun tietokannasta ("nimi on vapaana"), ei ole yhden olion invariantti. Se tarkistetaan use casessa.
+
+### Aneeminen ja rikas malli
+
+**Aneeminen malli** (anemic model) on luokka, jossa on vain dataa. Säännöt ovat jossain muualla, yleensä servicessä.
+
+```csharp
+// Aneeminen: kuka tahansa voi asettaa minkä tahansa arvon
+public class Match
+{
+    public int Id { get; set; }
+    public int HomeTeamId { get; set; }
+    public int AwayTeamId { get; set; }
+    public int? HomeGoals { get; set; }
+    public int? AwayGoals { get; set; }
+}
+```
+
+Mikään ei estä kirjoittamasta `match.AwayTeamId = match.HomeTeamId;` tai kirjaamasta tulosta toiseen kertaan.
+
+**Rikas malli** (rich model) on luokka, joka luodaan ja jota muutetaan vain sen omilla metodeilla. Metodit tarkistavat invariantit.
+
+```csharp
+// Rikas: olio vartioi omia sääntöjään
+public class Match
+{
+    public int Id { get; private set; }
+    public int HomeTeamId { get; private set; }
+    public int AwayTeamId { get; private set; }
+    public int? HomeGoals { get; private set; }
+    public int? AwayGoals { get; private set; }
+
+    public bool HasResult => HomeGoals.HasValue;
+
+    public Match(int homeTeamId, int awayTeamId)
+    {
+        if (homeTeamId == awayTeamId)
+            throw new InvalidOperationException("Koti- ja vierasjoukkue eivät voi olla sama");
+
+        HomeTeamId = homeTeamId;
+        AwayTeamId = awayTeamId;
+    }
+
+    public void RecordResult(int homeGoals, int awayGoals)
+    {
+        if (HasResult)
+            throw new InvalidOperationException("Tulos on jo kirjattu");
+
+        if (homeGoals < 0 || awayGoals < 0)
+            throw new ArgumentException("Maalimäärä ei voi olla negatiivinen");
+
+        HomeGoals = homeGoals;
+        AwayGoals = awayGoals;
+    }
+}
+```
+
+| | Aneeminen malli | Rikas malli |
+|---|---|---|
+| Setterit | `public` | `private` |
+| Säännöt | Servicessä | Oliossa itsessään |
+| Voiko olio olla virheellisessä tilassa? | Kyllä | Ei |
+| Säännön testaus | Tarvitaan service ja usein korvike repositorylle | `new Match(...)` ja metodikutsu riittää |
+
+**Milloin aneeminen malli riittää?** Kun sovelluksessa ei ole juuri sääntöjä ja se vain tallentaa ja näyttää dataa. Silloin rikas malli on turhaa työtä. Myös DTO:t ovat tarkoituksella pelkkää dataa.
+
+### Mihin sääntö kuuluu? (nyrkkisääntö)
+
+Kysy: **mitä dataa tarkistus tarvitsee?**
+
+- Tarvitsee vain olion omaa dataa → **entiteetti tai value object**.
+- Tarvitsee haun tai toisen olion → **use case** (Application-kerros).
+
+| Sääntö | Mitä dataa tarvitaan | Paikka |
+|---|---|---|
+| Koti- ja vierasjoukkue eivät saa olla sama | Ottelun omat kaksi kenttää | Entiteetti (`Match`) |
+| Molempien joukkueiden pitää olla olemassa | Haku joukkueiden tallennuksesta | Use case |
+| Pelinumeron pitää olla positiivinen | Pelkkä numero | Entiteetti tai value object |
+| Pelinumero on joukkueen sisällä uniikki | Joukkueen muiden pelaajien numerot | Use case |
+
+Use case näyttää silloin tältä: hae, tarkista se mikä vaatii haun, kutsu olion metodia, tallenna.
+
+```csharp
+public async Task ExecuteAsync(int homeTeamId, int awayTeamId)
+{
+    // Vaatii haun -> use case tarkistaa
+    if (await _teams.GetByIdAsync(homeTeamId) == null ||
+        await _teams.GetByIdAsync(awayTeamId) == null)
+        throw new ArgumentException("Joukkuetta ei löydy");
+
+    // Koskee vain ottelun omaa dataa -> konstruktori tarkistaa
+    Match match = new Match(homeTeamId, awayTeamId);
+
+    await _matches.AddAsync(match);
+}
+```
+
+**Repository ei päätä sääntöä.** Se hakee ja tallentaa. Jos repositoryssa on metodi, jonka nimi kuulostaa säännöltä (esimerkiksi `IsNumberTaken`), sääntö on valunut väärään paikkaan. Parempi on kysely, joka palauttaa dataa, ja päätös tehdään use casessa.
+
+**Controller ei päätä sääntöä.** Se muuntaa pyynnön kutsuksi ja tuloksen statuskoodiksi.
+
+Jos uniikkiussääntö koskee olioita, jotka kuuluvat samaan aggregaattiin (joukkue omistaa pelaajansa), aggregaatin juuri voi tarkistaa sen itse. Nyrkkisääntö pätee silloinkin: tarkistus on siellä, missä tarvittava data on.
+
+### Ei entiteetti eikä value object
+
+Kaikki mallin käsitteet eivät ole entiteettejä tai value objecteja. Kaksi tavallista tapausta:
+
+**1. Pelkkä arvo jonkun toisen datassa**
+
+Pelaajan pelinumero on `int`-kenttä `Player`-entiteetissä. Sillä ei ole identiteettiä, joten se ei ole entiteetti. Sille ei myöskään ole tehty omaa luokkaa, joten se ei ole value object. Se on vain entiteetin ominaisuus, ja entiteetti tarkistaa sen säännön (positiivinen).
+
+**2. Laskettu näkymä**
+
+Sarjataulukko lasketaan otteluiden tuloksista. Sitä ei tallenneta, eikä sillä ole omia sääntöjä tai identiteettiä. Se on **lukumalli** (read model): luokka, joka on tehty vain näyttämistä varten.
+
+```csharp
+// Application-kerros: lukumalli, ei entiteetti
+public record StandingsRow(string TeamName, int Played, int Wins, int Draws, int Losses, int Points);
+```
+
+| Käsite | Mikä se on | Missä kerroksessa |
+|---|---|---|
+| Joukkue, ottelu | Entiteetti | Domain |
+| Pelinumero | Entiteetin kenttä (`int`) | Domain, osana entiteettiä |
+| Sarjataulukko | Lukumalli, lasketaan pyydettäessä | Application |
+
+**Miksi lukumalli on Applicationissa?** Sarjataulukon laskeminen on käyttötapaus: "näytä sarjatilanne". Se lukee otteluita ja muodostaa niistä näkymän. Domainiin kuuluvat ne oliot, joilla on tila ja säännöt.
+
+**Miksi sitä ei tallenneta?** Tallennettu taulukko olisi kopio tiedosta, joka on jo otteluissa. Kopio voi jäädä vanhaksi. Tallentaminen kannattaa vasta, jos laskeminen on mitatusti liian hidasta.
+
+### Milloin value objectia ei kannata tehdä
+
+Value objectia ei tehdä siksi, että DDD:ssä on sellaisia. Jokainen uusi luokka on lisää koodia, joka pitää lukea, testata ja kertoa tietokannalle.
+
+Value object ansaitsee paikkansa, kun toinen näistä pätee:
+
+- **Arvolla on omia sääntöjä**, jotka muuten toistuisivat monessa paikassa. Esimerkki: sähköpostiosoitteen muoto.
+- **Arvossa on useita kenttiä, jotka kuuluvat yhteen.** Esimerkki: rahasumma ja valuutta, tai ottelun tulos (kotimaalit ja vierasmaalit).
+
+| Arvo | Value object? | Perustelu |
+|---|---|---|
+| Rahasumma + valuutta | Kyllä | Kaksi kenttää kuuluu yhteen, ja laskusäännöt ovat omat |
+| Ottelun tulos (2–1) | Usein kyllä | Kaksi kenttää kuuluu yhteen, ja voittaja päätellään niistä |
+| Joukkueen nimi | Yleensä ei | Yksi `string`, yksi tarkistus entiteetin konstruktorissa riittää |
+| Pelinumero | Yleensä ei | Yksi `int`, yksi tarkistus entiteetissä riittää |
+
+Jos epäröit, aloita kentällä ja tarkistuksella entiteetissä. Tee value object vasta, kun sama tarkistus alkaa toistua toisessa paikassa.
 
 ---
 
@@ -1172,17 +1344,19 @@ Order + OrderItems
 Order + OrderItems + Customer + Products + Inventory + ...
 ```
 
-### 4. Käytä Value Objects ahkerasti
+### 4. Käytä Value Objecteja, kun arvolla on omia sääntöjä
 
 ```csharp
-// ❌ Huono
+// ❌ Huono: sähköpostin muoto ja summan valuutta pitää tarkistaa joka paikassa erikseen
 public string Email { get; set; } // Ei validointia
-public decimal Amount { get; set; } // Ei kontrollia
+public decimal Amount { get; set; } // Ei valuuttaa
 
-// ✅ Hyvä
-public Email Email { get; set; } // Validoitu Value Object
-public Money Amount { get; set; } // Kapseloitu Value Object
+// ✅ Hyvä: sääntö on yhdessä paikassa
+public Email Email { get; private set; } // Validoitu Value Object
+public Money Amount { get; private set; } // Summa ja valuutta yhdessä
 ```
+
+Älä silti kääri jokaista `string`- ja `int`-kenttää omaan luokkaansa. Katso [Milloin value objectia ei kannata tehdä](#milloin-value-objectia-ei-kannata-tehdä).
 
 ### 5. Domain Events välittämään muutoksia
 
@@ -1191,7 +1365,7 @@ public Money Amount { get; set; } // Kapseloitu Value Object
 public void Submit()
 {
     Status = OrderStatus.Submitted;
-    AddDomainEvent(new OrderSubmittedEvent(Id)); // ← Event
+    AddDomainEvent(new OrderSubmittedEvent(Id, CustomerId, TotalAmount)); // ← Event
 }
 ```
 
@@ -1212,12 +1386,11 @@ IOrderItemRepository // OrderItem ei ole Aggregate Root!
 [Fact]
 public void Order_AddItem_IncreasesTotalAmount()
 {
-    // Arrange
-    var order = new Order();
-    var product = new Product();
+    // Arrange: ei tietokantaa eikä korvikkeita, pelkkä olio
+    Order order = Order.CreateDraft(CustomerId.New());
     
     // Act
-    order.AddItem(product.Id, 2, new Money(10, "EUR"));
+    order.AddItem(ProductId.New(), 2, new Money(10, "EUR"));
     
     // Assert
     Assert.Equal(new Money(20, "EUR"), order.TotalAmount);

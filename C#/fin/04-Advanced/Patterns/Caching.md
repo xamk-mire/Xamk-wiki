@@ -30,9 +30,11 @@ User → API → Database (50ms)  ← Sama kysely taas!
 
 Cachella:
 User → API → Database (50ms) → Tallenna cacheen
-User → API → Cache (0.5ms)    ✅ 100× nopeampi!
+User → API → Cache (0.5ms)    ✅ Ei tietokantakyselyä
 User → API → Cache (0.5ms)    ✅
 ```
+
+Millisekunnit ovat tällä sivulla suuntaa antavia esimerkkejä. Todellinen ero riippuu kyselystä, tietokannasta ja verkosta, joten mittaa se omassa sovelluksessasi.
 
 ---
 
@@ -72,19 +74,12 @@ var product = await GetProductAsync(123);  // 0.5ms ← Cachesta!
 ```
 
 **Edut:**
-- ✅ **100× nopeampi** vastausaika (0.5ms vs 50ms)
-- ✅ **90% vähemmän** database-kyselyitä
-- ✅ **Parempi UX** - Instant response
-- ✅ **Alhaisemmat kustannukset** - Vähemmän database CPU/IOPS
+- ✅ **Nopeampi vastausaika**: muistista lukeminen on selvästi nopeampaa kuin tietokantakysely
+- ✅ **Vähemmän tietokantakyselyitä**: sama data haetaan tietokannasta vain kerran
+- ✅ **Parempi käyttökokemus**: sivu latautuu nopeammin
+- ✅ **Pienempi kuorma tietokannalle**, mikä voi myös laskea kustannuksia
 
-### Performance-vertailu
-
-| Metrikka | Ilman cachea | Cachella | Parannus |
-|----------|--------------|----------|----------|
-| Vastausaika | 50ms | 0.5ms | **100×** |
-| DB kyselyt/min | 1000 | 100 | **90% vähennys** |
-| DB CPU | 80% | 10% | **88% vähennys** |
-| Kustannukset | 200€/kk | 50€/kk | **75% säästö** |
+**Hinta:** välimuistissa oleva data voi olla vanhaa. Suurin osa tästä sivusta käsittelee sitä, miten vanhentunut data poistetaan oikeaan aikaan (katso [Cache Invalidation](#cache-invalidation)).
 
 ---
 
@@ -92,7 +87,11 @@ var product = await GetProductAsync(123);  // 0.5ms ← Cachesta!
 
 ### 1. Cache-Aside (Lazy Loading)
 
-**Yleisin strategia.**
+**Yleisin strategia.** Sovellus hoitaa välimuistin itse kolmessa vaiheessa:
+
+1. **Katso välimuistista.** Jos data löytyy (*cache hit*), palauta se.
+2. **Jos ei löydy (*cache miss*), lue lähteestä.** Lähde on yleensä tietokanta.
+3. **Tallenna tulos välimuistiin** ja palauta se. Seuraava kysyjä saa datan vaiheessa 1.
 
 ```csharp
 public async Task<Product> GetProductAsync(int id)
@@ -151,7 +150,7 @@ public class CachedRepository<T>
 
 ### 3. Write-Through Cache
 
-**Kirjoitus menee ensin cacheen, sitten DB:hen.**
+**Jokainen kirjoitus päivittää samalla kertaa sekä tietokannan että cachen.** Cache on siis heti kirjoituksen jälkeen ajan tasalla. Tässä esimerkissä tietokanta päivitetään ensin: jos se epäonnistuu, cacheen ei jää dataa, jota tietokannassa ei ole.
 
 ```csharp
 public async Task UpdateProductAsync(Product product)
@@ -299,7 +298,7 @@ public async Task<IActionResult> GetProduct(int id)
 ```
 
 **Edut:**
-- ✅ Browser cachettaa automaattisesti
+- ✅ Selain tallentaa vastauksen välimuistiin automaattisesti
 - ✅ Vähentää API-kuormaa
 
 **Haitat:**
@@ -496,8 +495,8 @@ _cache.Set("product_1", product, TimeSpan.FromMinutes(5));
 - ✅ Ei ylläpitoa
 
 **Haitat:**
-- ❌ Data voi olla vanhentunutta 5 minuuttia
-- ❌ Cache voi vanhentua liian aikaisin
+- ❌ Data on vanhaa siihen asti, kun aikaraja täyttyy (tässä enintään 5 minuuttia)
+- ❌ Cache voi vanhentua, vaikka data ei ole muuttunut, jolloin se haetaan turhaan uudestaan
 
 ### Ratkaisu 2: Event-based Invalidation
 
@@ -519,25 +518,34 @@ public async Task UpdateProductAsync(Product product)
 - ✅ Data aina ajantasalla
 
 **Haitat:**
-- ❌ Pitää muistaa poistaa cache joka paikassa
+- ❌ Jokaisen kirjoituspolun pitää muistaa poistaa cache. Jos yksi unohtaa, data jää vanhaksi.
 
 ### Ratkaisu 3: Cache Tags
 
-**Ryhmittele cachet tagien mukaan.**
+**Ryhmittele cachet tagien mukaan.** Tagi on merkintä, jolla monta cache-avainta voi poistaa yhdellä kutsulla.
+
+`IMemoryCache` **ei tue tageja**: siinä ei ole `AddTag`- tai `RemoveByTag`-metodia. Tagit löytyvät `HybridCache`-kirjastosta (`Microsoft.Extensions.Caching.Hybrid`, .NET 9:stä alkaen):
 
 ```csharp
-// Tallenna tag:ien kanssa
-_cache.Set("product_1", product, new MemoryCacheEntryOptions()
-    .AddTag("products"));
-
-_cache.Set("product_2", product, new MemoryCacheEntryOptions()
-    .AddTag("products"));
-
-// Poista kaikki "products"-tagilla
-_cache.RemoveByTag("products");
+// Program.cs
+builder.Services.AddHybridCache();
 ```
 
-**Huom:** Vaatii extension-kirjaston (esim. `EasyCaching`).
+```csharp
+// Tallenna tagin kanssa (HybridCache _hybridCache)
+var product = await _hybridCache.GetOrCreateAsync(
+    $"product_{id}",
+    async ct => await _repository.GetByIdAsync(id, ct),
+    tags: new[] { "products" },
+    cancellationToken: cancellationToken);
+
+// Poista kaikki "products"-tagilla merkityt
+await _hybridCache.RemoveByTagAsync("products", cancellationToken);
+```
+
+Myös ASP.NET Coren output caching tukee tageja (`[OutputCache(Tags = ...)]` ja `IOutputCacheStore.EvictByTagAsync`). Pelkällä `IMemoryCache`lla saman voi tehdä alla olevalla tokenilla (Ratkaisu 4).
+
+**Microsoft:** [HybridCache library in ASP.NET Core](https://learn.microsoft.com/en-us/aspnet/core/performance/caching/hybrid)
 
 ### Ratkaisu 4: Cache Dependencies
 
@@ -555,21 +563,87 @@ cts.Cancel();  // Poistaa kaikki cachet jotka riippuvat tästä tokenista
 
 ### Best Practice: Yhdistä strategiat
 
+Tapahtumapohjainen tyhjennys pitää datan tuoreena. Aikaraja on turvaverkko: jos jokin kirjoituspolku unohtaa tyhjentää cachen, vanha data poistuu silti viimeistään aikarajan jälkeen.
+
 ```csharp
+// Kirjoitus: poista heti (event-based)
 public async Task UpdateProductAsync(Product product)
 {
     await _repository.UpdateAsync(product);
-    
-    // 1. Poista heti (event-based)
+
     _cache.Remove($"product_{product.Id}");
-    
-    // 2. Mutta aseta myös expiration (safety net)
-    var options = new MemoryCacheEntryOptions
-    {
-        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
-    };
+}
+
+// Luku: aseta aikaraja aina kun tallennat cacheen (turvaverkko)
+public async Task<Product?> GetProductAsync(int id)
+{
+    return await _cache.GetOrCreateAsync(
+        $"product_{id}",
+        async entry =>
+        {
+            entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10);
+            return await _repository.GetByIdAsync(id);
+        });
 }
 ```
+
+### Järjestys: tallenna, tyhjennä, ilmoita
+
+Kun muutos kirjataan, tehdään usein kolme asiaa: data tallennetaan, välimuisti tyhjennetään ja selaimille ilmoitetaan muutoksesta (esimerkiksi [SignalR](../SignalR/README.md):llä). Järjestyksellä on väliä.
+
+```csharp
+// Command-handlerissa: otteluun kirjataan tulos, sarjataulukko muuttuu
+await _matches.SaveAsync(match, ct);                          // 1. tallenna
+_standingsCache.Clear();                                      // 2. tyhjennä välimuisti
+await _notifier.StandingsChangedAsync(match.LeagueId, ct);    // 3. ilmoita selaimille
+```
+
+Mitä tapahtuu, jos järjestys on väärä:
+
+| Väärä järjestys | Seuraus |
+|---|---|
+| **Ilmoitus ennen välimuistin tyhjennystä** | Selaimet hakevat sarjataulukon heti ilmoituksen saatuaan. Välimuistissa on vielä vanha taulukko, joten ne saavat vanhan datan. |
+| **Tyhjennys ennen tallennusta** | Samaan aikaan tuleva lukupyyntö ei löydä dataa välimuistista. Se lukee tietokannasta vanhan tilan, koska tallennus on vielä kesken, ja laittaa sen takaisin välimuistiin. Vanha data jää sinne aikarajan loppuun asti. |
+
+Muistisääntö: jokainen vaihe tehdään vasta, kun edellinen on valmis. Ensin totuus on tietokannassa, sitten vanha kopio poistetaan, ja vasta sitten muita pyydetään hakemaan.
+
+### Välimuisti omassa kerroksessaan
+
+Yllä handler kutsuu `_standingsCache.Clear()`. Handler on Application-kerroksessa, eikä se saa riippua välimuistin tekniikasta. Ratkaisu on sama kuin repositoryssa: **rajapinta määritellään Application-kerroksessa, toteutus on Infrastructure-kerroksessa.**
+
+```csharp
+// Application: handler tuntee vain tämän
+public interface IStandingsCache
+{
+    void Clear();
+}
+```
+
+```csharp
+// Infrastructure: ainoa paikka, jossa IMemoryCache näkyy
+public class MemoryStandingsCache : IStandingsCache
+{
+    public const string Key = "standings";
+
+    private readonly IMemoryCache _cache;
+
+    public MemoryStandingsCache(IMemoryCache cache)
+    {
+        _cache = cache;
+    }
+
+    public void Clear()
+    {
+        _cache.Remove(Key);
+    }
+}
+```
+
+Handler ei näe `IMemoryCache`a lainkaan. Se sanoo vain "tyhjennä sarjataulukon välimuisti". Jos välimuisti vaihdetaan myöhemmin Redisiin, muutos tehdään Infrastructure-kerrokseen eikä handleriin kosketa. Handlerin testissä rajapinnan tilalle annetaan tekaistu toteutus.
+
+Lukupuolella välimuisti lisätään samassa kerroksessa decoratorilla: katso [Decorator Pattern cachingille](#decorator-pattern-cachingille).
+
+**Milloin tätä ei tarvita?** Kun sovelluksessa ei ole erillisiä kerroksia tai välimuistia käytetään vain aikarajalla ilman tyhjennystä. Silloin rajapinta ei ratkaise mitään.
 
 ---
 
@@ -659,10 +733,12 @@ public class CachedProductRepository : IProductRepository
 }
 ```
 
+**Missä decorator asuu?** `CachedProductRepository` kuuluu Infrastructure-kerrokseen, koska se tuntee `IMemoryCache`n. Rajapinta `IProductRepository` on Application-kerroksessa. Tarkemmin: [Decorator Pattern](Decorator-Pattern.md).
+
 ### DI Registration
 
 ```csharp
-// Program.cs / Startup.cs
+// Program.cs (tässä services = builder.Services)
 
 services.AddMemoryCache();
 
@@ -757,16 +833,18 @@ public class ProductService
 
 | Aspekti | IMemoryCache | IDistributedCache (Redis) |
 |---------|--------------|---------------------------|
-| **Nopeus** | ⚡⚡ Nopein (0.001ms) | ⚡ Nopea (1-5ms) |
+| **Nopeus** | ⚡⚡ Nopein (luku omasta muistista) | ⚡ Nopea (verkkokutsu ja serialisointi) |
 | **Jaettu** | Ei (per server) | Kyllä (kaikki serverit) |
 | **Persistenssi** | Häviää restartin yhteydessä | Voidaan säilyttää |
 | **Skalautuvuus** | Rajoitettu | Erinomainen |
-| **Kustannus** | Ilmainen | 20-100€/kk |
+| **Kustannus** | Ei erillistä kustannusta | Erillinen palvelu, josta maksetaan |
 | **Käyttö** | Yksittäinen server | Load-balanced API:t |
 
 ### Hybrid Cache (Two-tier)
 
 **Yhdistä IMemoryCache + Redis.**
+
+.NET 9:stä alkaen tähän on valmis kirjasto, `HybridCache` (`Microsoft.Extensions.Caching.Hybrid`). Se hoitaa kaksi tasoa, serialisoinnin, tagit ja cache stampede -suojan. Käytä uudessa koodissa sitä: [Microsoft: HybridCache](https://learn.microsoft.com/en-us/aspnet/core/performance/caching/hybrid). Alla oleva käsin kirjoitettu luokka näyttää vain, mitä kahden tason välimuisti sisältä tekee.
 
 ```csharp
 public class HybridCacheService
@@ -798,9 +876,9 @@ public class HybridCacheService
 ```
 
 **Edut:**
-- L1: Erittäin nopea (0.001ms)
+- L1: Erittäin nopea, koska data on sovelluksen omassa muistissa
 - L2: Jaettu kaikille servereille
-- Parhaat puolet molemmista
+- Molempien hyödyt samassa ratkaisussa
 
 ---
 
@@ -808,17 +886,22 @@ public class HybridCacheService
 
 ### 1. Cache vain kannattavaa dataa
 
+Nyrkkisääntö: cacheta dataa, jota **luetaan usein ja joka muuttuu harvoin**.
+
 **Cachettamisen arvoista:**
-- ✅ Usein haettu data (käyttäjäprofiili, tuotteet)
+- ✅ Usein haettu data (tuotteet, sarjataulukko)
 - ✅ Kallis laskenta (raportit, aggregaatit)
 - ✅ Ulkoiset API-kutsut (sää, valuuttakurssit)
 - ✅ Harvoin muuttuva data (kategoriat, asetukset)
 
 **Älä cacheta:**
+- ❌ Dataa, jonka sääntötarkistus tarvitsee tuoreena. Jos handler päättää välimuistin perusteella, onko tuotetta varastossa tai onko tulos jo kirjattu, se voi päättää vanhan tiedon pohjalta. Sääntö tarkistetaan aina tietokannasta haetusta entiteetistä.
 - ❌ Jatkuvasti muuttuva data (stock prices)
-- ❌ Käyttäjäkohtainen data (salasanat, tokenit)
+- ❌ Salaisuudet (salasanat, tokenit)
 - ❌ Erittäin suuri data (videot, suuret tiedostot)
 - ❌ Data joka haetaan vain kerran
+
+**Käyttäjäkohtainen data** (esimerkiksi käyttäjäprofiili) ei ole kielletty, mutta se vaatii tarkkuutta. Avaimessa pitää olla käyttäjän tunniste, muuten yksi käyttäjä näkee toisen tiedot (katso [Anti-patterns](#anti-patterns), kohta 3). Hyöty on myös pienempi, koska saman rivin lukee vain yksi käyttäjä.
 
 ### 2. Käytä oikeaa cache duration:ia
 
@@ -876,7 +959,7 @@ if (_cache.TryGetValue(key, out var value))
 _metrics.Misses++;
 ```
 
-**Tavoitteet:**
+**Suuntaa antavat tavoitteet (nyrkkisääntö, ei standardi):**
 - **70-90% hit rate** = Hyvä
 - **>90% hit rate** = Erinomainen
 - **<50% hit rate** = Tarkista strategia
@@ -946,12 +1029,12 @@ var product = await _db.Products
 
 ## Anti-patterns
 
-### 1. Cachettaa kaikki
+### 1. Kaiken cachettaminen
 
 **❌ Älä:**
 
 ```csharp
-// Cachettaa jokainen database-kysely
+// Jokainen database-kysely cacheen
 _cache.Set("everything", await _db.Everything.ToListAsync());
 ```
 
@@ -964,7 +1047,7 @@ _cache.Set("everything", await _db.Everything.ToListAsync());
 - Usein haettu data
 - Kallis laskenta
 
-### 2. Unohtaa cache invalidation
+### 2. Cache invalidationin unohtaminen
 
 **❌ Älä:**
 
@@ -987,7 +1070,7 @@ public async Task UpdateProductAsync(Product product)
 }
 ```
 
-### 3. Cachettaa käyttäjäkohtaista dataa väärällä key:llä
+### 3. Käyttäjäkohtaisen datan cachettaminen väärällä key:llä
 
 **❌ Älä:**
 
@@ -1018,7 +1101,7 @@ _cache.Set("products", products, TimeSpan.FromHours(24));
 _cache.Set("products", products, TimeSpan.FromMinutes(10));
 ```
 
-### 5. Syncronous cache calls distributed cachessa
+### 5. Synkroniset cache-kutsut distributed cachessa
 
 **❌ Älä:**
 
@@ -1046,8 +1129,9 @@ var value = await _cache.GetStringAsync(key);
 - ✅ Vastausajan pitää olla nopea
 
 **Älä cacheta kun:**
+- ❌ Sääntötarkistus tarvitsee datan tuoreena
 - ❌ Data muuttuu jatkuvasti
-- ❌ Data on käyttäjäkohtaista (salasanat, tokenit)
+- ❌ Data on salaista (salasanat, tokenit)
 - ❌ Data on erittäin suuri
 - ❌ Data haetaan vain kerran
 
@@ -1074,11 +1158,13 @@ var value = await _cache.GetStringAsync(key);
 
 ### Key Takeaways
 
-1. **Caching parantaa suorituskykyä merkittävästi** (10-100× nopeampi)
+1. **Caching nopeuttaa usein toistuvia lukuja** - Mittaa hyöty omassa sovelluksessasi
 2. **Cache invalidation on vaikeaa** - Suunnittele huolellisesti
 3. **Käytä Decorator Pattern:ia** - Separation of Concerns
 4. **Mittaa performance** - Hit rate, latenssi
 5. **Yhdistä time-based ja event-based invalidation**
+6. **Järjestys kirjoituksessa: tallenna, tyhjennä, ilmoita**
+7. **Handler tuntee vain oman kerroksensa rajapinnan** - `IMemoryCache` näkyy vain Infrastructure-kerroksessa
 
 ---
 
@@ -1088,6 +1174,7 @@ var value = await _cache.GetStringAsync(key);
 
 - [Microsoft: Caching in ASP.NET Core](https://learn.microsoft.com/en-us/aspnet/core/performance/caching/memory)
 - [Microsoft: Distributed caching](https://learn.microsoft.com/en-us/aspnet/core/performance/caching/distributed)
+- [Microsoft: HybridCache library in ASP.NET Core](https://learn.microsoft.com/en-us/aspnet/core/performance/caching/hybrid)
 - [Redis Documentation](https://redis.io/docs/)
 - [Cache-Aside Pattern](https://learn.microsoft.com/en-us/azure/architecture/patterns/cache-aside)
 
@@ -1095,13 +1182,15 @@ var value = await _cache.GetStringAsync(key);
 
 - **Microsoft.Extensions.Caching.Memory** - In-memory cache
 - **Microsoft.Extensions.Caching.StackExchangeRedis** - Redis
+- **Microsoft.Extensions.Caching.Hybrid** - HybridCache: kaksi tasoa (L1 + L2) ja tagit
 - **EasyCaching** - Cache abstractions + tags
 - **FusionCache** - Hybrid cache (L1 + L2)
 
-### Tehtävät
+### Liittyvät aiheet
 
-- **Clean Architecture API: Part 5 - Caching** *(kurssitehtävä Moodlessa)*
+- [Decorator Pattern](Decorator-Pattern.md) - Välimuistin lisääminen muuttamatta alkuperäistä luokkaa
+- [SignalR](../SignalR/README.md) - Selaimille ilmoittaminen välimuistin tyhjennyksen jälkeen
 
 ---
 
-**Hyvää cachetus-matkaa!** Muista: Cache vain kannattavaa, ja invalidoi oikein. 🚀
+**Muista:** cacheta vain kannattavaa, ja invalidoi oikein.

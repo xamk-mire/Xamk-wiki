@@ -22,7 +22,7 @@ Tällä kurssilla Gitiä käytetään Visual Studio Communityn (2022 tai 2026) *
 | **`.gitignore`** | Tekstitiedosto repon juuressa: lista siitä, mitä Git ei ota mukaan |
 | **Private** | Repo, jonka näkevät vain sinä ja kutsumasi henkilöt |
 
-Haarat, pull requestit ja merge-konfliktit tulevat jatkokurssilla. Et törmää niihin, kun olet reposi ainoa kirjoittaja.
+Haarat ja pull requestit selitetään omalla sivullaan: [Haarat ja pull request](Git-Haarat-ja-Pull-Request.md). Et tarvitse niitä vielä, kun olet reposi ainoa kirjoittaja.
 
 ## Kolme paikkaa
 
@@ -243,7 +243,7 @@ Terminaali avautuu Visual Studiossa **View → Terminal** solutionin kansioon. A
 - Kahdella koneella: pull → työtä → commit → push.
 - Koulutehtävät ovat **Private**. Opettajaa ei lisätä collaboratoriksi, ellei kurssin ohje pyydä.
 
-Seuraavaksi: [IDE](IDE.md) · [Markdown](Markdown.md) (repon `README.md`) · [Git and GitHub Usage Guidelines](../../../Development-guidelines/Git-and-Github.md) (komentorivi, englanniksi)
+Seuraavaksi: [IDE](IDE.md) · [Markdown](Markdown.md) (repon `README.md`) · [Haarat ja pull request](Git-Haarat-ja-Pull-Request.md) · [Git and GitHub Usage Guidelines](../../../Development-guidelines/Git-and-Github.md) (komentorivi, englanniksi)
 
 ## Hyödyllisiä linkkejä
 
